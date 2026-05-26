@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: practicas-backend
+
+jwt:
+  secret: ${JWT_SECRET:clave-secreta-avh-2026-practicas-empresariales-sistema}
+  expiration: 86400000
+
+mail:
+  mode: stub
