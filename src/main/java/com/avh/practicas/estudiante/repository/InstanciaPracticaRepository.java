@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPractica, Long> {
     boolean existsByExpedienteEstudianteProgramaIdAndEstadoIn(Long programaId, List<String> estados);
+    boolean existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(Long programaId, Integer numeroPractica, List<String> estados);
 }
