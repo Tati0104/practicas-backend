@@ -14,10 +14,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-/**
- * Entidad base para todas las entidades JPA del dominio.
- * Centraliza identificador y auditoría de fechas (DRY / SRP).
- */
 @Getter
 @Setter
 @MappedSuperclass

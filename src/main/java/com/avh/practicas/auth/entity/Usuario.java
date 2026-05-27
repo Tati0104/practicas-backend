@@ -8,6 +8,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,19 +29,27 @@ import java.time.LocalDateTime;
 @Builder
 public class Usuario extends BaseEntity {
 
+    @NotBlank
+    @Size(max = 150)
     @Column(nullable = false, length = 150)
     private String nombre;
 
+    @NotBlank
+    @Email
+    @Size(max = 150)
     @Column(nullable = false, unique = true, length = 150)
     private String correo;
 
+    @NotBlank
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Rol rol;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Scope scope;
