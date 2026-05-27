@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface CatalogoPracticaRepository extends JpaRepository<CatalogoPractica, Long> {
     List<CatalogoPractica> findByProgramaId(Long programaId);
     List<CatalogoPractica> findByProgramaIdAndActivoTrue(Long programaId);
+    Optional<CatalogoPractica> findByProgramaIdAndNumeroPractica(Long programaId, Integer numeroPractica);
     boolean existsByProgramaIdAndNumeroPractica(Long programaId, Integer numeroPractica);
     boolean existsByProgramaIdAndNumeroPracticaAndIdNot(Long programaId, Integer numeroPractica, Long id);
 }
