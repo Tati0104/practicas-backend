@@ -5,7 +5,6 @@ import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.shared.pattern.observer.Observador;
 import com.avh.practicas.shared.pattern.observer.Sujeto;
-import com.avh.practicas.vacante.state.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -55,7 +54,7 @@ public class Vacante implements Sujeto {
 
     @Column(name = "estado", nullable = false)
     @Builder.Default
-    private String estadoDb = "DISPONIBLE";
+    private String estado = "PENDIENTE_APROBACION"; // Inicia en Pendiente de Aprobación según RF
 
     @Column(name = "fecha_disponibilidad_inicio", nullable = false)
     private LocalDate fechaDisponibilidadInicio;
@@ -64,60 +63,8 @@ public class Vacante implements Sujeto {
     private LocalDate fechaDisponibilidadFin;
 
     @Transient
-    private EstadoVacante estadoActual;
-
-    @Transient
     @Builder.Default
     private List<Observador> observadores = new ArrayList<>();
-
-    public EstadoVacante getEstadoActual() {
-        if (estadoActual == null) {
-            switch (estadoDb != null ? estadoDb.toUpperCase() : "DISPONIBLE") {
-                case "ASIGNADA":
-                    estadoActual = new EstadoAsignada();
-                    break;
-                case "CERRADA":
-                    estadoActual = new EstadoCerrada();
-                    break;
-                case "DISPONIBLE":
-                default:
-                    estadoActual = new EstadoDisponible();
-                    break;
-            }
-        }
-        return estadoActual;
-    }
-
-    public void setEstadoActual(EstadoVacante estado) {
-        this.estadoActual = estado;
-        this.estadoDb = estado.getNombre();
-    }
-
-    @PostLoad
-    private void postLoad() {
-        getEstadoActual();
-    }
-
-    @PrePersist
-    @PreUpdate
-    private void prePersist() {
-        if (estadoActual != null) {
-            this.estadoDb = estadoActual.getNombre();
-        }
-    }
-
-    // Métodos del patrón State
-    public void publicar() {
-        getEstadoActual().publicar(this);
-    }
-
-    public void asignar() {
-        getEstadoActual().asignar(this);
-    }
-
-    public void cerrar() {
-        getEstadoActual().cerrar(this);
-    }
 
     // Métodos del patrón Observer
     private List<Observador> getObservadoresSafe() {

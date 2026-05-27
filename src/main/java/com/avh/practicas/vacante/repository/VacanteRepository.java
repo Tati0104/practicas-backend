@@ -10,6 +10,6 @@ import java.util.List;
 public interface VacanteRepository extends JpaRepository<Vacante, Long> {
     List<Vacante> findByProgramaId(Long programaId);
     List<Vacante> findByEmpresaId(Long empresaId);
-    List<Vacante> findByEstadoDb(String estadoDb);
-    boolean existsByEmpresaIdAndEstadoDb(Long empresaId, String estadoDb);
+    List<Vacante> findByEstado(String estado);
+    boolean existsByEmpresaIdAndEstado(Long empresaId, String estado);
 }
