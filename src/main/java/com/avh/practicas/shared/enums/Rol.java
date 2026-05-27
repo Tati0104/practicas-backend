@@ -1,5 +1,8 @@
 package com.avh.practicas.shared.enums;
 
+/**
+ * Roles del sistema de prácticas.
+ */
 public enum Rol {
     ADMIN,
     DIRECCION,

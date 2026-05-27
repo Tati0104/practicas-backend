@@ -1,58 +1,49 @@
 package com.avh.practicas.shared.exception;
 
+import com.avh.practicas.shared.api.ApiResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Manejo centralizado de excepciones HTTP para toda la API.
+ * Evita duplicar lógica de errores en cada controlador (SRP / DRY).
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<Map<String, Object>> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
-        return crearErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNotFound(ResourceNotFoundException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 
-    @ExceptionHandler(NegocioException.class)
-    public ResponseEntity<Map<String, Object>> manejarNegocioException(NegocioException ex) {
-        return crearErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler({BadRequestException.class, IllegalArgumentException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleBadRequest(RuntimeException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> manejarValidaciones(MethodArgumentNotValidException ex) {
-        Map<String, String> errores = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String campo = ((FieldError) error).getField();
-            String mensaje = error.getDefaultMessage();
-            errores.put(campo, mensaje);
-        });
-        
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Validacion Fallida");
-        body.put("details", errores);
-        
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String, String> errores = new LinkedHashMap<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errores.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return ApiResponse.error("Error de validación en los datos enviados", errores);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> manejarExceptionGeneral(Exception ex) {
-        return crearErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error interno en el servidor: " + ex.getMessage());
-    }
-
-    private ResponseEntity<Map<String, Object>> crearErrorResponse(HttpStatus status, String mensaje) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("message", mensaje);
-        return new ResponseEntity<>(body, status);
+    @ExceptionHandler({ForbiddenAccessException.class, AccessDeniedException.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleForbidden(RuntimeException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 }
