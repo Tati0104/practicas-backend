@@ -218,4 +218,10 @@ public class EstudianteServiceImpl implements EstudianteService {
             expedienteRepository.save(exp);
         }
     }
+
+    @Override
+    @Transactional
+    public Estudiante guardar(Estudiante estudiante) {
+        return estudianteRepository.save(estudiante);
+    }
 }

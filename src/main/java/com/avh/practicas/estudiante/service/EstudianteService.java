@@ -17,4 +17,5 @@ public interface EstudianteService {
     Optional<Estudiante> obtenerPorIdentificacion(String identificacion);
     Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, Pageable pageable);
     void importar(List<Estudiante> estudiantes);
+    Estudiante guardar(Estudiante estudiante);
 }
