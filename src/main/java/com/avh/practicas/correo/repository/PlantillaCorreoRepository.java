@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface PlantillaCorreoRepository extends JpaRepository<PlantillaCorreo, Long> {
 
-    Optional<PlantillaCorreo> findByNombre(String nombre);
+    Optional<PlantillaCorreo> findByCodigo(String codigo);
 }

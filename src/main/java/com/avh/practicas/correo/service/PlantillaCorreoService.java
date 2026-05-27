@@ -18,18 +18,17 @@ public class PlantillaCorreoService {
 
     @Transactional(readOnly = true)
     public PlantillaCorreo obtener(TipoEventoCorreo tipoEvento) {
-        return repository.findByNombre(tipoEvento.name())
+        return repository.findByCodigo(tipoEvento.name())
                 .orElseThrow(() -> new IllegalArgumentException("No existe plantilla para el evento " + tipoEvento));
     }
 
     @Transactional
     public PlantillaCorreo guardar(TipoEventoCorreo tipoEvento, PlantillaCorreoRequest request) {
-        PlantillaCorreo plantilla = repository.findByNombre(tipoEvento.name())
-                .orElseGet(() -> PlantillaCorreo.builder().nombre(tipoEvento.name()).build());
+        PlantillaCorreo plantilla = repository.findByCodigo(tipoEvento.name())
+                .orElseGet(() -> PlantillaCorreo.builder().codigo(tipoEvento.name()).build());
 
         plantilla.setAsunto(request.asunto());
         plantilla.setCuerpo(request.cuerpo());
-        plantilla.setActiva(request.activa());
 
         return repository.save(plantilla);
     }

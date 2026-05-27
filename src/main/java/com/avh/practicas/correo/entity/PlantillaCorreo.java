@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "plantilla_correo")
+@Table(name = "plantillas_correo")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,18 +23,15 @@ public class PlantillaCorreo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_plantilla")
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String nombre;
+    @Column(name = "codigo", nullable = false, unique = true, length = 100)
+    private String codigo;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 255)
     private String asunto;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String cuerpo;
-
-    @Column(nullable = false)
-    private Boolean activa;
 }
