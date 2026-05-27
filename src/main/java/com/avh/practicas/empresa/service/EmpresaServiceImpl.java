@@ -122,12 +122,12 @@ public class EmpresaServiceImpl implements EmpresaService {
     }
 
     private void validarDesactivacion(Long id) {
-        // Validar que no tenga vacantes activas (DISPONIBLE o ASIGNADA)
-        boolean tieneVacantesActivas = vacanteRepository.existsByEmpresaIdAndEstadoDb(id, "DISPONIBLE")
-                || vacanteRepository.existsByEmpresaIdAndEstadoDb(id, "ASIGNADA");
+        // Validar que no tenga vacantes activas (PENDIENTE_APROBACION o ACTIVA) según enums de V5
+        boolean tieneVacantesActivas = vacanteRepository.existsByEmpresaIdAndEstado(id, "PENDIENTE_APROBACION")
+                || vacanteRepository.existsByEmpresaIdAndEstado(id, "ACTIVA");
 
         if (tieneVacantesActivas) {
-            throw new NegocioException("No se puede desactivar la empresa porque posee vacantes activas (disponibles o asignadas).");
+            throw new NegocioException("No se puede desactivar la empresa porque posee vacantes activas (en aprobación o activas).");
         }
     }
 
