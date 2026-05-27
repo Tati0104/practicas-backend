@@ -61,11 +61,13 @@ public class JwtTokenProvider {
     }
 
     public Rol obtenerRol(String token) {
-        return Rol.valueOf(parseClaims(token).get(CLAIM_ROL, String.class));
+        String rol = parseClaims(token).get(CLAIM_ROL, String.class);
+        return Rol.valueOf(rol);
     }
 
     public Scope obtenerScope(String token) {
-        return Scope.valueOf(parseClaims(token).get(CLAIM_SCOPE, String.class));
+        String scope = parseClaims(token).get(CLAIM_SCOPE, String.class);
+        return Scope.valueOf(scope);
     }
 
     private Claims parseClaims(String token) {
