@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record DocenteAsesorRequest(
         @NotBlank String nombreCompleto,
         @NotBlank @Email String correo,
+        String telefono,
         @NotNull Long programaId,
         String areaConocimiento
 ) {

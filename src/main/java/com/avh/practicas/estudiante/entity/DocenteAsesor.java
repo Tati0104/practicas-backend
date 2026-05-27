@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "docente_asesor")
+@Table(name = "docentes_asesores")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,27 +27,32 @@ public class DocenteAsesor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_docente_asesor")
+    @Column(name = "id")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false, unique = true)
+    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
-    @Column(name = "id_programa", nullable = false)
+    @Column(nullable = false, length = 150)
+    private String nombre;
+
+    @Column(nullable = false, unique = true, length = 150)
+    private String correo;
+
+    @Column(length = 50)
+    private String telefono;
+
+    @Column(name = "programa_id")
     private Long programaId;
 
     @Column(name = "area_conocimiento", length = 150)
     private String areaConocimiento;
 
     @Column(nullable = false)
-    private Boolean activo;
+    private Boolean activo = true;
 
     public String getNombreCompleto() {
-        return usuario == null ? null : usuario.getNombreCompleto();
-    }
-
-    public String getCorreo() {
-        return usuario == null ? null : usuario.getCorreo();
+        return nombre;
     }
 }

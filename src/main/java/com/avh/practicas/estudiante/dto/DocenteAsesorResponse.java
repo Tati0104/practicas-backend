@@ -7,6 +7,7 @@ public record DocenteAsesorResponse(
         Long usuarioId,
         String nombreCompleto,
         String correo,
+        String telefono,
         Long programaId,
         String areaConocimiento,
         Boolean activo
@@ -17,6 +18,7 @@ public record DocenteAsesorResponse(
                 docente.getUsuario() == null ? null : docente.getUsuario().getId(),
                 docente.getNombreCompleto(),
                 docente.getCorreo(),
+                docente.getTelefono(),
                 docente.getProgramaId(),
                 docente.getAreaConocimiento(),
                 docente.getActivo()

@@ -34,6 +34,9 @@ public class DocenteAsesorService {
 
         DocenteAsesor docente = DocenteAsesor.builder()
                 .usuario(usuario)
+                .nombre(request.nombreCompleto())
+                .correo(request.correo())
+                .telefono(request.telefono())
                 .programaId(request.programaId())
                 .areaConocimiento(request.areaConocimiento())
                 .activo(true)
@@ -47,10 +50,11 @@ public class DocenteAsesorService {
     @Transactional
     public DocenteAsesorResponse editar(Long id, DocenteAsesorRequest request) {
         DocenteAsesor docente = obtenerEntidad(id);
+        docente.setNombre(request.nombreCompleto());
+        docente.setCorreo(request.correo());
+        docente.setTelefono(request.telefono());
         docente.setProgramaId(request.programaId());
         docente.setAreaConocimiento(request.areaConocimiento());
-        docente.getUsuario().setNombreCompleto(request.nombreCompleto());
-        docente.getUsuario().setCorreo(request.correo());
         return DocenteAsesorResponse.desdeEntidad(repository.save(docente));
     }
 
@@ -58,7 +62,9 @@ public class DocenteAsesorService {
     public DocenteAsesorResponse activar(Long id) {
         DocenteAsesor docente = obtenerEntidad(id);
         docente.setActivo(true);
-        docente.getUsuario().setActivo(true);
+        if (docente.getUsuario() != null) {
+            docente.getUsuario().setActivo(true);
+        }
         DocenteAsesor guardado = repository.save(docente);
         notificar(TipoEventoSistema.DOCENTE_ASESOR_ACTIVADO, guardado);
         return DocenteAsesorResponse.desdeEntidad(guardado);
@@ -67,9 +73,11 @@ public class DocenteAsesorService {
     @Transactional
     public DocenteAsesorResponse inactivar(Long id) {
         DocenteAsesor docente = obtenerEntidad(id);
-        // Aquí se integra luego la validación de estudiantes activos asignados.
+        // Integración futura: validar que no tenga estudiantes activos asignados.
         docente.setActivo(false);
-        docente.getUsuario().setActivo(false);
+        if (docente.getUsuario() != null) {
+            docente.getUsuario().setActivo(false);
+        }
         DocenteAsesor guardado = repository.save(docente);
         notificar(TipoEventoSistema.DOCENTE_ASESOR_INACTIVADO, guardado);
         return DocenteAsesorResponse.desdeEntidad(guardado);
@@ -78,6 +86,14 @@ public class DocenteAsesorService {
     @Transactional(readOnly = true)
     public List<DocenteAsesorResponse> listarPorPrograma(Long programaId) {
         return repository.findByProgramaIdAndActivoTrue(programaId)
+                .stream()
+                .map(DocenteAsesorResponse::desdeEntidad)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DocenteAsesorResponse> listarActivos() {
+        return repository.findByActivoTrue()
                 .stream()
                 .map(DocenteAsesorResponse::desdeEntidad)
                 .toList();
@@ -96,7 +112,7 @@ public class DocenteAsesorService {
     private void notificar(TipoEventoSistema tipo, DocenteAsesor docente) {
         notificadorEventos.notificar(EventoSistema.crear(
                 tipo,
-                docente.getUsuario().getId(),
+                docente.getUsuario() == null ? null : docente.getUsuario().getId(),
                 "DOCENTE_ASESOR",
                 docente.getId(),
                 Map.of(
