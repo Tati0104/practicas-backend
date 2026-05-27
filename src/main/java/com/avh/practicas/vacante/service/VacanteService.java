@@ -40,7 +40,7 @@ public class VacanteService {
                 .modalidad(request.modalidad())
                 .area(request.area())
                 .cuposTotales(request.cuposTotales())
-                .cuposOcupados(0)
+                .cuposDisponibles(request.cuposTotales())
                 .estado(EstadoVacanteEnum.PENDIENTE_APROBACION)
                 .fechaInicioDisponibilidad(request.fechaInicioDisponibilidad())
                 .fechaFinDisponibilidad(request.fechaFinDisponibilidad())
@@ -165,7 +165,7 @@ public class VacanteService {
     private void notificar(TipoEventoSistema tipo, Vacante vacante, String correoEmpresa) {
         notificadorEventos.notificar(EventoSistema.crear(
                 tipo,
-                null,
+                vacante.getCreadoPorId(),
                 "VACANTES",
                 vacante.getId(),
                 Map.of(
@@ -173,7 +173,7 @@ public class VacanteService {
                         "estado", vacante.getEstado().name(),
                         "empresaId", vacante.getEmpresaId(),
                         "programaId", vacante.getProgramaId(),
-                        "correoEmpresa", correoEmpresa == null ? "empresa@demo.com" : correoEmpresa
+                        "correoEmpresa", correoEmpresa == null ? "" : correoEmpresa
                 )
         ));
     }

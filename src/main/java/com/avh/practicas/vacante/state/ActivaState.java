@@ -16,14 +16,13 @@ public class ActivaState extends EstadoVacanteBase {
 
     @Override
     public void descontarCupo(VacanteContext context) {
-        int disponibles = context.getVacante().getCuposDisponibles();
+        int disponibles = context.getVacante().getCuposDisponibles() == null ? 0 : context.getVacante().getCuposDisponibles();
         if (disponibles <= 0) {
             context.transicionar(EstadoVacanteEnum.CUPOS_COMPLETOS);
             throw new IllegalStateException("La vacante no tiene cupos disponibles");
         }
 
-        int ocupados = context.getVacante().getCuposOcupados() == null ? 0 : context.getVacante().getCuposOcupados();
-        context.getVacante().setCuposOcupados(ocupados + 1);
+        context.getVacante().setCuposDisponibles(disponibles - 1);
 
         if (context.getVacante().getCuposDisponibles() == 0) {
             context.transicionar(EstadoVacanteEnum.CUPOS_COMPLETOS);
@@ -32,9 +31,10 @@ public class ActivaState extends EstadoVacanteBase {
 
     @Override
     public void liberarCupo(VacanteContext context) {
-        int ocupados = context.getVacante().getCuposOcupados() == null ? 0 : context.getVacante().getCuposOcupados();
-        if (ocupados > 0) {
-            context.getVacante().setCuposOcupados(ocupados - 1);
+        int total = context.getVacante().getCuposTotales() == null ? 0 : context.getVacante().getCuposTotales();
+        int disponibles = context.getVacante().getCuposDisponibles() == null ? 0 : context.getVacante().getCuposDisponibles();
+        if (disponibles < total) {
+            context.getVacante().setCuposDisponibles(disponibles + 1);
         }
     }
 

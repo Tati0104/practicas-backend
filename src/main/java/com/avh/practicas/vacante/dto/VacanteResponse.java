@@ -55,7 +55,7 @@ public record VacanteResponse(
             case PAUSADA -> "GRIS";
             case CUPOS_COMPLETOS -> "NARANJA";
             case CERRADA -> "ROJO";
-            case RECHAZADA -> "ROJO";
+            case RECHAZADA -> "ROJO_OSCURO";
         };
     }
 }

@@ -10,14 +10,14 @@ public record VacanteRequest(
         @NotNull Long empresaId,
         @NotNull Long programaId,
         Long creadoPorId,
+        String correoEmpresa,
         @NotBlank String cargo,
-        String descripcionPerfil,
+        @NotBlank String descripcionPerfil,
         String requisitos,
-        String modalidad,
-        String area,
         @NotNull @Min(1) Integer cuposTotales,
+        String area,
+        @NotBlank String modalidad,
         LocalDate fechaInicioDisponibilidad,
-        LocalDate fechaFinDisponibilidad,
-        String correoEmpresa
+        LocalDate fechaFinDisponibilidad
 ) {
 }
