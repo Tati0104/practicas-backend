@@ -6,6 +6,7 @@ import com.avh.practicas.configuracion.repository.FacultadRepository;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
+import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
@@ -123,7 +124,7 @@ public class ProgramaServiceImpl implements ProgramaService {
         }
 
         // 2. Validar que no existan prácticas activas
-        List<String> estadosActivos = List.of("ASIGNADA_PENDIENTE_INICIO", "EN_CURSO");
+        List<EstadoPractica> estadosActivos = List.of(EstadoPractica.ASIGNADA_PENDIENTE_INICIO, EstadoPractica.EN_CURSO);
         if (instanciaPracticaRepository.existsByExpedienteEstudianteProgramaIdAndEstadoIn(id, estadosActivos)) {
             throw new NegocioException("No se puede desactivar el programa porque tiene prácticas empresariales activas en curso.");
         }

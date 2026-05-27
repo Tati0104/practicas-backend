@@ -5,6 +5,7 @@ import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.CatalogoPracticaRepository;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
+import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
@@ -120,7 +121,7 @@ public class CatalogoPracticaServiceImpl implements CatalogoPracticaService {
 
     private void validarDesactivacion(Long id) {
         CatalogoPractica catalogoPractica = catalogoPracticaRepository.findById(id).orElseThrow();
-        List<String> estadosActivos = List.of("ASIGNADA_PENDIENTE_INICIO", "EN_CURSO");
+        List<EstadoPractica> estadosActivos = List.of(EstadoPractica.ASIGNADA_PENDIENTE_INICIO, EstadoPractica.EN_CURSO);
         boolean existenInstanciasActivas = instanciaPracticaRepository
                 .existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(
                         catalogoPractica.getPrograma().getId(),
