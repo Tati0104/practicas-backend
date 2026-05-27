@@ -1,6 +1,7 @@
+# Perfil desarrollo: BD local + logging DEBUG
 spring:
   datasource:
-    url: "jdbc:postgresql://localhost:5432/practicas_db"
+    url: jdbc:postgresql://localhost:5432/practicas_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -18,7 +19,14 @@ spring:
 
 logging:
   level:
+    root: INFO
     com.avh.practicas: DEBUG
 
 server:
   port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:clave-secreta-avh-2026-practicas-empresariales-sistema}
+
+mail:
+  mode: stub

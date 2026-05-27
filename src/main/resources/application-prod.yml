@@ -1,14 +1,22 @@
+# Perfil producción: credenciales y parámetros desde variables de entorno
 spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
   flyway:
     enabled: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: WARN
+    com.avh.practicas: INFO
 
 server:
   port: ${PORT:8080}
@@ -17,4 +25,4 @@ jwt:
   secret: ${JWT_SECRET}
 
 mail:
-  mode: smtp
+  mode: ${MAIL_MODE:smtp}
