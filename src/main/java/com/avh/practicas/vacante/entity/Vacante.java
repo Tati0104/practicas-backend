@@ -1,16 +1,21 @@
 package com.avh.practicas.vacante.entity;
 
-import com.avh.practicas.configuracion.entity.CatalogoItem;
-import com.avh.practicas.configuracion.entity.Programa;
-import com.avh.practicas.empresa.entity.Empresa;
-import com.avh.practicas.shared.pattern.observer.Observador;
-import com.avh.practicas.shared.pattern.observer.Sujeto;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "vacantes")
@@ -19,79 +24,64 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Vacante implements Sujeto {
+public class Vacante {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "empresa_id", nullable = false)
-    private Empresa empresa;
+    @Column(name = "empresa_id", nullable = false)
+    private Long empresaId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "programa_id", nullable = false)
-    private Programa programa;
+    @Column(name = "programa_id", nullable = false)
+    private Long programaId;
 
-    @Column(nullable = false)
+    @Column(name = "creado_por_id")
+    private Long creadoPorId;
+
+    @Column(name = "aprobado_por_id")
+    private Long aprobadoPorId;
+
+    @Column(nullable = false, length = 150)
     private String cargo;
 
-    @Column(nullable = false, length = 1000)
-    private String descripcion;
+    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
+    private String descripcionPerfil;
 
-    @Column(name = "perfil_requisitos", nullable = false, length = 1000)
-    private String perfilRequisitos;
+    @Column(name = "perfil_requisitos", columnDefinition = "TEXT")
+    private String requisitos;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modalidad_id", nullable = false)
-    private CatalogoItem modalidad;
+    @Column(nullable = false, length = 50)
+    private String modalidad;
+
+    @Column(length = 150)
+    private String area;
 
     @Column(name = "cupos_total", nullable = false)
-    private Integer cuposTotal;
+    private Integer cuposTotales;
 
     @Column(name = "cupos_disponibles", nullable = false)
     private Integer cuposDisponibles;
 
-    @Column(name = "estado", nullable = false)
-    @Builder.Default
-    private String estado = "PENDIENTE_APROBACION"; // Inicia en Pendiente de Aprobación según RF
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private EstadoVacanteEnum estado;
 
-    @Column(name = "fecha_disponibilidad_inicio", nullable = false)
-    private LocalDate fechaDisponibilidadInicio;
+    @Column(name = "motivo_rechazo", columnDefinition = "TEXT")
+    private String motivoRechazo;
 
-    @Column(name = "fecha_disponibilidad_fin", nullable = false)
-    private LocalDate fechaDisponibilidadFin;
+    @Column(name = "fecha_disponibilidad_inicio")
+    private LocalDate fechaInicioDisponibilidad;
+
+    @Column(name = "fecha_disponibilidad_fin")
+    private LocalDate fechaFinDisponibilidad;
 
     @Transient
-    @Builder.Default
-    private List<Observador> observadores = new ArrayList<>();
-
-    // Métodos del patrón Observer
-    private List<Observador> getObservadoresSafe() {
-        if (observadores == null) {
-            observadores = new ArrayList<>();
+    public Integer getCuposOcupados() {
+        if (cuposTotales == null || cuposDisponibles == null) {
+            return 0;
         }
-        return observadores;
-    }
-
-    @Override
-    public void registrarObservador(Observador observador) {
-        if (observador != null && !getObservadoresSafe().contains(observador)) {
-            getObservadoresSafe().add(observador);
-        }
-    }
-
-    @Override
-    public void eliminarObservador(Observador observador) {
-        getObservadoresSafe().remove(observador);
-    }
-
-    @Override
-    public void notificarObservadores(String evento, Object datos) {
-        if (observadores != null) {
-            for (Observador observador : observadores) {
-                observador.actualizar(evento, datos);
-            }
-        }
+        return Math.max(cuposTotales - cuposDisponibles, 0);
     }
 }

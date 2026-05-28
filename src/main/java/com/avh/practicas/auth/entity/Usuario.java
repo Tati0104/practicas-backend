@@ -13,7 +13,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -50,7 +49,7 @@ public class Usuario extends BaseEntity {
     @Builder.Default
     private Boolean primeraVez = true;
 
-    @Column(name = "token_recuperacion", length = 255)
+    @Column(name = "token_recuperacion")
     private String tokenRecuperacion;
 
     @Column(name = "token_expiracion")
