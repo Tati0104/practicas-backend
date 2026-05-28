@@ -10,6 +10,7 @@ const menuPorRol = {
     { ruta: '/configuracion/catalogos',  icono: '📋', nombre: 'Catálogos' },
     { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',           icono: '🏢', nombre: 'Empresas' },
+    { ruta: '/vacantes', icono: '📋', nombre: 'Vacantes' },
   ],
   COORD_ACADEMICA: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
@@ -20,6 +21,7 @@ const menuPorRol = {
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
     { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',           icono: '🏢', nombre: 'Empresas' },
+    { ruta: '/vacantes', icono: '📋', nombre: 'Vacantes' },
   ],
   SECRETARIA: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
