@@ -1,7 +1,7 @@
 package com.avh.practicas.estudiante.service;
 
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.UsuarioRepository;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.estudiante.dto.EstudianteDto;
@@ -28,14 +28,14 @@ public class EstudianteServiceProxy implements EstudianteService {
 
     private final EstudianteService realService;
     private final ScopeGuard scopeGuard;
-    private final UsuarioRepository usuarioRepository;
+    private final AuthUsuarioRepository usuarioRepository;
     private final EstudianteRepository estudianteRepository;
     private final ProgramaRepository programaRepository;
 
     public EstudianteServiceProxy(
             @Qualifier("estudianteServiceImpl") EstudianteService realService,
             ScopeGuard scopeGuard,
-            UsuarioRepository usuarioRepository,
+            AuthUsuarioRepository usuarioRepository,
             EstudianteRepository estudianteRepository,
             ProgramaRepository programaRepository) {
         this.realService = realService;
