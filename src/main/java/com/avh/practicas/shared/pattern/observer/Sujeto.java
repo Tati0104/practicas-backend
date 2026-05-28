@@ -1,14 +1,28 @@
 package com.avh.practicas.shared.pattern.observer;
 
 /**
- * Contrato del sujeto observable (patrón Observer).
- * Las implementaciones concretas gestionan la lista de observadores (SRP en cada módulo).
+ * Contrato base para clases observables.
+ * Incluye métodos por defecto para compatibilidad entre ramas.
  */
 public interface Sujeto {
 
-    void suscribir(Observador observador);
+    default void suscribir(Observador observador) {
+        agregarObservador(observador);
+    }
 
-    void desuscribir(Observador observador);
+    default void desuscribir(Observador observador) {
+        eliminarObservador(observador);
+    }
 
-    void notificar(EventoSistema evento);
+    default void notificar(EventoSistema evento) {
+    }
+
+    default void agregarObservador(Observador observador) {
+    }
+
+    default void eliminarObservador(Observador observador) {
+    }
+
+    default void notificar(String evento, Object datos) {
+    }
 }

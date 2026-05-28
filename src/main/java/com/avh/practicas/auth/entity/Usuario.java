@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuarios")
@@ -43,4 +44,14 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean activo = true;
+
+    @Column(name = "primera_vez", nullable = false)
+    @Builder.Default
+    private Boolean primeraVez = true;
+
+    @Column(name = "token_recuperacion")
+    private String tokenRecuperacion;
+
+    @Column(name = "token_expiracion")
+    private LocalDateTime tokenExpiracion;
 }

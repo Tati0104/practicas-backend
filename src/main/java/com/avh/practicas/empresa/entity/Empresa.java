@@ -56,19 +56,16 @@ public class Empresa implements Sujeto {
         return observadores;
     }
 
-    @Override
     public void registrarObservador(Observador observador) {
         if (observador != null && !getObservadoresSafe().contains(observador)) {
             getObservadoresSafe().add(observador);
         }
     }
 
-    @Override
     public void eliminarObservador(Observador observador) {
         getObservadoresSafe().remove(observador);
     }
 
-    @Override
     public void notificarObservadores(String evento, Object datos) {
         if (observadores != null) {
             for (Observador observador : observadores) {
