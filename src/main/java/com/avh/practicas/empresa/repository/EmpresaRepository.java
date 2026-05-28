@@ -16,6 +16,6 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long>, JpaSpec
     boolean existsByNit(String nit);
     Optional<Empresa> findByNit(String nit);
 
-    @Query("SELECT DISTINCT e FROM Empresa e JOIN Vacante v ON v.empresa = e WHERE v.programa.id = :programaId")
+    @Query("SELECT DISTINCT e FROM Empresa e, Vacante v WHERE v.empresaId = e.id AND v.programaId = :programaId")
     List<Empresa> findByProgramaId(@Param("programaId") Long programaId);
 }

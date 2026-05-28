@@ -1,7 +1,7 @@
 package com.avh.practicas.empresa.service;
 
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.UsuarioRepository;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,12 +19,12 @@ public class TutorEmpresarialServiceProxy implements TutorEmpresarialService {
 
     private final TutorEmpresarialService realService;
     private final ScopeGuard scopeGuard;
-    private final UsuarioRepository usuarioRepository;
+    private final AuthUsuarioRepository usuarioRepository;
 
     public TutorEmpresarialServiceProxy(
             @Qualifier("tutorEmpresarialServiceImpl") TutorEmpresarialService realService,
             ScopeGuard scopeGuard,
-            UsuarioRepository usuarioRepository) {
+            AuthUsuarioRepository usuarioRepository) {
         this.realService = realService;
         this.scopeGuard = scopeGuard;
         this.usuarioRepository = usuarioRepository;

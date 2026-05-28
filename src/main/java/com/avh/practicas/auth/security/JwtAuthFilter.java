@@ -59,8 +59,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private List<SimpleGrantedAuthority> construirAuthorities(Rol rol, Scope scope) {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + rol.name()));
-        authorities.add(new SimpleGrantedAuthority(scope.name()));
+
+        if (rol != null) {
+            authorities.add(new SimpleGrantedAuthority(rol.name()));
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + rol.name()));
+        }
+
+        if (scope != null) {
+            authorities.add(new SimpleGrantedAuthority(scope.name()));
+            authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope.name()));
+        }
+
         return authorities;
     }
 }

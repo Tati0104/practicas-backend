@@ -2,7 +2,7 @@ package com.avh.practicas.auth.service;
 
 import com.avh.practicas.auth.dto.LoginResponse;
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.UsuarioRepository;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.auth.security.JwtTokenProvider;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
@@ -21,7 +21,7 @@ public class AuthServiceImpl implements AuthService {
 
     private static final int HORAS_VALIDEZ_TOKEN_RECUPERACION = 24;
 
-    private final UsuarioRepository usuarioRepository;
+    private final AuthUsuarioRepository usuarioRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final IMailService mailService;

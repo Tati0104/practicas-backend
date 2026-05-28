@@ -7,11 +7,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+public interface AuthUsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByCorreo(String correo);
 
     Optional<Usuario> findByTokenRecuperacion(String tokenRecuperacion);
 
     List<Usuario> findByRolAndActivo(Rol rol, Boolean activo);
+
+    boolean existsByCorreo(String correo);
+
+    long countByRolAndActivo(Rol rol, Boolean activo);
 }

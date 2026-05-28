@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
+@Entity(name = "UsuarioCompat")
 @Table(name = "usuarios")
 @Getter
 @Setter
@@ -28,16 +28,29 @@ public class Usuario {
     @Column(name = "id")
     private Long id;
 
+    @Column(nullable = false, length = 150)
+    private String nombre;
+
     @Column(nullable = false, unique = true, length = 150)
     private String correo;
 
-    @Column(name = "password", nullable = false, length = 255)
-    private String password;
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Rol rol;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    @Builder.Default
+    private Scope scope = Scope.PROGRAMA;
+
     @Column(nullable = false)
+    @Builder.Default
     private Boolean activo = true;
+
+    @Column(name = "primera_vez", nullable = false)
+    @Builder.Default
+    private Boolean primeraVez = true;
 }

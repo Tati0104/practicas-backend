@@ -1,7 +1,7 @@
 package com.avh.practicas.configuracion.service;
 
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.UsuarioRepository;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
@@ -24,13 +24,13 @@ public class ProgramaServiceProxy implements ProgramaService {
 
     private final ProgramaService realService;
     private final ScopeGuard scopeGuard;
-    private final UsuarioRepository usuarioRepository;
+    private final AuthUsuarioRepository usuarioRepository;
     private final EstudianteRepository estudianteRepository;
 
     public ProgramaServiceProxy(
             @Qualifier("programaServiceImpl") ProgramaService realService,
             ScopeGuard scopeGuard,
-            UsuarioRepository usuarioRepository,
+            AuthUsuarioRepository usuarioRepository,
             EstudianteRepository estudianteRepository) {
         this.realService = realService;
         this.scopeGuard = scopeGuard;
