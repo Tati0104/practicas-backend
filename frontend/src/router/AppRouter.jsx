@@ -8,6 +8,8 @@ import FacultadesPage  from '../modules/configuracion/components/FacultadesPage'
 import EstudiantesPage from '../modules/estudiante/components/EstudiantesPage';
 import EmpresasPage    from '../modules/empresa/components/EmpresasPage';
 import ProgramasPage from '../modules/configuracion/components/ProgramasPage';
+import VacantesPage from '../modules/empresa/components/VacantesPage';
+
 
 function RutaPrivada({ children, roles }) {
   const { token, usuario } = useAuth();
@@ -54,6 +56,12 @@ export default function AppRouter() {
             <ProgramasPage />
              </RutaPrivada>
             } />
+
+<Route path="/vacantes" element={
+  <RutaPrivada roles={['ADMIN','COORD_PRACTICA','SECRETARIA']}>
+    <VacantesPage />
+  </RutaPrivada>
+} />
       </Routes>
     </BrowserRouter>
   );
