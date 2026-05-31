@@ -30,3 +30,7 @@ jwt:
 
 mail:
   mode: stub
+
+app:
+  documentos:
+    storage-path: ${DOCUMENTOS_STORAGE_PATH:./storage/documentos}

@@ -3,6 +3,7 @@ package com.avh.practicas.shared.security;
 import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.configuracion.entity.CatalogoPractica;
 import com.avh.practicas.configuracion.entity.Programa;
+import com.avh.practicas.documento.entity.DocumentoPractica;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -101,6 +102,13 @@ public class ScopeGuard {
             }
         }
 
+        if (recurso instanceof DocumentoPractica documento) {
+            InstanciaPractica instanciaPractica = documento.getInstanciaPractica();
+            if (instanciaPractica != null) {
+                return obtenerProgramaDelRecurso(instanciaPractica);
+            }
+        }
+
         if (recurso instanceof CatalogoPractica) {
             return ((CatalogoPractica) recurso).getPrograma();
         }
@@ -117,6 +125,7 @@ public class ScopeGuard {
         if (recurso instanceof Programa) return "programas";
         if (recurso instanceof Vacante) return "vacantes";
         if (recurso instanceof InstanciaPractica) return "instancias_practica";
+        if (recurso instanceof DocumentoPractica) return "documentos_practica";
         if (recurso instanceof CatalogoPractica) return "catalogo_practicas";
         if (recurso instanceof Empresa) return "empresas";
         if (recurso instanceof TutorEmpresarial) return "tutores_empresariales";

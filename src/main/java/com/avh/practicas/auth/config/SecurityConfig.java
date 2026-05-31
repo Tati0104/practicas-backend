@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/programas/**").authenticated()
                         .requestMatchers("/facultades/**").authenticated()
                         .requestMatchers("/catalogos/**").authenticated()
+                        .requestMatchers("/practicas/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
