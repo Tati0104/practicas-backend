@@ -42,6 +42,7 @@ public class VinculacionServiceImpl implements VinculacionService {
     private final AlmacenArchivosPort almacenArchivos;
     private final ValidadorArchivoVinculacion validadorArchivo;
     private final MediadorVinculacion mediadorVinculacion;
+    private final AsignacionService asignacionService;
 
     @Override
     @Transactional
@@ -178,8 +179,7 @@ public class VinculacionServiceImpl implements VinculacionService {
                 .build());
 
         if (asignacion.getEstado() == EstadoAsignacion.ASIGNADA) {
-            asignacion.setEstado(EstadoAsignacion.EN_PROCESO_VINCULACION);
-            asignacionRepository.save(asignacion);
+            asignacionService.cambiarEstado(asignacionId, EstadoAsignacion.EN_PROCESO_VINCULACION);
         }
 
         return new DocumentoCargadoResponse(
@@ -261,8 +261,9 @@ public class VinculacionServiceImpl implements VinculacionService {
             return;
         }
         asignacionRepository.findById(asignacionId).ifPresent(asignacion -> {
-            asignacion.setEstado(EstadoAsignacion.VINCULADA);
-            asignacionRepository.save(asignacion);
+            if (asignacion.getEstado() != EstadoAsignacion.VINCULADA) {
+                asignacionService.cambiarEstado(asignacionId, EstadoAsignacion.VINCULADA);
+            }
         });
     }
 
