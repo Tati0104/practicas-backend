@@ -1,22 +1,21 @@
-package com.avh.practicas.seguimiento.entity;
+package com.avh.practicas.calificacion.entity;
 
-import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * Entidad que representa la bitácora de actividades registrada por un Estudiante.
+ * Entidad que representa la calificación registrada por un Docente Asesor para un corte.
  */
 @Entity
-@Table(name = "bitacora_estudiante")
+@Table(name = "notas_docente")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BitacoraEstudiante {
+public class NotaDocente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,17 +25,16 @@ public class BitacoraEstudiante {
     @JoinColumn(name = "instancia_practica_id", nullable = false)
     private InstanciaPractica instanciaPractica;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "estudiante_id")
-    private Estudiante estudiante;
+    @Column(nullable = false)
+    private Double nota;
 
-    @Column(name = "corte")
+    @Column(nullable = false)
     private Integer corte;
-
-    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
-    private String descripcion;
 
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime fecha = LocalDateTime.now();
+
+    @Column
+    private String observaciones;
 }

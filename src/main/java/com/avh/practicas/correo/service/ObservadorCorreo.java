@@ -1,6 +1,7 @@
 package com.avh.practicas.correo.service;
 
 import com.avh.practicas.correo.factory.NotificacionDocenteFactory;
+import com.avh.practicas.correo.factory.NotificacionEncuestaFactory;
 import com.avh.practicas.correo.factory.NotificacionFactory;
 import com.avh.practicas.correo.factory.NotificacionGenericaFactory;
 import com.avh.practicas.correo.factory.NotificacionVacanteFactory;
@@ -17,6 +18,7 @@ public class ObservadorCorreo implements Observador {
 
     private final NotificacionVacanteFactory vacanteFactory;
     private final NotificacionDocenteFactory docenteFactory;
+    private final NotificacionEncuestaFactory encuestaFactory;
     private final NotificacionVinculacionFactory vinculacionFactory;
     private final NotificacionGenericaFactory genericaFactory;
 
@@ -28,6 +30,9 @@ public class ObservadorCorreo implements Observador {
     private NotificacionFactory seleccionarFactory(EventoSistema evento) {
         if (evento.getTipo() == TipoEventoSistema.DOCENTE_ASESOR_CREADO) {
             return docenteFactory;
+        }
+        if (evento.getTipo() == TipoEventoSistema.ENCUESTA_DISPONIBLE || evento.getTipo() == TipoEventoSistema.RECORDATORIO_ENCUESTA) {
+            return encuestaFactory;
         }
         if (evento.getTipo() == TipoEventoSistema.VINCULACION_CONFIRMADA) {
             return vinculacionFactory;
