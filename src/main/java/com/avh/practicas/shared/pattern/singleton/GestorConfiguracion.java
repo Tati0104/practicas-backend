@@ -34,6 +34,13 @@ public class GestorConfiguracion {
         this.promedioMinimo = promedioMinimo;
     }
 
+    /**
+     * Nota mínima de aprobación para cierre de práctica (PE-43 — Singleton).
+     */
+    public double getNotaMinimaAprobacion() {
+        return promedioMinimo;
+    }
+
     public double getMaxNota() { return maxNota; }
     public void setMaxNota(double maxNota) {
         this.maxNota = maxNota;

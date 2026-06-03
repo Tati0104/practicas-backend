@@ -31,4 +31,9 @@ public interface CalificacionService {
      * Obtiene el resumen consolidado de calificaciones para una práctica.
      */
     ResumenCalificacionesResponse obtenerResumen(Long practicaId);
+
+    /**
+     * Lee la nota final registrada (PE-43 — Facade de cierre).
+     */
+    NotaFinal leerNotaFinal(Long practicaId);
 }

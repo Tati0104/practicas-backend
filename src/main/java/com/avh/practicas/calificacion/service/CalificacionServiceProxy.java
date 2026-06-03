@@ -43,4 +43,9 @@ public class CalificacionServiceProxy implements CalificacionService {
     public ResumenCalificacionesResponse obtenerResumen(Long practicaId) {
         return realService.obtenerResumen(practicaId);
     }
+
+    @Override
+    public NotaFinal leerNotaFinal(Long practicaId) {
+        return realService.leerNotaFinal(practicaId);
+    }
 }

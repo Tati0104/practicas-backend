@@ -175,6 +175,14 @@ public class CalificacionServiceImpl implements CalificacionService {
 
     @Override
     @Transactional(readOnly = true)
+    public NotaFinal leerNotaFinal(Long practicaId) {
+        return notaFinalRepository.findByInstanciaPracticaId(practicaId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No existe nota final registrada para la práctica: " + practicaId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ResumenCalificacionesResponse obtenerResumen(Long practicaId) {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));

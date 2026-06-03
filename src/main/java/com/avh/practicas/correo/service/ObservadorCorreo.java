@@ -24,6 +24,10 @@ public class ObservadorCorreo implements Observador {
 
     @Override
     public void actualizar(EventoSistema evento) {
+        if (evento.getTipo() == TipoEventoSistema.PRACTICA_CERRADA
+                || evento.getTipo() == TipoEventoSistema.PRACTICA_COMPLETADA) {
+            return;
+        }
         seleccionarFactory(evento).enviar(evento);
     }
 
