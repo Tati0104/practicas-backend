@@ -48,4 +48,11 @@ public class AlertaSistema {
 
     @Column(name = "fecha_archivado")
     private LocalDateTime fechaArchivado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private TipoAlerta tipo;
+
+    @Column(name = "instancia_practica_id")
+    private Long instanciaPracticaId;
 }

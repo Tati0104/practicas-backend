@@ -6,6 +6,7 @@ public class GestorConfiguracion {
 
     private int creditosMinimos = 80; // Valor por defecto
     private double promedioMinimo = 3.5; // Valor por defecto
+    private final ConfigSistema config = new ConfigSistema();
 
     private GestorConfiguracion() {
         // Constructor privado para evitar instanciación externa
@@ -36,5 +37,24 @@ public class GestorConfiguracion {
 
     public void setPromedioMinimo(double promedioMinimo) {
         this.promedioMinimo = promedioMinimo;
+    }
+
+    public ConfigSistema getConfig() {
+        return config;
+    }
+
+    /**
+     * Configuración global del sistema (PE-37 — umbral de inactividad).
+     */
+    public static class ConfigSistema {
+        private int umbralInactividadDias = 7;
+
+        public int getUmbralInactividadDias() {
+            return umbralInactividadDias;
+        }
+
+        public void setUmbralInactividadDias(int umbralInactividadDias) {
+            this.umbralInactividadDias = umbralInactividadDias;
+        }
     }
 }
