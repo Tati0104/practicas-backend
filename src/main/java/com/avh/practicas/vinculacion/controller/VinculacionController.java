@@ -8,6 +8,7 @@ import com.avh.practicas.vinculacion.entity.RolFirmaConvenio;
 import com.avh.practicas.vinculacion.service.VinculacionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,5 +65,30 @@ public class VinculacionController {
             @PathVariable Long practicaId
     ) {
         return ResponseEntity.ok(ApiResponse.ok(vinculacionService.listarDocumentosPorPractica(practicaId)));
+    }
+
+    @GetMapping("/vinculaciones/documentos/{documentoId}/contenido")
+    public ResponseEntity<byte[]> obtenerContenidoDocumento(@PathVariable Long documentoId) {
+        byte[] contenido = vinculacionService.obtenerContenidoDocumento(documentoId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                .body(contenido);
+    }
+
+    @DeleteMapping("/vinculaciones/documentos/{documentoId}")
+    public ResponseEntity<ApiResponse<Void>> eliminarDocumento(@PathVariable Long documentoId) {
+        vinculacionService.eliminarDocumento(documentoId);
+        return ResponseEntity.ok(ApiResponse.ok("Documento eliminado correctamente"));
+    }
+
+    @PutMapping(value = "/vinculaciones/documentos/{documentoId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DocumentoCargadoResponse>> reemplazarDocumento(
+            @PathVariable Long documentoId,
+            @RequestParam("archivo") MultipartFile archivo
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Documento reemplazado correctamente",
+                vinculacionService.reemplazarDocumento(documentoId, archivo)
+        ));
     }
 }

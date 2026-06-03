@@ -17,4 +17,10 @@ public interface VinculacionService {
     void confirmarVinculacion(Long practicaId, ConfirmarVinculacionRequest request);
 
     DocumentosPorCategoriaResponse listarDocumentosPorPractica(Long practicaId);
+
+    byte[] obtenerContenidoDocumento(Long documentoId);
+
+    void eliminarDocumento(Long documentoId);
+
+    DocumentoCargadoResponse reemplazarDocumento(Long documentoId, MultipartFile archivo);
 }

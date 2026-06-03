@@ -12,8 +12,9 @@ import com.avh.practicas.vinculacion.dto.DocumentoCargadoResponse;
 import com.avh.practicas.vinculacion.dto.DocumentoPracticaDto;
 import com.avh.practicas.vinculacion.dto.DocumentosPorCategoriaResponse;
 import com.avh.practicas.vinculacion.entity.*;
+import com.avh.practicas.vinculacion.documento.DocumentoProxyFactory;
+import com.avh.practicas.vinculacion.documento.IDocumento;
 import com.avh.practicas.vinculacion.mediator.MediadorVinculacion;
-import com.avh.practicas.vinculacion.port.AlmacenArchivosPort;
 import com.avh.practicas.vinculacion.repository.*;
 import com.avh.practicas.vinculacion.support.ValidadorArchivoVinculacion;
 import lombok.RequiredArgsConstructor;
@@ -39,21 +40,21 @@ public class VinculacionServiceImpl implements VinculacionService {
     private final PracticaVinculacionRepository practicaRepository;
     private final VacanteRepository vacanteRepository;
     private final TutorEmpresarialRepository tutorRepository;
-    private final AlmacenArchivosPort almacenArchivos;
+    private final DocumentoProxyFactory documentoProxyFactory;
     private final ValidadorArchivoVinculacion validadorArchivo;
     private final MediadorVinculacion mediadorVinculacion;
 
     @Override
     @Transactional
     public DocumentoCargadoResponse cargarCarta(Long asignacionId, MultipartFile archivo) {
-        return registrarDocumento(asignacionId, archivo, CategoriaDocumento.VINCULACION, AlmacenArchivosPort.CategoriaAlmacen.CARTA);
+        return registrarDocumento(asignacionId, archivo, CategoriaDocumento.VINCULACION);
     }
 
     @Override
     @Transactional
     public DocumentoCargadoResponse cargarConvenio(Long asignacionId, MultipartFile archivo) {
         DocumentoCargadoResponse respuesta = registrarDocumento(
-                asignacionId, archivo, CategoriaDocumento.CONVENIO, AlmacenArchivosPort.CategoriaAlmacen.CONVENIO);
+                asignacionId, archivo, CategoriaDocumento.CONVENIO);
 
         Asignacion asignacion = obtenerAsignacion(asignacionId);
         Long practicaId = resolverPracticaId(asignacion);
@@ -154,11 +155,52 @@ public class VinculacionServiceImpl implements VinculacionService {
         return new DocumentosPorCategoriaResponse(practicaId, porCategoria);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] obtenerContenidoDocumento(Long documentoId) {
+        DocumentoPractica documento = obtenerDocumento(documentoId);
+        InstanciaPractica practica = obtenerPracticaConExpediente(documento.getInstanciaPracticaId());
+        IDocumento proxy = documentoProxyFactory.crearDesdeRutaExistente(practica, documento.getUrl(), documento.getId());
+        return proxy.getContenido();
+    }
+
+    @Override
+    @Transactional
+    public void eliminarDocumento(Long documentoId) {
+        DocumentoPractica documento = obtenerDocumento(documentoId);
+        InstanciaPractica practica = obtenerPracticaConExpediente(documento.getInstanciaPracticaId());
+        IDocumento proxy = documentoProxyFactory.crearDesdeRutaExistente(practica, documento.getUrl(), documento.getId());
+        proxy.eliminar();
+        documentoPracticaRepository.delete(documento);
+    }
+
+    @Override
+    @Transactional
+    public DocumentoCargadoResponse reemplazarDocumento(Long documentoId, MultipartFile archivo) {
+        validadorArchivo.validar(archivo);
+
+        DocumentoPractica documento = obtenerDocumento(documentoId);
+        InstanciaPractica practica = obtenerPracticaConExpediente(documento.getInstanciaPracticaId());
+        IDocumento proxy = documentoProxyFactory.crearDesdeRutaExistente(practica, documento.getUrl(), documento.getId());
+        proxy.reemplazar(archivo);
+
+        documento.setNombre(archivo.getOriginalFilename());
+        documento.setTipo(validadorArchivo.resolverTipo(archivo));
+        documentoPracticaRepository.save(documento);
+
+        return new DocumentoCargadoResponse(
+                documento.getId(),
+                documento.getAsignacionId(),
+                documento.getInstanciaPracticaId(),
+                documento.getCategoria(),
+                documento.getUrl()
+        );
+    }
+
     private DocumentoCargadoResponse registrarDocumento(
             Long asignacionId,
             MultipartFile archivo,
-            CategoriaDocumento categoria,
-            AlmacenArchivosPort.CategoriaAlmacen almacenCategoria
+            CategoriaDocumento categoria
     ) {
         validadorArchivo.validar(archivo);
 
@@ -166,7 +208,16 @@ public class VinculacionServiceImpl implements VinculacionService {
         Long practicaId = resolverPracticaId(asignacion);
         enriquecerPracticaDesdeVacante(practicaId, asignacion.getVacanteId());
 
-        String url = almacenArchivos.guardar(asignacionId, almacenCategoria, archivo);
+        InstanciaPractica practica = obtenerPracticaConExpediente(practicaId);
+        String nombre = archivo.getOriginalFilename();
+        IDocumento proxy = documentoProxyFactory.crearParaNuevaCarga(
+                practica,
+                categoria.name().toLowerCase(),
+                nombre,
+                null
+        );
+        proxy.cargar(archivo, nombre);
+        String url = proxy.getRutaAlmacenamiento();
 
         DocumentoPractica documento = documentoPracticaRepository.save(DocumentoPractica.builder()
                 .instanciaPracticaId(practicaId)
@@ -279,5 +330,15 @@ public class VinculacionServiceImpl implements VinculacionService {
     private Vacante obtenerVacante(Long vacanteId) {
         return vacanteRepository.findById(vacanteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vacante no encontrada: " + vacanteId));
+    }
+
+    private DocumentoPractica obtenerDocumento(Long documentoId) {
+        return documentoPracticaRepository.findById(documentoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado: " + documentoId));
+    }
+
+    private InstanciaPractica obtenerPracticaConExpediente(Long practicaId) {
+        return practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
     }
 }
