@@ -3,6 +3,8 @@ package com.avh.practicas.cierre.service;
 import com.avh.practicas.cierre.entity.Encuesta;
 import com.avh.practicas.cierre.entity.EstadoEncuesta;
 import com.avh.practicas.cierre.entity.TipoEncuesta;
+import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioDispatcher;
+import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioFactory;
 import com.avh.practicas.cierre.repository.EncuestaRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
@@ -45,6 +47,10 @@ class EncuestaServiceImplTest {
     private BitacoraService bitacoraService;
     @Mock
     private JdbcTemplate jdbcTemplate;
+    @Mock
+    private NotificacionRecordatorioFactory recordatorioFactory;
+    @Mock
+    private NotificacionRecordatorioDispatcher recordatorioDispatcher;
 
     private EncuestaServiceImpl service;
 
@@ -56,7 +62,9 @@ class EncuestaServiceImplTest {
                 tutorRepository,
                 notificadorEventos,
                 bitacoraService,
-                jdbcTemplate
+                jdbcTemplate,
+                recordatorioFactory,
+                recordatorioDispatcher
         );
     }
 
