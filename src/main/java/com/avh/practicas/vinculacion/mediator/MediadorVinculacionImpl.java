@@ -1,13 +1,13 @@
 package com.avh.practicas.vinculacion.mediator;
 
 import com.avh.practicas.correo.service.IMailService;
-import com.avh.practicas.correo.service.ObservadorCorreo;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.DocenteAsesor;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.shared.evento.EventoSistema;
+import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.vinculacion.dto.ContextoVinculacion;
@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
     private final ServicioDocente servicioDocente;
     private final IMailService mailService;
     private final ServicioBitacora servicioBitacora;
-    private final ObservadorCorreo observadorCorreo;
+    private final NotificadorEventos notificadorEventos;
 
     @Override
     public void notificar(String evento, Map<String, Object> datos) {
@@ -40,9 +41,15 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
     @Override
     @Transactional
     public void confirmarVinculacion(Long practicaId) {
+        confirmarVinculacion(practicaId, LocalDate.now(), LocalDate.now().plusMonths(6));
+    }
+
+    @Override
+    @Transactional
+    public void confirmarVinculacion(Long practicaId, LocalDate fechaInicio, LocalDate fechaFin) {
         notificar("VINCULACION_INICIADA", Map.of("practicaId", practicaId));
 
-        InstanciaPractica practica = servicioEstudiantes.activarPractica(practicaId);
+        InstanciaPractica practica = servicioEstudiantes.activarPractica(practicaId, fechaInicio, fechaFin);
         servicioDocente.asignarDocenteAsesor(practicaId);
 
         ContextoVinculacion contexto = servicioEstudiantes.cargarContexto(practicaId);
@@ -56,8 +63,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         servicioBitacora.registrarVinculacionConfirmada(
                 practicaId,
                 null,
-                "Vinculación confirmada. Práctica " + practica.getNombre()
-                        + " activada en estado EN_CURSO (EN_PRACTICA)."
+                "Vinculación confirmada para práctica " + practica.getNombre()
         );
 
         notificar("VINCULACION_CONFIRMADA", Map.of(
@@ -70,7 +76,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         Estudiante estudiante = contexto.getEstudiante();
         Empresa empresa = contexto.getEmpresa();
 
-        EventoSistema evento = EventoSistema.crear(
+        notificadorEventos.notificar(EventoSistema.crear(
                 TipoEventoSistema.VINCULACION_CONFIRMADA,
                 null,
                 "VINCULACION",
@@ -80,9 +86,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
                         "nombre_estudiante", estudiante.getNombre(),
                         "empresa", empresa.getRazonSocial()
                 )
-        );
-
-        observadorCorreo.actualizar(evento);
+        ));
     }
 
     private void notificarTutorEmpresarial(ContextoVinculacion contexto) {
@@ -90,34 +94,33 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         Estudiante estudiante = contexto.getEstudiante();
         Empresa empresa = contexto.getEmpresa();
 
-        String asunto = "Nueva práctica vinculada — " + estudiante.getNombre();
-        String cuerpo = "<p>Hola " + tutor.getNombre() + ",</p>"
-                + "<p>Se confirmó la vinculación del estudiante <b>" + estudiante.getNombre()
-                + "</b> con <b>" + empresa.getRazonSocial() + "</b>.</p>";
-
-        enviarCorreoObligatorio(tutor.getCorreo(), asunto, cuerpo);
+        enviarCorreoObligatorio(
+                tutor.getCorreo(),
+                "Nueva práctica vinculada — " + estudiante.getNombre(),
+                "<p>Hola " + tutor.getNombre() + ",</p><p>Se confirmó la vinculación de <b>"
+                        + estudiante.getNombre() + "</b> con <b>" + empresa.getRazonSocial() + "</b>.</p>"
+        );
     }
 
     private void notificarDocenteAsesor(ContextoVinculacion contexto) {
         DocenteAsesor docente = contexto.getDocenteAsesor();
         if (docente == null) {
-            throw new NegocioException("No se pudo notificar al docente asesor: no está asignado a la práctica.");
+            throw new NegocioException("No se pudo notificar al docente asesor: no está asignado.");
         }
 
         Estudiante estudiante = contexto.getEstudiante();
         Empresa empresa = contexto.getEmpresa();
 
-        String asunto = "Nuevo estudiante en práctica — " + estudiante.getNombre();
-        String cuerpo = "<p>Hola " + docente.getNombre() + ",</p>"
-                + "<p>Quedaste asignado como docente asesor de <b>" + estudiante.getNombre()
-                + "</b> en <b>" + empresa.getRazonSocial() + "</b>.</p>";
-
-        enviarCorreoObligatorio(docente.getCorreo(), asunto, cuerpo);
+        enviarCorreoObligatorio(
+                docente.getCorreo(),
+                "Nuevo estudiante en práctica — " + estudiante.getNombre(),
+                "<p>Hola " + docente.getNombre() + ",</p><p>Quedaste asignado como asesor de <b>"
+                        + estudiante.getNombre() + "</b> en <b>" + empresa.getRazonSocial() + "</b>.</p>"
+        );
     }
 
     private void enviarCorreoObligatorio(String destinatario, String asunto, String cuerpo) {
-        boolean enviado = mailService.enviar(destinatario, asunto, cuerpo);
-        if (!enviado) {
+        if (!mailService.enviar(destinatario, asunto, cuerpo)) {
             throw new NegocioException("No se pudo enviar el correo a: " + destinatario);
         }
     }

@@ -15,13 +15,6 @@ public class ServicioBitacoraImpl implements ServicioBitacora {
     @Override
     @Transactional
     public void registrarVinculacionConfirmada(Long practicaId, Long usuarioId, String detalle) {
-        bitacoraService.registrar(
-                usuarioId,
-                "VINCULACION",
-                TipoAccion.MODIFICACION,
-                practicaId,
-                null,
-                detalle
-        );
+        bitacoraService.registrar(usuarioId, "VINCULACION", TipoAccion.MODIFICACION, practicaId, null, detalle);
     }
 }
