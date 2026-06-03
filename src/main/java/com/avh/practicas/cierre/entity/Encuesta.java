@@ -37,6 +37,9 @@ public class Encuesta {
     @Builder.Default
     private LocalDateTime fechaEnvioInvitacion = LocalDateTime.now();
 
+    @Column(name = "fecha_ultimo_recordatorio")
+    private LocalDateTime fechaUltimoRecordatorio;
+
     @Column(name = "respuestas_json")
     private String respuestasJson;
 }

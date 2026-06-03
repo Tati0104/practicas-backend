@@ -31,6 +31,16 @@ public interface EncuestaService {
     void enviarRecordatorio(Long practicaId, TipoEncuesta tipo);
 
     /**
+     * Valida que se pueda enviar un recordatorio (encuesta activa y límite diario).
+     */
+    void validarRecordatorioDiario(Long practicaId, TipoEncuesta tipo);
+
+    /**
+     * Registra en BD y bitácora un recordatorio ya despachado (usado por {@code ItemEncuesta}).
+     */
+    void registrarRecordatorioEnviado(Long practicaId, TipoEncuesta tipo);
+
+    /**
      * Verifica si la encuesta está completada.
      */
     boolean isCompleta(Long practicaId, TipoEncuesta tipo);

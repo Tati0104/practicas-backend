@@ -3,6 +3,9 @@ package com.avh.practicas.cierre.service;
 import com.avh.practicas.cierre.entity.Encuesta;
 import com.avh.practicas.cierre.entity.EstadoEncuesta;
 import com.avh.practicas.cierre.entity.TipoEncuesta;
+import com.avh.practicas.cierre.notificacion.NotificacionRecordatorio;
+import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioDispatcher;
+import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioFactory;
 import com.avh.practicas.cierre.repository.EncuestaRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
@@ -38,6 +41,8 @@ public class EncuestaServiceImpl implements EncuestaService {
     private final NotificadorEventos notificadorEventos;
     private final BitacoraService bitacoraService;
     private final JdbcTemplate jdbcTemplate;
+    private final NotificacionRecordatorioFactory recordatorioFactory;
+    private final NotificacionRecordatorioDispatcher recordatorioDispatcher;
 
     @Override
     public Encuesta crearEncuestaPendiente(Long practicaId, TipoEncuesta tipo) {
@@ -101,14 +106,47 @@ public class EncuestaServiceImpl implements EncuestaService {
 
     @Override
     public void enviarRecordatorio(Long practicaId, TipoEncuesta tipo) {
+        validarRecordatorioDiario(practicaId, tipo);
+        Encuesta encuesta = obtenerEncuestaActiva(practicaId, tipo);
+        InstanciaPractica practica = encuesta.getInstanciaPractica();
+
+        NotificacionRecordatorio notificacion = recordatorioFactory.crear(practica, tipo, encuesta.getEstado());
+        recordatorioDispatcher.enviar(notificacion);
+        registrarRecordatorioEnviado(practicaId, tipo);
+    }
+
+    @Override
+    public void validarRecordatorioDiario(Long practicaId, TipoEncuesta tipo) {
+        obtenerEncuestaActiva(practicaId, tipo);
+        validarLimiteRecordatorioDiario(practicaId, tipo);
+    }
+
+    @Override
+    public void registrarRecordatorioEnviado(Long practicaId, TipoEncuesta tipo) {
+        Encuesta encuesta = obtenerEncuestaActiva(practicaId, tipo);
+
+        encuesta.setFechaUltimoRecordatorio(LocalDateTime.now());
+        encuestaRepository.save(encuesta);
+
+        bitacoraService.registrar(
+                "encuestas",
+                "RECORDATORIO",
+                encuesta.getId(),
+                "Recordatorio enviado a " + tipo.name() + " para la encuesta de la practicaId:" + practicaId
+        );
+    }
+
+    private Encuesta obtenerEncuestaActiva(Long practicaId, TipoEncuesta tipo) {
         Encuesta encuesta = encuestaRepository.findByInstanciaPracticaIdAndTipo(practicaId, tipo)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la encuesta para esta práctica y tipo."));
 
         if (encuesta.getEstado() == EstadoEncuesta.COMPLETADA) {
             throw new IllegalStateException("La encuesta ya se encuentra completada.");
         }
+        return encuesta;
+    }
 
-        // Consultar en la bitácora si se envió un recordatorio hoy
+    private void validarLimiteRecordatorioDiario(Long practicaId, TipoEncuesta tipo) {
         Integer countHoy = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM bitacora_auditoria WHERE tabla_afectada = 'encuestas' AND accion = 'RECORDATORIO' AND detalle LIKE ? AND fecha >= CURRENT_DATE",
                 Integer.class,
@@ -118,12 +156,6 @@ public class EncuestaServiceImpl implements EncuestaService {
         if (countHoy != null && countHoy > 0) {
             throw new IllegalStateException("Máximo un recordatorio diario permitido por encuesta.");
         }
-
-        // Despachar el recordatorio por correo
-        despacharNotificacionEncuesta(TipoEventoSistema.RECORDATORIO_ENCUESTA, encuesta.getInstanciaPractica(), tipo);
-
-        // Registrar en la bitácora de auditoría
-        bitacoraService.registrar("encuestas", "RECORDATORIO", null, "Recordatorio enviado a " + tipo.name() + " para la encuesta de la practicaId:" + practicaId);
     }
 
     @Override
