@@ -33,7 +33,7 @@ public class BitacoraEstudiante {
     @Column(name = "corte")
     private Integer corte;
 
-    @Column(name = "descripcion", nullable = false)
+    @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(nullable = false)

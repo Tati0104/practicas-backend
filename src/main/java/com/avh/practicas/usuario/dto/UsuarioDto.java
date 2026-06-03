@@ -1,0 +1,20 @@
+package com.avh.practicas.usuario.dto;
+
+import com.avh.practicas.shared.entity.Rol;
+import com.avh.practicas.shared.entity.Scope;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class UsuarioDto {
+    private Long   id;
+    private String nombre;
+    private String correo;
+    private Rol    rol;
+    private Scope  scope;
+    private boolean activo;
+    private boolean primeraVez;
+    private Long   programaId;
+    private Long   facultadId;
+}
