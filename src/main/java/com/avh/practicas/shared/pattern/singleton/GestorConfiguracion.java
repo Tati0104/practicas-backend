@@ -6,6 +6,7 @@ public class GestorConfiguracion {
 
     private int creditosMinimos = 80; // Valor por defecto
     private double promedioMinimo = 3.5; // Valor por defecto
+    private double maxNota = 5.0; // Valor por defecto
 
     private GestorConfiguracion() {
         // Constructor privado para evitar instanciación externa
@@ -36,5 +37,13 @@ public class GestorConfiguracion {
 
     public void setPromedioMinimo(double promedioMinimo) {
         this.promedioMinimo = promedioMinimo;
+    }
+
+    public double getMaxNota() {
+        return maxNota;
+    }
+
+    public void setMaxNota(double maxNota) {
+        this.maxNota = maxNota;
     }
 }
