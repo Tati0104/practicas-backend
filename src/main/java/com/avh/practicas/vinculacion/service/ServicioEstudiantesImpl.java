@@ -9,12 +9,12 @@ import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
-import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
-import com.avh.practicas.seguimiento.entity.BitacoraEstudiante;
-import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.vinculacion.dto.ContextoVinculacion;
+import com.avh.practicas.vinculacion.entity.EntradaTableroSeguimiento;
+import com.avh.practicas.vinculacion.repository.PracticaVinculacionRepository;
+import com.avh.practicas.vinculacion.repository.TableroSeguimientoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,31 +26,33 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ServicioEstudiantesImpl implements ServicioEstudiantes {
 
-    private final InstanciaPracticaRepository instanciaPracticaRepository;
+    private final PracticaVinculacionRepository practicaRepository;
     private final EmpresaRepository empresaRepository;
-    private final TutorEmpresarialRepository tutorEmpresarialRepository;
+    private final TutorEmpresarialRepository tutorRepository;
     private final DocenteAsesorRepository docenteAsesorRepository;
-    private final BitacoraEstudianteRepository bitacoraEstudianteRepository;
+    private final TableroSeguimientoRepository tableroSeguimientoRepository;
 
     @Override
     @Transactional(readOnly = true)
     public ContextoVinculacion cargarContexto(Long practicaId) {
-        InstanciaPractica practica = obtenerPracticaConRelaciones(practicaId);
+        InstanciaPractica practica = obtenerPractica(practicaId);
         Estudiante estudiante = practica.getExpediente().getEstudiante();
 
-        Empresa empresa = empresaRepository.findById(practica.getEmpresaId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró la empresa asociada a la práctica: " + practica.getEmpresaId()));
+        if (practica.getEmpresaId() == null || practica.getTutorId() == null) {
+            throw new NegocioException("La práctica no tiene empresa o tutor empresarial configurados.");
+        }
 
-        TutorEmpresarial tutor = tutorEmpresarialRepository.findById(practica.getTutorId())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "No se encontró el tutor empresarial asociado a la práctica: " + practica.getTutorId()));
+        Empresa empresa = empresaRepository.findById(practica.getEmpresaId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Empresa no encontrada: " + practica.getEmpresaId()));
+
+        TutorEmpresarial tutor = tutorRepository.findById(practica.getTutorId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Tutor no encontrado: " + practica.getTutorId()));
 
         DocenteAsesor docenteAsesor = null;
         if (practica.getDocenteAsesorId() != null) {
             docenteAsesor = docenteAsesorRepository.findById(practica.getDocenteAsesorId())
                     .orElseThrow(() -> new RecursoNoEncontradoException(
-                            "No se encontró el docente asesor con id: " + practica.getDocenteAsesorId()));
+                            "Docente asesor no encontrado: " + practica.getDocenteAsesorId()));
         }
 
         return ContextoVinculacion.builder()
@@ -64,42 +66,40 @@ public class ServicioEstudiantesImpl implements ServicioEstudiantes {
 
     @Override
     @Transactional
-    public InstanciaPractica activarPractica(Long practicaId) {
-        InstanciaPractica practica = obtenerPracticaConRelaciones(practicaId);
+    public InstanciaPractica activarPractica(Long practicaId, LocalDate fechaInicio, LocalDate fechaFin) {
+        InstanciaPractica practica = obtenerPractica(practicaId);
 
         if (practica.getEstado() != EstadoPractica.ASIGNADA_PENDIENTE_INICIO) {
             throw new NegocioException(
-                    "Solo se puede confirmar vinculación en prácticas con estado ASIGNADA_PENDIENTE_INICIO. Estado actual: "
+                    "Solo se puede activar una práctica en estado ASIGNADA_PENDIENTE_INICIO. Estado actual: "
                             + practica.getEstado());
         }
 
-        if (practica.getEmpresaId() == null || practica.getTutorId() == null) {
-            throw new NegocioException("La práctica debe tener empresa y tutor empresarial asignados antes de confirmar la vinculación.");
+        if (fechaFin.isBefore(fechaInicio)) {
+            throw new NegocioException("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
 
-        // EN_PRACTICA (requisito PE-34) ↔ EN_CURSO en el modelo persistido
         practica.setEstado(EstadoPractica.EN_CURSO);
-        practica.setFechaInicio(LocalDate.now());
+        practica.setFechaInicio(fechaInicio);
+        practica.setFechaFin(fechaFin);
 
-        return instanciaPracticaRepository.save(practica);
+        return practicaRepository.save(practica);
     }
 
     @Override
     @Transactional
     public void activarTableroSeguimiento(Long practicaId) {
-        obtenerPracticaConRelaciones(practicaId);
+        obtenerPractica(practicaId);
 
-        BitacoraEstudiante entrada = BitacoraEstudiante.builder()
+        tableroSeguimientoRepository.save(EntradaTableroSeguimiento.builder()
                 .instanciaPracticaId(practicaId)
                 .descripcion("Tablero de seguimiento activado tras confirmación de vinculación.")
                 .fecha(LocalDateTime.now())
-                .build();
-
-        bitacoraEstudianteRepository.save(entrada);
+                .build());
     }
 
-    private InstanciaPractica obtenerPracticaConRelaciones(Long practicaId) {
-        return instanciaPracticaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
+    private InstanciaPractica obtenerPractica(Long practicaId) {
+        return practicaRepository.findByIdConExpediente(practicaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró la instancia de práctica con id: " + practicaId));
     }
