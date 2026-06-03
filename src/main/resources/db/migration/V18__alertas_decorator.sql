@@ -1,0 +1,8 @@
+-- PE-37: campos para decoradores de alertas
+ALTER TABLE alertas_sistema
+    ADD COLUMN IF NOT EXISTS resuelta BOOLEAN DEFAULT FALSE NOT NULL,
+    ADD COLUMN IF NOT EXISTS prioritaria BOOLEAN DEFAULT FALSE NOT NULL,
+    ADD COLUMN IF NOT EXISTS url_accion VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS nombre_modulo VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS condicion_resolucion VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS fecha_archivado TIMESTAMP;

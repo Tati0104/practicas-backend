@@ -10,12 +10,18 @@ import com.avh.practicas.shared.evento.TipoEventoSistema;
 import com.avh.practicas.usuario.entity.Usuario;
 import com.avh.practicas.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Servicio KBM S2 para administrar docentes asesores.
+ * Se encarga de registrar, editar, activar e inactivar docentes vinculados a un programa.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocenteAsesorService {
@@ -26,11 +32,16 @@ public class DocenteAsesorService {
 
     @Transactional
     public DocenteAsesorResponse registrar(DocenteAsesorRequest request) {
+        // Validacion de negocio: el correo del docente asesor no se puede repetir.
         if (repository.existsByCorreo(request.correo())) {
             throw new IllegalArgumentException("Ya existe un docente asesor con este correo");
         }
 
-        Usuario usuario = usuarioService.crearUsuarioDocenteAsesor(request.nombreCompleto(), request.correo());
+        // Se crea o actualiza el usuario asociado con rol DOCENTE_ASESOR.
+        Usuario usuario = usuarioService.crearUsuarioDocenteAsesor(
+                request.nombreCompleto(),
+                request.correo()
+        );
 
         DocenteAsesor docente = DocenteAsesor.builder()
                 .usuario(usuario)
@@ -43,43 +54,56 @@ public class DocenteAsesorService {
                 .build();
 
         DocenteAsesor guardado = repository.save(docente);
-        notificar(TipoEventoSistema.DOCENTE_ASESOR_CREADO, guardado);
+        // Observer: se notifica la creacion, pero sin impedir el registro si el observador falla.
+        notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_CREADO, guardado);
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
     @Transactional
     public DocenteAsesorResponse editar(Long id, DocenteAsesorRequest request) {
         DocenteAsesor docente = obtenerEntidad(id);
+
         docente.setNombre(request.nombreCompleto());
         docente.setCorreo(request.correo());
         docente.setTelefono(request.telefono());
         docente.setProgramaId(request.programaId());
         docente.setAreaConocimiento(request.areaConocimiento());
-        return DocenteAsesorResponse.desdeEntidad(repository.save(docente));
+
+        DocenteAsesor guardado = repository.save(docente);
+
+        return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
     @Transactional
     public DocenteAsesorResponse activar(Long id) {
         DocenteAsesor docente = obtenerEntidad(id);
+
         docente.setActivo(true);
+
         if (docente.getUsuario() != null) {
             docente.getUsuario().setActivo(true);
         }
+
         DocenteAsesor guardado = repository.save(docente);
-        notificar(TipoEventoSistema.DOCENTE_ASESOR_ACTIVADO, guardado);
+        notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_ACTIVADO, guardado);
+
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
     @Transactional
     public DocenteAsesorResponse inactivar(Long id) {
         DocenteAsesor docente = obtenerEntidad(id);
+
         // Integración futura: validar que no tenga estudiantes activos asignados.
         docente.setActivo(false);
+
         if (docente.getUsuario() != null) {
             docente.getUsuario().setActivo(false);
         }
+
         DocenteAsesor guardado = repository.save(docente);
-        notificar(TipoEventoSistema.DOCENTE_ASESOR_INACTIVADO, guardado);
+        notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_INACTIVADO, guardado);
+
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
@@ -107,6 +131,22 @@ public class DocenteAsesorService {
     private DocenteAsesor obtenerEntidad(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Docente asesor no encontrado"));
+    }
+
+    /**
+     * Proteccion del flujo principal: si falla la notificacion, no se revierte la creacion del docente.
+     */
+    private void notificarSeguro(TipoEventoSistema tipo, DocenteAsesor docente) {
+        try {
+            notificar(tipo, docente);
+        } catch (Exception e) {
+            log.warn(
+                    "No se pudo notificar el evento {} para el docente asesor con id {}. Motivo: {}",
+                    tipo,
+                    docente.getId(),
+                    e.getMessage()
+            );
+        }
     }
 
     private void notificar(TipoEventoSistema tipo, DocenteAsesor docente) {

@@ -1,5 +1,6 @@
 package com.avh.practicas.shared.exception;
 
+import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
 import com.avh.practicas.shared.api.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({BadRequestException.class, IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBadRequest(RuntimeException ex) {
+        return ApiResponse.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(CierreNoPermitidoException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> handleCierreNoPermitido(CierreNoPermitidoException ex) {
         return ApiResponse.error(ex.getMessage());
     }
 
