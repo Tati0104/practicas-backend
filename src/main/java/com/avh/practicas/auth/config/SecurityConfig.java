@@ -27,6 +27,11 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
+    /**
+     * Configuracion principal de seguridad.
+     * Aqui se protegen los endpoints con JWT y se dejan publicas solo las rutas de autenticacion.
+     * Importante para KBM: /asignaciones/** y /reportes/** quedan autenticadas para poder probar S4 y S6.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -40,13 +45,16 @@ public class SecurityConfig {
                         .requestMatchers("/dashboard/**").authenticated()
                         .requestMatchers("/admin/**").authenticated()
                         .requestMatchers("/vacantes/**").authenticated()
+                        // S4 KBM: permite consumir el modulo de asignaciones/postulaciones con token JWT.
+                        .requestMatchers("/asignaciones/**").authenticated()
                         .requestMatchers("/docentes-asesores/**").authenticated()
                         .requestMatchers("/estudiantes/**").authenticated()
                         .requestMatchers("/empresas/**").authenticated()
                         .requestMatchers("/programas/**").authenticated()
                         .requestMatchers("/facultades/**").authenticated()
                         .requestMatchers("/catalogos/**").authenticated()
-                        .requestMatchers("/vinculaciones/**").authenticated()
+                        // S6 KBM: permite generar y consultar reportes siempre que exista autenticacion.
+                        .requestMatchers("/reportes/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
