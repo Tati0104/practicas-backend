@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/vacantes")
 @RequiredArgsConstructor
@@ -34,6 +36,12 @@ public class VacanteController {
             @RequestParam(required = false) String area,
             Pageable pageable) {
         return service.listar(empresaId, programaId, estado, modalidad, area, pageable);
+    }
+
+
+    @GetMapping("/disponibles")
+    public List<VacanteResponse> disponiblesParaEstudiante(@RequestParam(required = false) Long programaId) {
+        return service.listarDisponiblesParaEstudiante(programaId);
     }
 
     @GetMapping("/{id}")

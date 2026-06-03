@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Servicio KBM S3 para ciclo de vida de vacantes.
+ * Usa VacanteContext como patron State para aprobar, rechazar, pausar, cerrar y manejar cupos.
+ */
 @Service
 @RequiredArgsConstructor
 public class VacanteService {
@@ -52,6 +56,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Patron State: PENDIENTE_APROBACION -> ACTIVA.
     public VacanteResponse aprobar(Long id, Long aprobadoPorId) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).aprobar();
@@ -62,6 +67,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Patron State: rechaza la vacante dejando motivo obligatorio.
     public VacanteResponse rechazar(Long id, String motivo) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).rechazar(motivo);
@@ -71,6 +77,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Patron State: ACTIVA -> PAUSADA.
     public VacanteResponse pausar(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).pausar();
@@ -80,6 +87,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Patron State: PAUSADA -> ACTIVA.
     public VacanteResponse reactivar(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).reactivar();
@@ -89,6 +97,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Patron State: pasa la vacante a estado CERRADA.
     public VacanteResponse cerrar(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).cerrar();
@@ -98,6 +107,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Cupos: descuenta cupo y puede mover la vacante a CUPOS_COMPLETOS.
     public VacanteResponse descontarCupo(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).descontarCupo();
@@ -109,6 +119,7 @@ public class VacanteService {
     }
 
     @Transactional
+    // Cupos: libera cupo al cancelar una asignacion.
     public VacanteResponse liberarCupo(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).liberarCupo();
@@ -129,6 +140,19 @@ public class VacanteService {
                                         Pageable pageable) {
         return repository.findAll(conFiltros(empresaId, programaId, estado, modalidad, area), pageable)
                 .map(VacanteResponse::desdeEntidad);
+    }
+
+
+    @Transactional(readOnly = true)
+    // Solo retorna vacantes ACTIVA con cupos, útil para el apartado visible al estudiante.
+    public List<VacanteResponse> listarDisponiblesParaEstudiante(Long programaId) {
+        return repository.findAll()
+                .stream()
+                .filter(v -> v.getEstado() == EstadoVacanteEnum.ACTIVA)
+                .filter(v -> v.getCuposDisponibles() != null && v.getCuposDisponibles() > 0)
+                .filter(v -> programaId == null || programaId.equals(v.getProgramaId()))
+                .map(VacanteResponse::desdeEntidad)
+                .toList();
     }
 
     private Vacante obtenerEntidad(Long id) {
