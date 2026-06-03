@@ -3,6 +3,7 @@ package com.avh.practicas.vinculacion.alerta.controller;
 import com.avh.practicas.shared.api.ApiResponse;
 import com.avh.practicas.vinculacion.alerta.dto.AlertaVista;
 import com.avh.practicas.vinculacion.alerta.dto.CrearAlertaRequest;
+import com.avh.practicas.vinculacion.alerta.entity.TipoAlerta;
 import com.avh.practicas.vinculacion.alerta.service.AlertaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,21 @@ public class AlertaController {
 
     @PatchMapping("/{id}/resolver")
     public ResponseEntity<ApiResponse<AlertaVista>> resolver(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok("Alerta resuelta", alertaService.resolver(id)));
+        return ResponseEntity.ok(ApiResponse.ok("Alerta resuelta", alertaService.resolverAlerta(id)));
+    }
+
+    @PostMapping("/generar")
+    public ResponseEntity<ApiResponse<AlertaVista>> generarAlerta(
+            @RequestParam TipoAlerta tipo,
+            @RequestParam Long practicaId
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok("Alerta generada", alertaService.generarAlerta(tipo, practicaId)));
+    }
+
+    @PostMapping("/evaluar-inactividad")
+    public ResponseEntity<ApiResponse<Void>> evaluarInactividad() {
+        alertaService.evaluarInactividad();
+        return ResponseEntity.ok(ApiResponse.ok("Evaluación de inactividad ejecutada"));
     }
 
     @PostMapping("/evaluar-auto-resolucion")

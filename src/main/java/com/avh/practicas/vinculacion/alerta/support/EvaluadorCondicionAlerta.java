@@ -41,6 +41,10 @@ public class EvaluadorCondicionAlerta {
         if (expresion.regionMatches(true, 0, "resuelta:", 0, 9)) {
             return Boolean.parseBoolean(expresion.substring(9));
         }
+        if ("nueva actividad".equalsIgnoreCase(expresion)) {
+            return contexto != null
+                    && "true".equalsIgnoreCase(String.valueOf(contexto.getOrDefault("nueva_actividad", "false")));
+        }
 
         return false;
     }
