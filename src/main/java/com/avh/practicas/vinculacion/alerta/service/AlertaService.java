@@ -2,7 +2,7 @@ package com.avh.practicas.vinculacion.alerta.service;
 
 import com.avh.practicas.vinculacion.alerta.dto.AlertaVista;
 import com.avh.practicas.vinculacion.alerta.dto.CrearAlertaRequest;
-import com.avh.practicas.vinculacion.alerta.entity.TipoAlerta;
+import com.avh.practicas.shared.enums.TipoAlerta;
 
 import java.util.List;
 import java.util.Map;

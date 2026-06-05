@@ -1,7 +1,7 @@
 package com.avh.practicas.usuario.dto;
 
-import com.avh.practicas.shared.entity.Rol;
-import com.avh.practicas.shared.entity.Scope;
+import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.enums.Scope;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

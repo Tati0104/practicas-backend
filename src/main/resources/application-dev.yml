@@ -1,9 +1,9 @@
 # Perfil desarrollo: BD local + logging DEBUG
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/practicas_db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:5432/practicas_db
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

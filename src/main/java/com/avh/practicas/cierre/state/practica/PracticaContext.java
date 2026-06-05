@@ -31,6 +31,7 @@ public class PracticaContext {
             case COMPLETADA -> new PracticaCompletadaState();
             case REPROBADA -> new PracticaReprobadaState();
             case EN_CURSO, ASIGNADA_PENDIENTE_INICIO -> new PracticaEnCursoState();
+            case CANCELADA -> new PracticaReprobadaState();
         };
     }
 }

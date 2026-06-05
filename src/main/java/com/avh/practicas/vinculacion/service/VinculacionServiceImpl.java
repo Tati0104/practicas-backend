@@ -1,5 +1,8 @@
 package com.avh.practicas.vinculacion.service;
 
+import com.avh.practicas.asignacion.entity.Asignacion;
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
+import com.avh.practicas.asignacion.repository.AsignacionRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;

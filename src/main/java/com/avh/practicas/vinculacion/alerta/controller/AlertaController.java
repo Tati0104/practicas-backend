@@ -3,7 +3,7 @@ package com.avh.practicas.vinculacion.alerta.controller;
 import com.avh.practicas.shared.api.ApiResponse;
 import com.avh.practicas.vinculacion.alerta.dto.AlertaVista;
 import com.avh.practicas.vinculacion.alerta.dto.CrearAlertaRequest;
-import com.avh.practicas.vinculacion.alerta.entity.TipoAlerta;
+import com.avh.practicas.shared.enums.TipoAlerta;
 import com.avh.practicas.vinculacion.alerta.service.AlertaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

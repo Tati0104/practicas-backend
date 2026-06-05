@@ -9,12 +9,12 @@ import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
+import com.avh.practicas.seguimiento.entity.BitacoraEstudiante;
+import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.vinculacion.dto.ContextoVinculacion;
-import com.avh.practicas.vinculacion.entity.EntradaTableroSeguimiento;
 import com.avh.practicas.vinculacion.repository.PracticaVinculacionRepository;
-import com.avh.practicas.vinculacion.repository.TableroSeguimientoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ public class ServicioEstudiantesImpl implements ServicioEstudiantes {
     private final EmpresaRepository empresaRepository;
     private final TutorEmpresarialRepository tutorRepository;
     private final DocenteAsesorRepository docenteAsesorRepository;
-    private final TableroSeguimientoRepository tableroSeguimientoRepository;
+    private final BitacoraEstudianteRepository bitacoraEstudianteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -89,10 +89,12 @@ public class ServicioEstudiantesImpl implements ServicioEstudiantes {
     @Override
     @Transactional
     public void activarTableroSeguimiento(Long practicaId) {
-        obtenerPractica(practicaId);
+        InstanciaPractica practica = obtenerPractica(practicaId);
+        Estudiante estudiante = practica.getExpediente().getEstudiante();
 
-        tableroSeguimientoRepository.save(EntradaTableroSeguimiento.builder()
-                .instanciaPracticaId(practicaId)
+        bitacoraEstudianteRepository.save(BitacoraEstudiante.builder()
+                .instanciaPractica(practica)
+                .estudiante(estudiante)
                 .descripcion("Tablero de seguimiento activado tras confirmación de vinculación.")
                 .fecha(LocalDateTime.now())
                 .build());

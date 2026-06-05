@@ -43,6 +43,16 @@ public class EncuestaServiceProxy implements EncuestaService {
     }
 
     @Override
+    public void validarRecordatorioDiario(Long practicaId, TipoEncuesta tipo) {
+        realService.validarRecordatorioDiario(practicaId, tipo);
+    }
+
+    @Override
+    public void registrarRecordatorioEnviado(Long practicaId, TipoEncuesta tipo) {
+        realService.registrarRecordatorioEnviado(practicaId, tipo);
+    }
+
+    @Override
     public boolean isCompleta(Long practicaId, TipoEncuesta tipo) {
         return realService.isCompleta(practicaId, tipo);
     }

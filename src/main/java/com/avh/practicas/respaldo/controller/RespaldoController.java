@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller S5 para probar el respaldo stub.
  * Expone la generacion y consulta de estado del job.
  */
-@RestController
+@RestController("respaldoStubController")
 @RequestMapping("/admin/respaldo")
 @RequiredArgsConstructor
 public class RespaldoController {

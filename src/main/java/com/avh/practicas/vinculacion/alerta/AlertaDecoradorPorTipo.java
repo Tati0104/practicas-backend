@@ -1,6 +1,6 @@
 package com.avh.practicas.vinculacion.alerta;
 
-import com.avh.practicas.vinculacion.alerta.entity.TipoAlerta;
+import com.avh.practicas.shared.enums.TipoAlerta;
 import com.avh.practicas.vinculacion.alerta.support.EvaluadorCondicionAlerta;
 import org.springframework.stereotype.Component;
 

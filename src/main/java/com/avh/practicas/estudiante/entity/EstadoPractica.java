@@ -4,5 +4,6 @@ public enum EstadoPractica {
     ASIGNADA_PENDIENTE_INICIO,
     EN_CURSO,
     COMPLETADA,
-    REPROBADA
+    REPROBADA,
+    CANCELADA
 }

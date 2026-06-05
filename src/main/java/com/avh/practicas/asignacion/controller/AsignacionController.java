@@ -29,7 +29,7 @@ import java.util.List;
  * En el negocio, la postulacion oficial la realiza Coordinacion de Practicas,
  * por eso el endpoint principal delega en AsignacionService.asignar(...).
  */
-@RestController
+@RestController("asignacionModuloController")
 @RequestMapping("/asignaciones")
 @RequiredArgsConstructor
 public class AsignacionController {

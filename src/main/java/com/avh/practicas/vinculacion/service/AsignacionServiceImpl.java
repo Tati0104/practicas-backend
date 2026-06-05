@@ -1,5 +1,8 @@
 package com.avh.practicas.vinculacion.service;
 
+import com.avh.practicas.asignacion.entity.Asignacion;
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
+import com.avh.practicas.asignacion.repository.AsignacionRepository;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
@@ -13,11 +16,9 @@ import com.avh.practicas.vacante.repository.VacanteRepository;
 import com.avh.practicas.vinculacion.dto.AsignacionResponse;
 import com.avh.practicas.vinculacion.dto.CancelarAsignacionRequest;
 import com.avh.practicas.vinculacion.dto.CrearAsignacionRequest;
-import com.avh.practicas.vinculacion.entity.Asignacion;
-import com.avh.practicas.vinculacion.entity.EstadoAsignacion;
 import com.avh.practicas.vinculacion.event.EventoAsignacion;
-import com.avh.practicas.vinculacion.repository.AsignacionRepository;
 import com.avh.practicas.vinculacion.support.AsignacionObservadorRegistry;
+import com.avh.practicas.vinculacion.support.AsignacionSubject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,8 +116,9 @@ public class AsignacionServiceImpl implements AsignacionService {
     ) {
         Map<String, Object> datos = construirDatos(asignacion, estudiante, vacante);
         datos.putAll(extras);
-        observadorRegistry.registrarObservadores(asignacion);
-        asignacion.notificarObservadores(tipoEvento, datos);
+        AsignacionSubject subject = new AsignacionSubject(asignacion);
+        observadorRegistry.registrarObservadores(subject);
+        subject.notificarObservadores(tipoEvento, datos);
     }
 
     private void dispararEvento(

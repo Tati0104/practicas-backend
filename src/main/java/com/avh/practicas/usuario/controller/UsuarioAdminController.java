@@ -1,6 +1,6 @@
 package com.avh.practicas.usuario.controller;
 
-import com.avh.practicas.shared.dto.ApiResponse;
+import com.avh.practicas.shared.api.ApiResponse;
 import com.avh.practicas.usuario.dto.*;
 import com.avh.practicas.usuario.service.UsuarioAdminService;
 import jakarta.validation.Valid;
@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-// SOLID · SRP — única responsabilidad: recibir peticiones HTTP y delegar al service
 @RestController
 @RequestMapping("/admin/usuarios")
 @RequiredArgsConstructor
@@ -26,15 +25,14 @@ public class UsuarioAdminController {
             FiltroUsuarioRequest filtros,
             Pageable pageable) {
         return ResponseEntity.ok(
-            ApiResponse.ok(usuarioAdminService.listar(filtros, pageable)));
+                ApiResponse.ok(usuarioAdminService.listar(filtros, pageable)));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<UsuarioDto>> crear(
             @Valid @RequestBody CrearUsuarioRequest dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.ok(
-                usuarioAdminService.crear(dto), "Usuario creado correctamente"));
+                .body(ApiResponse.ok("Usuario creado correctamente", usuarioAdminService.crear(dto)));
     }
 
     @PutMapping("/{id}")
@@ -42,18 +40,18 @@ public class UsuarioAdminController {
             @PathVariable Long id,
             @Valid @RequestBody EditarUsuarioRequest dto) {
         return ResponseEntity.ok(
-            ApiResponse.ok(usuarioAdminService.editar(id, dto)));
+                ApiResponse.ok(usuarioAdminService.editar(id, dto)));
     }
 
     @PatchMapping("/{id}/activar")
     public ResponseEntity<ApiResponse<Void>> activar(@PathVariable Long id) {
         usuarioAdminService.activar(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Usuario activado"));
+        return ResponseEntity.ok(ApiResponse.ok("Usuario activado"));
     }
 
     @PatchMapping("/{id}/inactivar")
     public ResponseEntity<ApiResponse<Void>> inactivar(@PathVariable Long id) {
         usuarioAdminService.inactivar(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Usuario inactivado"));
+        return ResponseEntity.ok(ApiResponse.ok("Usuario inactivado"));
     }
 }

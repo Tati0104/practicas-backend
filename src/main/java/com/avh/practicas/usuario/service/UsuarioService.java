@@ -1,9 +1,9 @@
 package com.avh.practicas.usuario.service;
 
-import com.avh.practicas.usuario.entity.Rol;
-import com.avh.practicas.usuario.entity.Scope;
-import com.avh.practicas.usuario.entity.Usuario;
-import com.avh.practicas.usuario.repository.UsuarioRepository;
+import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
+import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.enums.Scope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UsuarioService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final AuthUsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional

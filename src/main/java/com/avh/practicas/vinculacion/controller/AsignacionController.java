@@ -4,7 +4,7 @@ import com.avh.practicas.shared.api.ApiResponse;
 import com.avh.practicas.vinculacion.dto.AsignacionResponse;
 import com.avh.practicas.vinculacion.dto.CancelarAsignacionRequest;
 import com.avh.practicas.vinculacion.dto.CrearAsignacionRequest;
-import com.avh.practicas.vinculacion.entity.EstadoAsignacion;
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
 import com.avh.practicas.vinculacion.service.AsignacionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@RestController("vinculacionAsignacionController")
 @RequestMapping("/vinculaciones/asignaciones")
 @RequiredArgsConstructor
 public class AsignacionController {

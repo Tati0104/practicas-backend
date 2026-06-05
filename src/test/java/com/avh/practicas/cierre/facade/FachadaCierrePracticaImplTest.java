@@ -57,8 +57,8 @@ class FachadaCierrePracticaImplTest {
         fachada = new FachadaCierrePracticaImpl(
                 checklistFabrica,
                 calificacionService,
-                practicaRepository,
                 notaFinalRepository,
+                practicaRepository,
                 documentoProxyActivador,
                 notificadorEventos,
                 tutorRepository,

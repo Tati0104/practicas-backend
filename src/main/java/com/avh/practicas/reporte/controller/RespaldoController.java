@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Controlador REST para gestionar la generación de respaldos completos en Excel (Sprint 6).
  */
-@RestController
+@RestController("reporteRespaldoController")
 @RequestMapping("/respaldo")
 @RequiredArgsConstructor
 @Slf4j

@@ -1,7 +1,7 @@
 package com.avh.practicas.vinculacion.event;
 
 /**
- * Tipos de evento del sujeto {@link com.avh.practicas.vinculacion.entity.Asignacion} (PE-30 Observer).
+ * Tipos de evento del sujeto {@link com.avh.practicas.vinculacion.support.AsignacionSubject} (PE-30 Observer).
  */
 public final class EventoAsignacion {
 

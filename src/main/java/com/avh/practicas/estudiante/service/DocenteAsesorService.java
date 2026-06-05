@@ -7,7 +7,7 @@ import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
-import com.avh.practicas.usuario.entity.Usuario;
+import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

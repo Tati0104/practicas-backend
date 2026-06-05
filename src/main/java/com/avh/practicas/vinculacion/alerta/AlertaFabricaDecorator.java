@@ -1,6 +1,6 @@
 package com.avh.practicas.vinculacion.alerta;
 
-import com.avh.practicas.vinculacion.alerta.entity.AlertaSistema;
+import com.avh.practicas.seguimiento.entity.AlertaSistema;
 import com.avh.practicas.vinculacion.alerta.support.EvaluadorCondicionAlerta;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

@@ -1,7 +1,6 @@
 package com.avh.practicas.vinculacion.support;
 
 import com.avh.practicas.shared.pattern.observer.Observador;
-import com.avh.practicas.vinculacion.entity.Asignacion;
 import com.avh.practicas.vinculacion.observer.ObservadorAsignacionBitacora;
 import com.avh.practicas.vinculacion.observer.ObservadorAsignacionCorreo;
 import org.springframework.stereotype.Component;
@@ -20,12 +19,12 @@ public class AsignacionObservadorRegistry {
         this.observadorCorreo = observadorCorreo;
     }
 
-    public void registrarObservadores(Asignacion asignacion) {
+    public void registrarObservadores(AsignacionSubject asignacion) {
         registrarSiFalta(asignacion, observadorBitacora);
         registrarSiFalta(asignacion, observadorCorreo);
     }
 
-    private void registrarSiFalta(Asignacion asignacion, Observador observador) {
+    private void registrarSiFalta(AsignacionSubject asignacion, Observador observador) {
         asignacion.registrarObservador(observador);
     }
 }

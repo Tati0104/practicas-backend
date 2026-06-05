@@ -1,8 +1,8 @@
 package com.avh.practicas.seguimiento.service;
 
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.seguimiento.entity.BitacoraAuditoria;
-import com.avh.practicas.seguimiento.repository.BitacoraAuditoriaRepository;
+import com.avh.practicas.bitacora.entity.EntradaBitacora;
+import com.avh.practicas.bitacora.repository.EntradaBitacoraRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,15 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class BitacoraServiceImpl implements BitacoraService {
 
-    private final BitacoraAuditoriaRepository repository;
+    private final EntradaBitacoraRepository repository;
 
     @Override
     @Transactional
     public void registrar(String tablaAfectada, String accion, Usuario usuario, String detalle) {
-        BitacoraAuditoria bitacora = BitacoraAuditoria.builder()
+        EntradaBitacora bitacora = EntradaBitacora.builder()
                 .tablaAfectada(tablaAfectada)
                 .accion(accion)
-                .usuario(usuario)
+                .usuarioId(usuario != null ? usuario.getId() : null)
                 .detalle(detalle)
                 .build();
         repository.save(bitacora);

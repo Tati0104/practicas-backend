@@ -1,6 +1,6 @@
 package com.avh.practicas.estudiante.entity;
 
-import com.avh.practicas.usuario.entity.Usuario;
+import com.avh.practicas.auth.entity.Usuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

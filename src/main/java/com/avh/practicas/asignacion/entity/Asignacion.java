@@ -63,6 +63,9 @@ public class Asignacion {
     @Column(name = "fecha_vinculacion")
     private LocalDateTime fechaVinculacion;
 
+    @Column(name = "instancia_practica_id")
+    private Long instanciaPracticaId;
+
     @PrePersist
     public void prePersist() {
         LocalDateTime ahora = LocalDateTime.now();

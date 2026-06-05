@@ -1,10 +1,10 @@
 package com.avh.practicas.usuario.service;
 
 import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.UsuarioRepository;
-import com.avh.practicas.shared.entity.Rol;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
+import com.avh.practicas.correo.service.IMailService;
+import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
-import com.avh.practicas.shared.service.IMailService;
 import com.avh.practicas.usuario.dto.*;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +19,15 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
-// SOLID · SRP — única responsabilidad: gestión administrativa de usuarios
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UsuarioAdminService {
 
-    private final UsuarioRepository usuarioRepository;
-    private final PasswordEncoder   passwordEncoder;
-    private final IMailService      mailService;
+    private final AuthUsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final IMailService mailService;
 
-    // SOLID · SRP — listar con filtros dinámicos y paginación
     @Transactional(readOnly = true)
     public Page<UsuarioDto> listar(FiltroUsuarioRequest filtros, Pageable pageable) {
         Specification<Usuario> spec = construirEspecificacion(filtros);
@@ -39,7 +37,7 @@ public class UsuarioAdminService {
     public UsuarioDto crear(CrearUsuarioRequest dto) {
         if (usuarioRepository.existsByCorreo(dto.getCorreo())) {
             throw new IllegalArgumentException(
-                "Ya existe un usuario registrado con el correo: " + dto.getCorreo());
+                    "Ya existe un usuario registrado con el correo: " + dto.getCorreo());
         }
 
         String passwordTemporal = generarPasswordTemporal();
@@ -50,21 +48,18 @@ public class UsuarioAdminService {
                 .passwordHash(passwordEncoder.encode(passwordTemporal))
                 .rol(dto.getRol())
                 .scope(dto.getScope())
-                .programaId(dto.getProgramaId())
-                .facultadId(dto.getFacultadId())
                 .activo(true)
                 .primeraVez(true)
                 .build();
 
         usuario = usuarioRepository.save(usuario);
 
-        // SOLID · DIP — depende de la abstracción IMailService, no de la implementación
         mailService.enviar(
-            dto.getCorreo(),
-            "Acceso al Sistema de Prácticas — AVH",
-            "<p>Bienvenido/a <b>" + dto.getNombre() + "</b>.</p>" +
-            "<p>Tu contraseña temporal es: <b>" + passwordTemporal + "</b></p>" +
-            "<p>Debes cambiarla en tu primer inicio de sesión.</p>"
+                dto.getCorreo(),
+                "Acceso al Sistema de Prácticas — AVH",
+                "<p>Bienvenido/a <b>" + dto.getNombre() + "</b>.</p>" +
+                        "<p>Tu contraseña temporal es: <b>" + passwordTemporal + "</b></p>" +
+                        "<p>Debes cambiarla en tu primer inicio de sesión.</p>"
         );
 
         return toDto(usuario);
@@ -75,8 +70,6 @@ public class UsuarioAdminService {
         usuario.setNombre(dto.getNombre());
         usuario.setRol(dto.getRol());
         usuario.setScope(dto.getScope());
-        usuario.setProgramaId(dto.getProgramaId());
-        usuario.setFacultadId(dto.getFacultadId());
         return toDto(usuarioRepository.save(usuario));
     }
 
@@ -93,7 +86,7 @@ public class UsuarioAdminService {
             long adminsActivos = usuarioRepository.countByRolAndActivo(Rol.ADMIN, true);
             if (adminsActivos <= 1) {
                 throw new IllegalStateException(
-                    "No se puede inactivar: es el único administrador activo del sistema");
+                        "No se puede inactivar: es el único administrador activo del sistema");
             }
         }
 
@@ -101,23 +94,24 @@ public class UsuarioAdminService {
         usuarioRepository.save(usuario);
     }
 
-    // ── Métodos privados ──────────────────────────────────────────
-
     private Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
-                    "Usuario no encontrado con id: " + id));
+                        "Usuario no encontrado con id: " + id));
     }
 
-    // SOLID · OCP — nuevos filtros se agregan sin modificar el service
     private Specification<Usuario> construirEspecificacion(FiltroUsuarioRequest f) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (f.getRol()        != null) predicates.add(cb.equal(root.get("rol"),        f.getRol()));
-            if (f.getActivo()     != null) predicates.add(cb.equal(root.get("activo"),     f.getActivo()));
-            if (f.getScope()      != null) predicates.add(cb.equal(root.get("scope"),      f.getScope()));
-            if (f.getProgramaId() != null) predicates.add(cb.equal(root.get("programaId"), f.getProgramaId()));
-            if (f.getFacultadId() != null) predicates.add(cb.equal(root.get("facultadId"), f.getFacultadId()));
+            if (f.getRol() != null) {
+                predicates.add(cb.equal(root.get("rol"), f.getRol()));
+            }
+            if (f.getActivo() != null) {
+                predicates.add(cb.equal(root.get("activo"), f.getActivo()));
+            }
+            if (f.getScope() != null) {
+                predicates.add(cb.equal(root.get("scope"), f.getScope()));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
@@ -139,10 +133,8 @@ public class UsuarioAdminService {
                 .correo(u.getCorreo())
                 .rol(u.getRol())
                 .scope(u.getScope())
-                .activo(u.isActivo())
-                .primeraVez(u.isPrimeraVez())
-                .programaId(u.getProgramaId())
-                .facultadId(u.getFacultadId())
+                .activo(Boolean.TRUE.equals(u.getActivo()))
+                .primeraVez(Boolean.TRUE.equals(u.getPrimeraVez()))
                 .build();
     }
 }

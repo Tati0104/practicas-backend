@@ -131,7 +131,7 @@ public class EncuestaServiceImpl implements EncuestaService {
         bitacoraService.registrar(
                 "encuestas",
                 "RECORDATORIO",
-                encuesta.getId(),
+                null,
                 "Recordatorio enviado a " + tipo.name() + " para la encuesta de la practicaId:" + practicaId
         );
     }

@@ -1,7 +1,7 @@
 package com.avh.practicas.vinculacion.dto;
 
-import com.avh.practicas.vinculacion.entity.Asignacion;
-import com.avh.practicas.vinculacion.entity.EstadoAsignacion;
+import com.avh.practicas.asignacion.entity.Asignacion;
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
 
 import java.time.LocalDateTime;
 
