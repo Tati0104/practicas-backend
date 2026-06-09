@@ -1,6 +1,6 @@
 package com.avh.practicas.estudiante.controller;
 
-import com.avh.practicas.estudiante.adapter.ImportadorExcelAdapter;
+import com.avh.practicas.estudiante.adapter.ImportadorEstudiantes;
 import com.avh.practicas.estudiante.dto.EstudianteDto;
 import com.avh.practicas.estudiante.dto.ResultadoImportacion;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
@@ -27,7 +27,7 @@ import java.util.Map;
 public class EstudianteController {
 
     private final EstudianteService estudianteService;
-    private final ImportadorExcelAdapter importadorExcelAdapter;
+    private final ImportadorEstudiantes importadorExcelAdapter;
 
     @GetMapping
     @ScopeGuard("ESTUDIANTE_LISTAR")

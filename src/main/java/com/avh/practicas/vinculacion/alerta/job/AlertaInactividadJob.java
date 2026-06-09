@@ -16,7 +16,7 @@ public class AlertaInactividadJob {
 
     private final AlertaService alertaService;
 
-    @Scheduled(cron = "0 6 * * 1-5")
+    @Scheduled(cron = "0 0 6 * * 1-5")
     public void ejecutarEvaluacionInactividad() {
         log.info("Iniciando evaluación programada de inactividad en prácticas EN_CURSO (EN_PRACTICA)");
         alertaService.evaluarInactividad();
