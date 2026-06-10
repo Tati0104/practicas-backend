@@ -16,6 +16,18 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:ehs012407@gmail.com}
+    password: ${MAIL_PASSWORD}
+    from-name: "Sistema de Prácticas"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 logging:
   level:
@@ -29,4 +41,4 @@ jwt:
   secret: ${JWT_SECRET:clave-secreta-avh-2026-practicas-empresariales-sistema}
 
 mail:
-  mode: stub
+  mode: smtp

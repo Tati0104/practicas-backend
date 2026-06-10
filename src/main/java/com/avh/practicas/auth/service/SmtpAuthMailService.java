@@ -1,20 +1,20 @@
-package com.avh.practicas.correo.service;
+package com.avh.practicas.auth.service;
 
-import com.avh.practicas.bitacora.entity.TipoAccion;
-import com.avh.practicas.bitacora.service.BitacoraService;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @ConditionalOnProperty(name = "mail.mode", havingValue = "smtp")
-public class SmtpMailService implements IMailService {
+public class SmtpAuthMailService implements IMailService {
 
     private final JavaMailSender mailSender;
-    private final BitacoraService bitacoraService;
 
     @Value("${spring.mail.username}")
     private String mailFrom;
@@ -22,29 +22,28 @@ public class SmtpMailService implements IMailService {
     @Value("${spring.mail.from-name:Sistema de Prácticas}")
     private String mailFromName;
 
-    public SmtpMailService(JavaMailSender mailSender, BitacoraService bitacoraService) {
+    public SmtpAuthMailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
-        this.bitacoraService = bitacoraService;
     }
 
     @Override
-    public boolean enviar(String destinatario, String asunto, String htmlCuerpo) {
+    public void enviarRecuperacionPassword(String destinatario, String tokenRecuperacion) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(mailFrom, mailFromName);
             helper.setTo(destinatario);
-            helper.setSubject(asunto);
-            helper.setText(htmlCuerpo, true);
+            helper.setSubject("Recuperación de contraseña");
+            helper.setText(
+                    "<p>Hola, recibimos una solicitud para restablecer tu contraseña.</p>" +
+                            "<p>Tu token de recuperación es: <strong>" + tokenRecuperacion + "</strong></p>" +
+                            "<p>Si no solicitaste esto, ignora este correo.</p>",
+                    true
+            );
             mailSender.send(message);
-
-            bitacoraService.registrar(null, "CORREO", TipoAccion.ENVIO_CORREO, null, null,
-                    "Correo SMTP enviado a " + destinatario + " con asunto: " + asunto);
-            return true;
+            log.info("[SMTP] Correo de recuperación enviado a {}", destinatario);
         } catch (Exception ex) {
-            bitacoraService.registrar(null, "CORREO", TipoAccion.ENVIO_CORREO, null, null,
-                    "Fallo al enviar correo SMTP a " + destinatario + ": " + ex.getMessage());
-            return false;
+            log.error("[SMTP] Error enviando correo de recuperación a {}: {}", destinatario, ex.getMessage());
         }
     }
 }
