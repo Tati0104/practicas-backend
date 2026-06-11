@@ -42,9 +42,11 @@ public class AuthServiceImpl implements AuthService {
 
         return LoginResponse.builder()
                 .token(jwtTokenProvider.generarToken(usuario))
+                .id(usuario.getId())
                 .rol(usuario.getRol())
                 .scope(usuario.getScope())
                 .nombre(usuario.getNombre())
+                .primeraVez(usuario.getPrimeraVez())
                 .build();
     }
 
