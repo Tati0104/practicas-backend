@@ -7,10 +7,12 @@ const menuPorRol = {
     { ruta: '/admin/usuarios',     icono: '👥', nombre: 'Usuarios' },
     { ruta: '/configuracion/facultades', icono: '🏫', nombre: 'Facultades' },
     { ruta: '/configuracion/programas',  icono: '📚', nombre: 'Programas' },
-    { ruta: '/configuracion/catalogos',  icono: '📋', nombre: 'Catálogos' },
     { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',           icono: '🏢', nombre: 'Empresas' },
-    { ruta: '/vacantes', icono: '📋', nombre: 'Vacantes' },
+    { ruta: '/vacantes',           icono: '📋', nombre: 'Vacantes' },
+    { ruta: '/asignaciones',       icono: '🔗', nombre: 'Asignaciones' },
+    { ruta: '/vinculacion',        icono: '📄', nombre: 'Vinculación' },
+    { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
   ],
   COORD_ACADEMICA: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
@@ -21,7 +23,10 @@ const menuPorRol = {
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
     { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',           icono: '🏢', nombre: 'Empresas' },
-    { ruta: '/vacantes', icono: '📋', nombre: 'Vacantes' },
+    { ruta: '/vacantes',           icono: '📋', nombre: 'Vacantes' },
+    { ruta: '/asignaciones',       icono: '🔗', nombre: 'Asignaciones' },
+    { ruta: '/vinculacion',        icono: '📄', nombre: 'Vinculación' },
+    { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
   ],
   SECRETARIA: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
@@ -30,7 +35,7 @@ const menuPorRol = {
   ],
   DOCENTE_ASESOR: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
-    { ruta: '/estudiantes',        icono: '🎓', nombre: 'Mis estudiantes' },
+    { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
   ],
   DIRECCION: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
