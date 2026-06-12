@@ -8,7 +8,11 @@ import FacultadesPage  from '../modules/configuracion/components/FacultadesPage'
 import EstudiantesPage from '../modules/estudiante/components/EstudiantesPage';
 import EmpresasPage    from '../modules/empresa/components/EmpresasPage';
 import ProgramasPage from '../modules/configuracion/components/ProgramasPage';
-import VacantesPage from '../modules/empresa/components/VacantesPage';
+import VacantesPage from '../modules/vacantes/pages/VacantesPage';
+import VacanteDetallePage from '../modules/vacantes/pages/VacanteDetallePage';
+import AsignacionesPage from '../modules/asignaciones/pages/AsignacionesPage';
+import AsignacionDetallePage from '../modules/asignaciones/pages/AsignacionDetallePage';
+
 
 
 function RutaPrivada({ children, roles }) {
@@ -42,6 +46,8 @@ export default function AppRouter() {
           </RutaPrivada>
         } />
 
+        <Route path="/vacantes/:id" element={<VacanteDetallePage />} />
+
         <Route path="/empresas" element={
           <RutaPrivada roles={['ADMIN','COORD_PRACTICA','SECRETARIA']}>
             <EmpresasPage />
@@ -62,6 +68,18 @@ export default function AppRouter() {
     <VacantesPage />
   </RutaPrivada>
 } />
+
+        <Route path="/asignaciones" element={
+          <RutaPrivada roles={['COORD_PRACTICA']}>
+            <AsignacionesPage />
+          </RutaPrivada>
+        } />
+
+        <Route path="/asignaciones/:id" element={
+          <RutaPrivada roles={['COORD_PRACTICA']}>
+            <AsignacionDetallePage />
+          </RutaPrivada>
+        } />
       </Routes>
     </BrowserRouter>
   );

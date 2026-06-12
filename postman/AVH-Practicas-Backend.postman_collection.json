@@ -1,0 +1,1551 @@
+{
+  "info": {
+    "_postman_id": "avh-practicas-backend-2026",
+    "name": "AVH Practicas Backend",
+    "description": "Colección completa del API practicas-backend.\n\n1. Configurar variables: baseUrl, correo, password.\n2. Ejecutar Auth > Login.\n3. Endpoints Sprint 5/6 requieren rama EHS/sprint6-respaldo.\n\nGuía: docs/GUIA-PATRONES-Y-SOLID.md",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "correo",
+      "value": "admin@avh.edu.co"
+    },
+    {
+      "key": "password",
+      "value": "Admin123!"
+    },
+    {
+      "key": "estudianteId",
+      "value": "1"
+    },
+    {
+      "key": "practicaId",
+      "value": "1"
+    },
+    {
+      "key": "encuestaId",
+      "value": "1"
+    },
+    {
+      "key": "vacanteId",
+      "value": "1"
+    },
+    {
+      "key": "empresaId",
+      "value": "1"
+    },
+    {
+      "key": "programaId",
+      "value": "1"
+    },
+    {
+      "key": "facultadId",
+      "value": "1"
+    },
+    {
+      "key": "docenteId",
+      "value": "1"
+    },
+    {
+      "key": "tutorId",
+      "value": "1"
+    },
+    {
+      "key": "usuarioId",
+      "value": "1"
+    },
+    {
+      "key": "corte",
+      "value": "1"
+    },
+    {
+      "key": "observacionId",
+      "value": "1"
+    },
+    {
+      "key": "alertaId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Obtiene JWT. El script de prueba guarda token en variable de colección.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('token', j.token);",
+                  "  if (j.rol) pm.collectionVariables.set('rol', j.rol);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cambiar password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/auth/cambiar-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"nuevaPassword\": \"Nueva123!\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Recuperar password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/auth/recuperar",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Resetear password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/auth/resetear",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"token-reset\",\n  \"nuevaPassword\": \"Nueva123!\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Usuarios",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/admin/usuarios",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/admin/usuarios",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"nuevo@avh.edu.co\",\n  \"nombre\": \"Usuario Nuevo\",\n  \"password\": \"Pass123!\",\n  \"rol\": \"COORD_PRACTICA\",\n  \"scope\": \"PROGRAMA\",\n  \"scopeId\": 1,\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/admin/usuarios/{{usuarioId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Actualizado\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Activar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/admin/usuarios/{{usuarioId}}/activar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Inactivar usuario",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/admin/usuarios/{{usuarioId}}/inactivar",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Bitacora",
+      "description": "",
+      "item": [
+        {
+          "name": "Consultar bitacora",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/admin/bitacora",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Plantillas correo",
+      "description": "",
+      "item": [
+        {
+          "name": "Obtener plantilla",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/admin/plantillas/VACANTE_APROBADA",
+            "description": ""
+          }
+        },
+        {
+          "name": "Actualizar plantilla",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/admin/plantillas/VACANTE_APROBADA",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Vacante aprobada\",\n  \"cuerpoHtml\": \"<p>Hola {{nombre}}</p>\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Preview plantilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/admin/plantillas/VACANTE_APROBADA/preview",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variables\": {\n    \"nombre\": \"Juan\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuracion - Facultades",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar facultades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/facultades",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener facultad",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/facultades/{{facultadId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear facultad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/facultades",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ingenieria\",\n  \"codigo\": \"ING\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar facultad",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/facultades/{{facultadId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ingenieria\",\n  \"codigo\": \"ING\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Desactivar facultad",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/facultades/{{facultadId}}/desactivar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Activar facultad",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/facultades/{{facultadId}}/activar",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuracion - Programas",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar programas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/programas",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener programa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/programas/{{programaId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Programas por facultad",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/facultades/{{facultadId}}/programas",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear programa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/programas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sistemas\",\n  \"codigo\": \"SYS\",\n  \"facultadId\": 1,\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar programa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/programas/{{programaId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sistemas\",\n  \"codigo\": \"SYS\",\n  \"activo\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Desactivar programa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/programas/{{programaId}}/desactivar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Activar programa",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/programas/{{programaId}}/activar",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuracion - Catalogos maestros",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar catalogos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/catalogos",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener catalogo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/catalogos/1",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear item catalogo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/catalogos",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"SECTOR\",\n  \"codigo\": \"TEC\",\n  \"nombre\": \"Tecnologia\",\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuracion - Catalogo practicas",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar catalogo practicas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/configuracion/catalogo?programaId={{programaId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener entrada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/configuracion/catalogo/1",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear entrada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/configuracion/catalogo",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"programaId\": 1,\n  \"numeroPractica\": 1,\n  \"nombre\": \"Practica profesional\",\n  \"materiaNucleo\": \"Practica\",\n  \"codigoMateria\": \"PRA101\",\n  \"numCortes\": 3,\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Estudiantes",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar estudiantes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes?page=0&size=20",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener estudiante",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear estudiante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identificacion\": \"1001\",\n  \"nombre\": \"Ana Perez\",\n  \"correo\": \"ana@estudiante.edu\",\n  \"programaId\": 1,\n  \"semestre\": 8,\n  \"creditosAprobados\": 120,\n  \"promedioAcumulado\": 4.0\n}"
+            }
+          }
+        },
+        {
+          "name": "Actualizar estudiante",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana Perez Actualizada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Marcar apto",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes/{{estudianteId}}/aptitud",
+            "description": ""
+          }
+        },
+        {
+          "name": "Importar Excel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/estudiantes/importar",
+            "description": "Usar form-data file en Postman (no JSON)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expedientes",
+      "description": "",
+      "item": [
+        {
+          "name": "Obtener expediente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/expedientes/{{estudianteId}}",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Docentes asesores",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar docentes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/docentes-asesores",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener docente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/docentes-asesores/{{docenteId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear docente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/docentes-asesores",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Carlos Docente\",\n  \"correo\": \"docente@avh.edu\",\n  \"programaId\": 1,\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Empresas",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar empresas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/empresas?page=0&size=20",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener empresa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/empresas/{{empresaId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear empresa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/empresas",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nit\": \"900123456\",\n  \"razonSocial\": \"Empresa Demo SAS\",\n  \"sectorId\": 1,\n  \"direccion\": \"Calle 1\",\n  \"municipio\": \"Medellin\",\n  \"telefono\": \"3001234567\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Tutores de empresa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/empresas/{{empresaId}}/tutores",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tutores empresariales",
+      "description": "",
+      "item": [
+        {
+          "name": "Obtener tutor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/tutores/{{tutorId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/tutores",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laura Tutor\",\n  \"correo\": \"tutor@empresa.com\",\n  \"empresaId\": 1,\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vacantes",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar vacantes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes?page=0&size=20",
+            "description": ""
+          }
+        },
+        {
+          "name": "Obtener vacante",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear vacante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empresaId\": 1,\n  \"programaId\": 1,\n  \"cargo\": \"Desarrollador junior\",\n  \"descripcion\": \"Practica en desarrollo\",\n  \"modalidad\": \"PRESENCIAL\",\n  \"cuposTotal\": 2,\n  \"cuposDisponibles\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Aprobar vacante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/aprobar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Rechazar vacante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/rechazar",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"No cumple requisitos\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Pausar vacante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/pausar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Reactivar vacante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/reactivar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Cerrar vacante",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/cerrar",
+            "description": ""
+          }
+        },
+        {
+          "name": "Descontar cupo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/descontar-cupo",
+            "description": ""
+          }
+        },
+        {
+          "name": "Liberar cupo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/vacantes/{{vacanteId}}/liberar-cupo",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "description": "",
+      "item": [
+        {
+          "name": "Resumen dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/dashboard",
+            "description": ""
+          }
+        },
+        {
+          "name": "Alertas dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/dashboard/alertas",
+            "description": ""
+          }
+        },
+        {
+          "name": "Marcar alerta leida",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/dashboard/alertas/{{alertaId}}/leer",
+            "description": ""
+          }
+        },
+        {
+          "name": "Filtros disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/dashboard/filtros-disponibles",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprint 5 - Encuestas",
+      "description": "Rama EHS/sprint5-encuestas o sprint6-respaldo",
+      "item": [
+        {
+          "name": "Obtener encuesta",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/encuestas/{{practicaId}}/ESTUDIANTE",
+            "description": ""
+          }
+        },
+        {
+          "name": "Guardar borrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/encuestas/{{encuestaId}}/borrador",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuestasJson\": \"{\\\"p1\\\":\\\"4\\\"}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Enviar encuesta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/encuestas/{{encuestaId}}/enviar",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuestasJson\": \"{\\\"p1\\\":\\\"5\\\"}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Recordatorio encuesta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/encuestas/{{practicaId}}/ESTUDIANTE/recordatorio",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprint 5 - Seguimiento",
+      "description": "Rama EHS/sprint5-seguimiento o sprint6-respaldo",
+      "item": [
+        {
+          "name": "Tablero seguimiento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/tablero?programaId={{programaId}}&corte={{corte}}",
+            "description": ""
+          }
+        },
+        {
+          "name": "Registrar observacion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/observaciones?corte={{corte}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observacion\": \"Buen avance\",\n  \"visibleParaEstudiante\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Editar observacion",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/observaciones/{{observacionId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observacion\": \"Observacion editada\",\n  \"visibleParaEstudiante\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar avance tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/avances-tutor?corte={{corte}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avance\": \"Cumple objetivos del mes\",\n  \"logros\": \"API REST\",\n  \"dificultades\": \"Ninguna\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar bitacora estudiante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/bitacora?corte={{corte}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Desarrollo de APIs y pruebas unitarias\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar observaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/observaciones",
+            "description": ""
+          }
+        },
+        {
+          "name": "Listar avances tutor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/avances-tutor",
+            "description": ""
+          }
+        },
+        {
+          "name": "Listar bitacora",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/{{practicaId}}/bitacora",
+            "description": ""
+          }
+        },
+        {
+          "name": "Alertas sistema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/seguimiento/alertas",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprint 5 - Calificaciones",
+      "description": "Rama EHS/sprint5-calificaciones o sprint6-respaldo",
+      "item": [
+        {
+          "name": "Nota docente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones/{{practicaId}}/docente?corte={{corte}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nota\": 4.5,\n  \"observaciones\": \"Excelente\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Nota tutor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones/{{practicaId}}/tutor?corte={{corte}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nota\": 4.0,\n  \"observaciones\": \"Cumple\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Nota final",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": false
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones/{{practicaId}}/final",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notaFinal\": 4.3\n}"
+            }
+          }
+        },
+        {
+          "name": "Resumen calificaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/calificaciones/{{practicaId}}/resumen",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sprint 6 - Respaldo",
+      "description": "Solo rama EHS/sprint6-respaldo",
+      "item": [
+        {
+          "name": "Generar respaldo Excel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": "{{baseUrl}}/respaldo/generar",
+            "description": "COORD_PRACTICA o ADMIN. Puede retornar 200 (archivo) o 202 (background)."
+          }
+        }
+      ]
+    }
+  ]
+}
