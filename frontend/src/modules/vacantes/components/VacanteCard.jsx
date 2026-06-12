@@ -2,12 +2,14 @@
 
 /**
  * Card visual para dispositivos móviles que muestra la información básica de una vacante.
- * Se reutilizan los componentes compartidos `BadgeEstado` y los botones de acción.
  * Las acciones (aprobar, rechazar, pausar, cerrar) se habilitan según los permisos
  * recibidos en la prop `acciones`.
+ *
+ * NOTA: BadgeEstado del shared solo acepta `activo: boolean`.
+ * Para los estados de texto de vacante usamos BadgeVacante local.
  */
-import { BadgeEstado } from '../../../shared/components/BadgeEstado';
-import { toast } from 'react-hot-toast';
+import BadgeEstado from '../../../shared/components/BadgeEstado';
+
 
 export default function VacanteCard({ vacante, acciones }) {
   const {
@@ -40,7 +42,8 @@ export default function VacanteCard({ vacante, acciones }) {
       <p className="text-sm text-gray-600">
         Cupos: {vacante.cuposDisponibles} / {vacante.cuposTotal}
       </p>
-      <BadgeEstado estado={vacante.estado} />
+      {/* Badge de estado: usamos activo=true solo para ACTIVA, false para el resto */}
+      <BadgeEstado activo={vacante.estado === 'ACTIVA'} />
       <div className="mt-3 flex flex-wrap gap-2">
         {canApprove && (
           <button onClick={handleAprobar} className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">

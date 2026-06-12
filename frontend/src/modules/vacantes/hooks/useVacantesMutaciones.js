@@ -6,7 +6,7 @@
  * 'vacantes' para refrescar la lista.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import empresaService from '../../services/empresaService'; // reutiliza el mismo servicio
+import empresaService from '../../empresa/services/empresaService';
 import { toast } from 'react-hot-toast';
 
 export function useVacantesMutaciones({ onSuccess, onError } = {}) {

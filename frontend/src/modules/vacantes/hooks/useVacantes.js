@@ -8,7 +8,7 @@
 */
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import empresaService from '../../services/empresaService'; // Servicio compartido
+import empresaService from '../../empresa/services/empresaService'; // ruta correcta al servicio
 
 // Mock de datos de vacantes (se usa mientras la petición real responde)
 const MOCK_VACANTES = [

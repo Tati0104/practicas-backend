@@ -1,8 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import AppRouter from './router/AppRouter';
 import './index.css';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,6 +18,8 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
+      {/* Toaster: necesario para que toast.success() y toast.error() sean visibles */}
+      <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
       <AppRouter />
     </QueryClientProvider>
   </StrictMode>
