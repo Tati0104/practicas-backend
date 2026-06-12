@@ -12,6 +12,7 @@ import {
 import { CalificacionesPage } from '@/modules/calificaciones';
 import { SeguimientoPage, PracticaDetallePage } from '@/modules/seguimiento';
 import { VinculacionPage, VinculacionDetallePage } from '@/modules/vinculacion';
+import { CierrePage } from '@/modules/cierre';
 import DashboardPage from '@/modules/dashboard/components/DashboardPage';
 import UsuariosPage from '@/modules/usuario/components/UsuariosPage';
 import FacultadesPage from '@/modules/configuracion/components/FacultadesPage';
@@ -213,6 +214,15 @@ export default function AppRouter() {
             element={
               <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
                 <VinculacionDetallePage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
+            path="/cierre/:practicaId"
+            element={
+              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+                <CierrePage />
               </RutaPrivada>
             }
           />
