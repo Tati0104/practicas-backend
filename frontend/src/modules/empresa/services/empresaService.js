@@ -16,7 +16,7 @@ const empresaService = {
   editarTutor:      (id, dto) => http.put(`/tutores/${id}`, dto),
   inactivarTutor:   (id)      => http.patch(`/tutores/${id}/inactivar`),
 
-  // Vacantes
+  getVacante: (id)      => http.get(`/vacantes/${id}`),
   listarVacantes:   (filtros, page = 0, size = 10) =>
     http.get('/vacantes', { params: { ...filtros, page, size } }),
   crearVacante:     (dto)     => http.post('/vacantes', dto),
