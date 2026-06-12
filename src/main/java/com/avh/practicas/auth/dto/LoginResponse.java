@@ -16,7 +16,9 @@ import lombok.Setter;
 public class LoginResponse {
 
     private String token;
+    private Long id;
     private Rol rol;
     private Scope scope;
     private String nombre;
+    private Boolean primeraVez;
 }
