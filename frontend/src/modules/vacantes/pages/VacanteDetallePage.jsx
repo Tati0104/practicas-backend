@@ -1,7 +1,7 @@
-// src/modules/vacantes/pages/VacanteDetallePage.jsx
+﻿// src/modules/vacantes/pages/VacanteDetallePage.jsx
 
 import { useParams } from 'react-router-dom';
-import { useVacanteDetalle } from '../../hooks/useVacanteDetalle';
+import { useVacanteDetalle } from '../hooks/useVacanteDetalle';
 import HistorialEstados from '../components/HistorialEstados';
 
 export default function VacanteDetallePage() {
@@ -27,7 +27,7 @@ export default function VacanteDetallePage() {
   if (!vacante) {
     return (
       <div className="p-4">
-        <p>No se encontró la vacante.</p>
+        <p>No se encontrÃ³ la vacante.</p>
       </div>
     );
   }

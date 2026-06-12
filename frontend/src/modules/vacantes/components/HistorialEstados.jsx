@@ -8,7 +8,8 @@
  * Se renderiza una tabla simple en desktop y una lista en mobile.
  */
 import React from 'react';
-import BadgeEstado from '../../../shared/components/BadgeEstado';
+// BadgeEstado del shared solo acepta `activo: boolean`, por eso este
+// componente usa sus propios estilos en línea con el mapa colorEstado.
 
 // Colores reutilizados del mismo mapa que usa VacanteCard.
 const colorEstado = {

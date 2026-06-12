@@ -8,15 +8,30 @@
  * - Utiliza los hooks useVacantes y useVacantesMutaciones.
  * - Controla permisos mediante usePermisos.
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useVacantes } from '../hooks/useVacantes';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
 import VacantesFiltros from '../components/VacantesFiltros';
 import VacantesTabla from '../components/VacantesTabla';
 import VacanteCard from '../components/VacanteCard';
-import { useMediaQuery } from '@react-hook/media-query'; // simple hook for breakpoint
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import { toast } from 'react-hot-toast';
+
+// Hook nativo para detectar breakpoint sin dependencia extra.
+// Escucha cambios en tiempo real y limpia el listener al desmontar.
+function useEsDesktop() {
+  const [esDesktop, setEsDesktop] = useState(
+    () => window.matchMedia('(min-width: 1280px)').matches
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1280px)');
+    const handler = (e) => setEsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return esDesktop;
+}
+
 
 export default function VacantesPage() {
   const { vacantes, isLoading, isError, filtros, setFiltros, refetch } = useVacantes();
@@ -27,7 +42,7 @@ export default function VacantesPage() {
     toast.error(err?.message || 'Error en la operación');
   } });
 
-  const isDesktop = useMediaQuery('(min-width: 1280px)');
+  const isDesktop = useEsDesktop(); // usa el hook nativo definido arriba
   const { canCreate, canEdit, canApprove, canReject, canPause, canClose } = usePermisos();
 
   // Si ocurre un error, podemos mostrar un toast (también manejado por UI externa).

@@ -5,8 +5,8 @@
  * Recibe la lista de vacantes y un objeto `acciones` con mutaciones y flags de permiso.
  */
 import TablaBase from '../../../shared/components/TablaBase';
-import BadgeEstado from '../../../shared/components/BadgeEstado';
-import { toast } from 'react-hot-toast';
+// BadgeEstado del shared solo acepta `activo: boolean`.
+// Para los estados de texto de vacante usamos un span inline.
 
 export default function VacantesTabla({ vacantes, acciones }) {
   const { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose } = acciones;
@@ -23,7 +23,22 @@ export default function VacantesTabla({ vacantes, acciones }) {
     {
       key: 'estado',
       titulo: 'Estado',
-      render: v => <BadgeEstado estado={v.estado} />, // reutiliza badge compartido
+      render: v => {
+        // Mapeamos el string de estado a un color inline
+        const colores = {
+          ACTIVA:               { bg: '#d1fae5', color: '#065f46' },
+          PENDIENTE_APROBACION: { bg: '#fef3c7', color: '#92400e' },
+          PAUSADA:              { bg: '#f3f4f6', color: '#374151' },
+          CUPOS_COMPLETOS:      { bg: '#fed7aa', color: '#92400e' },
+          CERRADA:              { bg: '#fee2e2', color: '#991b1b' },
+        };
+        const c = colores[v.estado] || { bg: '#f3f4f6', color: '#374151' };
+        return (
+          <span style={{ background: c.bg, color: c.color, padding: '2px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+            {v.estado?.replace(/_/g, ' ')}
+          </span>
+        );
+      },
     },
     {
       key: 'acciones',
