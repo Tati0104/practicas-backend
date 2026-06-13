@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useVacantes } from '../hooks/useEmpresas';
+import { useVacantes } from '../../vacantes/hooks/useVacantes';
 import TablaBase from '../../../shared/components/TablaBase';
 
 const colorEstado = {

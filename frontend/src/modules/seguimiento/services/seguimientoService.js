@@ -2,28 +2,43 @@
 
 /**
  * Servicio que centraliza todas las llamadas HTTP del módulo Seguimiento.
- * Usa el cliente `http` (Axios) configurado con baseURL y token JWT.
  */
 import http from '../../../shared/services/http.js';
 
 const seguimientoService = {
-  /** GET /api/seguimiento/tablero?programaId=&docenteId=&estado= */
-  tablero: (params) => http.get('/api/seguimiento/tablero', { params }),
+  /**
+   * GET /seguimiento/tablero
+   * Mapea filtros del frontend a los parámetros del backend.
+   */
+  tablero: (params = {}) => {
+    const { docenteId, estado, busqueda, ...rest } = params;
+    return http.get('/seguimiento/tablero', {
+      params: {
+        ...rest,
+        docente: docenteId || undefined,
+        estadoSeguimiento: estado || undefined,
+        empresa: busqueda || undefined,
+      },
+    });
+  },
 
-  /** POST /api/seguimiento/observaciones — { practicaId, texto } */
-  registrarObservacion: (dto) => http.post('/api/seguimiento/observaciones', dto),
+  /** POST /seguimiento/{practicaId}/observaciones */
+  registrarObservacion: (practicaId, dto) =>
+    http.post(`/seguimiento/${practicaId}/observaciones`, dto),
 
-  /** POST /api/seguimiento/avances-tutor — { practicaId, descripcion, porcentaje } */
-  registrarAvance: (dto) => http.post('/api/seguimiento/avances-tutor', dto),
+  /** POST /seguimiento/{practicaId}/avances-tutor */
+  registrarAvance: (practicaId, dto) =>
+    http.post(`/seguimiento/${practicaId}/avances-tutor`, dto),
 
-  /** POST /api/seguimiento/bitacora — { practicaId, actividades, aprendizajes } */
-  registrarBitacora: (dto) => http.post('/api/seguimiento/bitacora', dto),
+  /** POST /seguimiento/{practicaId}/bitacora */
+  registrarBitacora: (practicaId, dto, corte = 1) =>
+    http.post(`/seguimiento/${practicaId}/bitacora`, dto, { params: { corte } }),
 
-  /** GET /api/alertas?practicaId=&leida= */
-  alertas: (params) => http.get('/api/alertas', { params }),
+  /** GET /seguimiento/alertas */
+  alertas: () => http.get('/seguimiento/alertas'),
 
-  /** PATCH /api/alertas/{id}/leer */
-  marcarAlertaLeida: (id) => http.patch(`/api/alertas/${id}/leer`),
+  /** PATCH /vinculaciones/alertas/{id}/resolver */
+  marcarAlertaLeida: (id) => http.patch(`/vinculaciones/alertas/${id}/resolver`),
 };
 
 export default seguimientoService;

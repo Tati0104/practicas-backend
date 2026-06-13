@@ -34,6 +34,7 @@ import { usePermisos }       from '../../../shared/hooks/usePermisos';
 import VinculacionFiltros    from '../components/VinculacionFiltros';
 import VinculacionTabla      from '../components/VinculacionTabla';
 import VinculacionCard       from '../components/VinculacionCard';
+import Paginacion            from '../../../shared/components/Paginacion';
 
 // ── Hook interno para detección de breakpoint ─────────────────────────────────
 // Evita instalar @react-hook/media-query u otras dependencias extra.
@@ -80,7 +81,7 @@ export default function VinculacionPage() {
 
   // ── Navegar al detalle de una práctica ──────────────────────────────────────
   const irADetalle = (vinculacion) => {
-    navigate(`/vinculacion/${vinculacion.practicaId}`);
+    navigate(`/vinculacion/${vinculacion.asignacionId}`);
   };
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -148,33 +149,12 @@ export default function VinculacionPage() {
       )}
 
       {/* ── Paginación ── */}
-      {totalPaginas > 1 && !isLoading && (
-        <div style={estilos.paginacion}>
-          {/* Botón Anterior */}
-          <button
-            onClick={() => irAPagina(filtros.page - 1)}
-            disabled={filtros.page === 0}
-            style={estilos.btnPag}
-            aria-label="Página anterior"
-          >
-            ← Anterior
-          </button>
-
-          {/* Indicador de página */}
-          <span style={{ fontSize: 13, color: '#374151' }}>
-            Página {filtros.page + 1} de {totalPaginas}
-          </span>
-
-          {/* Botón Siguiente */}
-          <button
-            onClick={() => irAPagina(filtros.page + 1)}
-            disabled={filtros.page >= totalPaginas - 1}
-            style={estilos.btnPag}
-            aria-label="Página siguiente"
-          >
-            Siguiente →
-          </button>
-        </div>
+      {!isLoading && (
+        <Paginacion
+          pagina={filtros.page}
+          totalPaginas={totalPaginas}
+          onCambiarPagina={irAPagina}
+        />
       )}
     </div>
   );
@@ -216,20 +196,5 @@ const estilos = {
     padding: '40px 20px',
     color: '#9ca3af',
     fontSize: 14,
-  },
-  paginacion: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-    marginTop: 20,
-  },
-  btnPag: {
-    padding: '6px 14px',
-    border: '1px solid #d1d5db',
-    borderRadius: 6,
-    background: '#fff',
-    fontSize: 13,
-    cursor: 'pointer',
   },
 };

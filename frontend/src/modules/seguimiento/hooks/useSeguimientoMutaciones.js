@@ -29,19 +29,22 @@ export function useSeguimientoMutaciones({ onSuccess, onError } = {}) {
   };
 
   const registrarObservacion = useMutation({
-    mutationFn: (dto) => seguimientoService.registrarObservacion(dto),
+    mutationFn: ({ practicaId, ...dto }) =>
+      seguimientoService.registrarObservacion(practicaId, dto),
     onSuccess: alExito('Observación registrada'),
     onError: alError,
   });
 
   const registrarAvance = useMutation({
-    mutationFn: (dto) => seguimientoService.registrarAvance(dto),
+    mutationFn: ({ practicaId, ...dto }) =>
+      seguimientoService.registrarAvance(practicaId, dto),
     onSuccess: alExito('Avance registrado'),
     onError: alError,
   });
 
   const registrarBitacora = useMutation({
-    mutationFn: (dto) => seguimientoService.registrarBitacora(dto),
+    mutationFn: ({ practicaId, corte, ...dto }) =>
+      seguimientoService.registrarBitacora(practicaId, dto, corte),
     onSuccess: alExito('Entrada de bitácora guardada'),
     onError: alError,
   });

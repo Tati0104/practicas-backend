@@ -1,28 +1,25 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import configuracionService from '../services/configuracionService';
+import { MOCK_FACULTADES } from '@/shared/mocks/datos';
+import { ejecutarConsulta, placeholderSimple, usarMocks } from '@/shared/config/dataSource';
 import TablaBase   from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 
-// ── Datos mock para probar sin backend ──────────────────────────
-const MOCK_FACULTADES = [
-  { id: 1, nombre: 'Facultad de Ingeniería',  activo: true  },
-  { id: 2, nombre: 'Facultad de Ciencias',    activo: true  },
-  { id: 3, nombre: 'Facultad de Económicas',  activo: false },
-];
-
 export default function FacultadesPage() {
-  const queryClient               = useQueryClient();
   const [modal,    setModal]      = useState(false);
   const [editando, setEditando]   = useState(null);
   const [nombre,   setNombre]     = useState('');
   const [error,    setError]      = useState('');
 
-  // Usa mock mientras no haya backend
-  const { data: facultades = MOCK_FACULTADES, isLoading } = useQuery({
-    queryKey: ['facultades'],
-    queryFn:  () => configuracionService.listarFacultades().then(r => r.data.data),
-    initialData: MOCK_FACULTADES
+  const { data: facultades = [], isLoading } = useQuery({
+    queryKey: ['facultades', usarMocks()],
+    queryFn: () =>
+      ejecutarConsulta({
+        mock: () => MOCK_FACULTADES,
+        api: () => configuracionService.listarFacultades().then((r) => r.data.data ?? []),
+      }),
+    placeholderData: placeholderSimple(MOCK_FACULTADES),
   });
 
   const abrirCrear = () => { setEditando(null); setNombre(''); setError(''); setModal(true); };

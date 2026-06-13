@@ -1,9 +1,10 @@
 import http from '../../../shared/services/http';
+import { paramsListado } from '../../../shared/utils/paginacion';
 
 const empresaService = {
   // Empresas
-  listar:           (filtros, page = 0, size = 10) =>
-    http.get('/empresas', { params: { ...filtros, page, size } }),
+  listar: (filtros = {}) =>
+    http.get('/empresas', { params: paramsListado(filtros) }),
   registrar:        (dto)     => http.post('/empresas', dto),
   editar:           (id, dto) => http.put(`/empresas/${id}`, dto),
   activar:          (id)      => http.patch(`/empresas/${id}/activar`),
@@ -17,8 +18,8 @@ const empresaService = {
   inactivarTutor:   (id)      => http.patch(`/tutores/${id}/inactivar`),
 
   getVacante: (id)      => http.get(`/vacantes/${id}`),
-  listarVacantes:   (filtros, page = 0, size = 10) =>
-    http.get('/vacantes', { params: { ...filtros, page, size } }),
+  listarVacantes: (filtros = {}) =>
+    http.get('/vacantes', { params: paramsListado(filtros) }),
   crearVacante:     (dto)     => http.post('/vacantes', dto),
   aprobarVacante:   (id)      => http.patch(`/vacantes/${id}/aprobar`),
   rechazarVacante:  (id, motivo) =>

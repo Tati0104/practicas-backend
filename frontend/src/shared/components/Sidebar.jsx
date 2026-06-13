@@ -32,10 +32,25 @@ const menuPorRol = {
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
     { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',           icono: '🏢', nombre: 'Empresas' },
+    { ruta: '/vacantes',           icono: '📋', nombre: 'Vacantes' },
   ],
   DOCENTE_ASESOR: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
     { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
+  ],
+  EMPRESA: [
+    { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
+    { ruta: '/vacantes',           icono: '📋', nombre: 'Vacantes' },
+  ],
+  TUTOR_EMPRESARIAL: [
+    { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
+    { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
+    { ruta: '/vinculacion',        icono: '📄', nombre: 'Vinculación' },
+  ],
+  ESTUDIANTE: [
+    { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
+    { ruta: '/seguimiento',        icono: '📊', nombre: 'Seguimiento' },
+    { ruta: '/vinculacion',        icono: '📄', nombre: 'Vinculación' },
   ],
   DIRECCION: [
     { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
@@ -43,9 +58,10 @@ const menuPorRol = {
 };
 
 export default function Sidebar() {
-  const { usuario, logout } = useAuth();
-  const navigate            = useNavigate();
-  const menu = menuPorRol[usuario?.rol] || [];
+  const { usuario, rol, nombre, logout } = useAuth();
+  const navigate = useNavigate();
+  const rolActivo = rol ?? usuario?.rol;
+  const menu = menuPorRol[rolActivo] || [];
 
   const handleLogout = () => {
     logout();

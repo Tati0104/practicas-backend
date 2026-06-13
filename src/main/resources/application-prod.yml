@@ -26,3 +26,9 @@ jwt:
 
 mail:
   mode: ${MAIL_MODE:smtp}
+
+# En producción define CORS_ALLOWED_ORIGINS con la URL pública del frontend.
+# Ejemplo: https://practicas.avh.edu.co,https://www.practicas.avh.edu.co
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

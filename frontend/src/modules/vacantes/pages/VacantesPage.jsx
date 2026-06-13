@@ -15,6 +15,7 @@ import VacantesFiltros from '../components/VacantesFiltros';
 import VacantesTabla from '../components/VacantesTabla';
 import VacanteCard from '../components/VacanteCard';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
+import Paginacion from '../../../shared/components/Paginacion';
 import { toast } from 'react-hot-toast';
 
 // Hook nativo para detectar breakpoint sin dependencia extra.
@@ -34,7 +35,7 @@ function useEsDesktop() {
 
 
 export default function VacantesPage() {
-  const { vacantes, isLoading, isError, filtros, setFiltros, refetch } = useVacantes();
+  const { vacantes, isLoading, isError, filtros, setFiltros, totalPaginas, irAPagina, refetch } = useVacantes();
   const { crear, editar, aprobar, rechazar, pausar, cerrar } = useVacantesMutaciones({ onSuccess: () => {
     toast.success('Operación exitosa');
     refetch();
@@ -69,6 +70,12 @@ export default function VacantesPage() {
           </div>
         )
       )}
+      <Paginacion
+        pagina={filtros.page}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={irAPagina}
+        className="mt-4"
+      />
     </div>
   );
 }

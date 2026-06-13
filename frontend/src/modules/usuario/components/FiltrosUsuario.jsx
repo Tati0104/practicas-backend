@@ -1,36 +1,45 @@
-const ROLES = ['ADMIN','DIRECCION','COORD_ACADEMICA','COORD_PRACTICA',
-    'SECRETARIA','DOCENTE_ASESOR','EMPRESA','TUTOR_EMPRESARIAL','ESTUDIANTE'];
+import { FiltrosBar, FiltroSelect } from '@/shared/components/filtros';
+
+const ROLES = [
+  { value: '', label: 'Todos los roles' },
+  { value: 'ADMIN', label: 'ADMIN' },
+  { value: 'DIRECCION', label: 'DIRECCION' },
+  { value: 'COORD_ACADEMICA', label: 'COORD_ACADEMICA' },
+  { value: 'COORD_PRACTICA', label: 'COORD_PRACTICA' },
+  { value: 'SECRETARIA', label: 'SECRETARIA' },
+  { value: 'DOCENTE_ASESOR', label: 'DOCENTE_ASESOR' },
+  { value: 'EMPRESA', label: 'EMPRESA' },
+  { value: 'TUTOR_EMPRESARIAL', label: 'TUTOR_EMPRESARIAL' },
+  { value: 'ESTUDIANTE', label: 'ESTUDIANTE' },
+];
+
+const ACTIVO = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'true', label: 'Activos' },
+  { value: 'false', label: 'Inactivos' },
+];
 
 export default function FiltrosUsuario({ filtros, onChange }) {
-return (
-<div style={estilos.contenedor}>
-<select
-value={filtros.rol || ''}
-onChange={e => onChange({ ...filtros, rol: e.target.value || undefined })}
-style={estilos.select}
->
-<option value="">Todos los roles</option>
-{ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-</select>
+  const actualizar = (cambios) => onChange({ ...filtros, ...cambios, page: 0 });
 
-<select
-value={filtros.activo ?? ''}
-onChange={e => onChange({ ...filtros, activo: e.target.value === '' ? undefined : e.target.value === 'true' })}
-style={estilos.select}
->
-<option value="">Todos los estados</option>
-<option value="true">Activos</option>
-<option value="false">Inactivos</option>
-</select>
-</div>
-);
+  return (
+    <FiltrosBar variant="inline">
+      <FiltroSelect
+        compacto
+        opciones={ROLES}
+        value={filtros.rol || ''}
+        onChange={(e) => actualizar({ rol: e.target.value || undefined })}
+      />
+      <FiltroSelect
+        compacto
+        opciones={ACTIVO}
+        value={filtros.activo ?? ''}
+        onChange={(e) =>
+          actualizar({
+            activo: e.target.value === '' ? undefined : e.target.value === 'true',
+          })
+        }
+      />
+    </FiltrosBar>
+  );
 }
-
-const estilos = {
-contenedor: { display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' },
-select: {
-padding: '8px 12px', border: '1px solid #d1d5db',
-borderRadius: 8, fontSize: 13, color: '#374151',
-background: '#fff', cursor: 'pointer'
-}
-};

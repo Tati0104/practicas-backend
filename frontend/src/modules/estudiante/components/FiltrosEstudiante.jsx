@@ -1,37 +1,45 @@
-const APTITUDES = ['SIN_EVALUAR', 'APTO', 'NO_APTO'];
+import { FiltrosBar, FiltroInput, FiltroSelect } from '@/shared/components/filtros';
+
+const APTITUDES = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'SIN_EVALUAR', label: 'SIN_EVALUAR' },
+  { value: 'APTO', label: 'APTO' },
+  { value: 'NO_APTO', label: 'NO_APTO' },
+];
+
+const ACTIVO = [
+  { value: '', label: 'Activo / Inactivo' },
+  { value: 'true', label: 'Activos' },
+  { value: 'false', label: 'Inactivos' },
+];
 
 export default function FiltrosEstudiante({ filtros, onChange }) {
+  const actualizar = (cambios) => onChange({ ...filtros, ...cambios, page: 0 });
+
   return (
-    <div style={estilos.contenedor}>
-      <input
+    <FiltrosBar variant="inline">
+      <FiltroInput
+        compacto
         placeholder="Buscar por nombre o ID..."
         value={filtros.busqueda || ''}
-        onChange={e => onChange({ ...filtros, busqueda: e.target.value || undefined })}
-        style={estilos.input}
+        onChange={(e) => actualizar({ busqueda: e.target.value || undefined })}
       />
-      <select
+      <FiltroSelect
+        compacto
+        opciones={APTITUDES}
         value={filtros.estadoAptitud || ''}
-        onChange={e => onChange({ ...filtros, estadoAptitud: e.target.value || undefined })}
-        style={estilos.select}
-      >
-        <option value="">Todos los estados</option>
-        {APTITUDES.map(a => <option key={a} value={a}>{a}</option>)}
-      </select>
-      <select
+        onChange={(e) => actualizar({ estadoAptitud: e.target.value || undefined })}
+      />
+      <FiltroSelect
+        compacto
+        opciones={ACTIVO}
         value={filtros.activo ?? ''}
-        onChange={e => onChange({ ...filtros, activo: e.target.value === '' ? undefined : e.target.value === 'true' })}
-        style={estilos.select}
-      >
-        <option value="">Activo / Inactivo</option>
-        <option value="true">Activos</option>
-        <option value="false">Inactivos</option>
-      </select>
-    </div>
+        onChange={(e) =>
+          actualizar({
+            activo: e.target.value === '' ? undefined : e.target.value === 'true',
+          })
+        }
+      />
+    </FiltrosBar>
   );
 }
-
-const estilos = {
-  contenedor: { display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' },
-  input:  { padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, minWidth: 220 },
-  select: { padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, background: '#fff', cursor: 'pointer' }
-};

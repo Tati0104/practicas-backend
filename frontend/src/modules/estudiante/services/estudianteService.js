@@ -1,8 +1,9 @@
 import http from '../../../shared/services/http';
+import { paramsListado } from '../../../shared/utils/paginacion';
 
 const estudianteService = {
-  listar:          (filtros, page = 0, size = 10) =>
-    http.get('/estudiantes', { params: { ...filtros, page, size } }),
+  listar: (filtros = {}) =>
+    http.get('/estudiantes', { params: paramsListado(filtros) }),
   obtenerPorId:    (id)       => http.get(`/estudiantes/${id}`),
   registrar:       (dto)      => http.post('/estudiantes', dto),
   editar:          (id, dto)  => http.put(`/estudiantes/${id}`, dto),

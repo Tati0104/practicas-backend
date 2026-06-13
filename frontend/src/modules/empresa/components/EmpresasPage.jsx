@@ -3,17 +3,29 @@ import { useEmpresas } from '../hooks/useEmpresas';
 import ModalEmpresa  from './ModalEmpresa';
 import TablaBase     from '../../../shared/components/TablaBase';
 import BadgeEstado   from '../../../shared/components/BadgeEstado';
+import Paginacion    from '../../../shared/components/Paginacion';
 
 export default function EmpresasPage() {
-  const { empresas, isLoading, filtros, setFiltros,
-          registrar, activar, inactivar } = useEmpresas();
-  const [modal,    setModal]    = useState(false);
-  const [busqueda, setBusqueda] = useState('');
+  const {
+    empresas,
+    isLoading,
+    filtros,
+    setFiltros,
+    totalPaginas,
+    irAPagina,
+    registrar,
+    activar,
+    inactivar,
+  } = useEmpresas();
+  const [modal, setModal] = useState(false);
 
-  const empresasFiltradas = empresas.filter(e =>
-    e.razonSocial.toLowerCase().includes(busqueda.toLowerCase()) ||
-    e.nit.includes(busqueda)
-  );
+  const actualizarBusqueda = (busqueda) => {
+    setFiltros((prev) => ({
+      ...prev,
+      busqueda: busqueda || undefined,
+      page: 0,
+    }));
+  };
 
   const columnas = [
     { key: 'nit',        titulo: 'NIT' },
@@ -50,12 +62,17 @@ export default function EmpresasPage() {
 
       <input
         placeholder="Buscar por nombre o NIT..."
-        value={busqueda}
-        onChange={e => setBusqueda(e.target.value)}
+        value={filtros.busqueda || ''}
+        onChange={e => actualizarBusqueda(e.target.value)}
         style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, marginBottom: 14, width: 280 }}
       />
 
-      <TablaBase columnas={columnas} datos={empresasFiltradas} cargando={isLoading} />
+      <TablaBase columnas={columnas} datos={empresas} cargando={isLoading} />
+      <Paginacion
+        pagina={filtros.page}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={irAPagina}
+      />
 
       {modal && (
         <ModalEmpresa

@@ -1,11 +1,13 @@
 import Sidebar from './Sidebar';
 import Navbar  from './Navbar';
+import MockModeBanner from './MockModeBanner';
 
 export default function Layout({ children }) {
   return (
     <div style={estilos.contenedor}>
       <Sidebar />
       <div style={estilos.principal}>
+        <MockModeBanner />
         <Navbar />
         <main style={estilos.main}>
           {children}

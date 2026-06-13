@@ -29,6 +29,7 @@ import AsignacionCard            from '../components/AsignacionCard';
 import AsignacionForm            from '../components/AsignacionForm';
 import CancelarAsignacionModal   from '../components/CancelarAsignacionModal';
 import IndicadoresAsignaciones   from '../components/IndicadoresAsignaciones';
+import Paginacion                from '../../../shared/components/Paginacion';
 
 // Hook nativo para responsive (evita depencia extra)
 function useEsDesktop() {
@@ -132,27 +133,11 @@ export default function AsignacionesPage() {
       )}
 
       {/* Paginación */}
-      {totalPaginas > 1 && (
-        <div style={estilos.paginacion}>
-          <button
-            onClick={() => irAPagina(filtros.page - 1)}
-            disabled={filtros.page === 0}
-            style={estilos.btnPag}
-          >
-            ← Anterior
-          </button>
-          <span style={{ fontSize: 13, color: '#374151' }}>
-            Página {filtros.page + 1} de {totalPaginas}
-          </span>
-          <button
-            onClick={() => irAPagina(filtros.page + 1)}
-            disabled={filtros.page >= totalPaginas - 1}
-            style={estilos.btnPag}
-          >
-            Siguiente →
-          </button>
-        </div>
-      )}
+      <Paginacion
+        pagina={filtros.page}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={irAPagina}
+      />
 
       {/* Modal: nueva asignación */}
       <AsignacionForm
@@ -192,20 +177,5 @@ const estilos = {
     padding: '40px 20px',
     color: '#9ca3af',
     fontSize: 14,
-  },
-  paginacion: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-    marginTop: 20,
-  },
-  btnPag: {
-    padding: '6px 14px',
-    border: '1px solid #d1d5db',
-    borderRadius: 6,
-    background: '#fff',
-    fontSize: 13,
-    cursor: 'pointer',
   },
 };

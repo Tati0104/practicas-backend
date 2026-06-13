@@ -1,73 +1,55 @@
-// src/modules/vacantes/components/VacantesFiltros.jsx
-/**
- * Componente de filtros para el módulo Vacantes.
- * Utiliza React Hook Form + Zod para la validación.
- * Exporta los props `filtros` (objeto) y `setFiltros` (setter) recibidos del padre.
- */
-import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { FiltrosFormulario, FiltroInput, FiltroSelect } from '@/shared/components/filtros';
 
-// Esquema de validación simple – todos los campos son opcionales.
 const filtroSchema = z.object({
-  empresaId: z.string().optional().or(z.number().optional()),
-  programaId: z.string().optional().or(z.number().optional()),
-  estado:    z.string().optional(),
-  busqueda:  z.string().optional()
+  empresaId: z.string().optional(),
+  programaId: z.string().optional(),
+  estado: z.string().optional(),
+  busqueda: z.string().optional(),
 });
 
+const ESTADOS = [
+  { value: '', label: 'Todos los estados' },
+  { value: 'ACTIVA', label: 'Activa' },
+  { value: 'PENDIENTE_APROBACION', label: 'Pendiente' },
+  { value: 'PAUSADA', label: 'Pausada' },
+  { value: 'CUPOS_COMPLETOS', label: 'Cupos completos' },
+  { value: 'CERRADA', label: 'Cerrada' },
+];
+
 export default function VacantesFiltros({ filtros, setFiltros }) {
-  const { register, handleSubmit, reset, watch } = useForm({
-    resolver: zodResolver(filtroSchema),
-    defaultValues: filtros
-  });
-
-  // Sincroniza los valores del formulario cuando `filtros` cambia externamente.
-  useEffect(() => {
-    reset(filtros);
-  }, [filtros, reset]);
-
-  const onSubmit = data => {
-    // Actualiza el estado de filtros del padre; la query se refetchará automáticamente.
-    setFiltros(prev => ({ ...prev, ...data }));
+  const valoresIniciales = {
+    empresaId: filtros.empresaId || '',
+    programaId: filtros.programaId || '',
+    estado: filtros.estado || '',
+    busqueda: filtros.busqueda || '',
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-2 mb-4">
-      {/* Campo Empresa */}
-      <input
-        type="text"
-        placeholder="Empresa"
-        {...register('empresaId')}
-        className="border rounded px-2 py-1"
-      />
-      {/* Campo Programa */}
-      <input
-        type="text"
-        placeholder="Programa"
-        {...register('programaId')}
-        className="border rounded px-2 py-1"
-      />
-      {/* Campo Estado */}
-      <select {...register('estado')} className="border rounded px-2 py-1">
-        <option value="">Todos los estados</option>
-        <option value="ACTIVA">Activa</option>
-        <option value="PENDIENTE_APROBACION">Pendiente</option>
-        <option value="PAUSADA">Pausada</option>
-        <option value="CUPOS_COMPLETOS">Cupos completos</option>
-        <option value="CERRADA">Cerrada</option>
-      </select>
-      {/* Campo Búsqueda */}
-      <input
-        type="text"
-        placeholder="Buscar..."
-        {...register('busqueda')}
-        className="border rounded px-2 py-1"
-      />
-      <button type="submit" className="bg-indigo-600 text-white rounded px-4 py-1">
-        Aplicar
-      </button>
-    </form>
+    <FiltrosFormulario
+      schema={filtroSchema}
+      valoresIniciales={valoresIniciales}
+      variant="inline"
+      onAplicar={(data) => setFiltros((prev) => ({ ...prev, ...data, page: 0 }))}
+      onLimpiar={() =>
+        setFiltros((prev) => ({
+          ...prev,
+          empresaId: '',
+          programaId: '',
+          estado: '',
+          busqueda: '',
+          page: 0,
+        }))
+      }
+    >
+      {({ register }) => (
+        <>
+          <FiltroInput {...register('empresaId')} placeholder="Empresa" style={{ flex: 'none', minWidth: 140 }} />
+          <FiltroInput {...register('programaId')} placeholder="Programa" style={{ flex: 'none', minWidth: 140 }} />
+          <FiltroSelect {...register('estado')} opciones={ESTADOS} />
+          <FiltroInput {...register('busqueda')} placeholder="Buscar..." style={{ flex: 'none', minWidth: 160 }} />
+        </>
+      )}
+    </FiltrosFormulario>
   );
 }

@@ -5,6 +5,7 @@ import ModalRegistroEstudiante from './ModalRegistroEstudiante';
 import ImportarExcel           from './ImportarExcel';
 import TablaBase               from '../../../shared/components/TablaBase';
 import BadgeEstado             from '../../../shared/components/BadgeEstado';
+import Paginacion              from '../../../shared/components/Paginacion';
 
 const colorAptitud = {
   APTO:         { bg: '#d1fae5', color: '#065f46' },
@@ -13,7 +14,7 @@ const colorAptitud = {
 };
 
 export default function EstudiantesPage() {
-  const { estudiantes, isLoading, filtros, setFiltros,
+  const { estudiantes, isLoading, filtros, setFiltros, totalPaginas, irAPagina,
           registrar, marcarApto, marcarNoApto } = useEstudiantes();
   const [modalRegistro, setModalRegistro] = useState(false);
   const [modalImportar, setModalImportar] = useState(false);
@@ -79,6 +80,11 @@ export default function EstudiantesPage() {
 
       <FiltrosEstudiante filtros={filtros} onChange={setFiltros} />
       <TablaBase columnas={columnas} datos={estudiantes} cargando={isLoading} />
+      <Paginacion
+        pagina={filtros.page}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={irAPagina}
+      />
 
       {modalRegistro && (
         <ModalRegistroEstudiante

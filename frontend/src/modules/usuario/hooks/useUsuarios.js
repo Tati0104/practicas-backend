@@ -1,43 +1,51 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import usuarioService from '../services/usuarioService';
-
-const MOCK_USUARIOS = [
-  { id: 1, nombre: 'Admin AVH',        correo: 'admin@avh.edu.co',     rol: 'ADMIN',           scope: 'GLOBAL',   activo: true  },
-  { id: 2, nombre: 'Coord Práctica',   correo: 'coord@avh.edu.co',     rol: 'COORD_PRACTICA',  scope: 'PROGRAMA', activo: true  },
-  { id: 3, nombre: 'Coord Académica',  correo: 'academica@avh.edu.co', rol: 'COORD_ACADEMICA', scope: 'FACULTAD', activo: true  },
-  { id: 4, nombre: 'Docente Asesor',   correo: 'docente@avh.edu.co',   rol: 'DOCENTE_ASESOR',  scope: 'ASIGNADO', activo: false },
-];
+import { MOCK_USUARIOS } from '@/shared/mocks/datos';
+import { useListadoPaginado } from '@/shared/hooks/useListadoPaginado';
 
 export default function useUsuarios() {
-  const queryClient         = useQueryClient();
-  const [filtros, setFiltros] = useState({});
+  const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey:    ['usuarios', filtros],
-    queryFn:     () => usuarioService.listar(filtros).then(r => r.data.data?.content || []),
-    initialData: MOCK_USUARIOS
+  const listado = useListadoPaginado({
+    clave: 'usuarios',
+    mockData: MOCK_USUARIOS,
+    fetchApi: (filtros) => usuarioService.listar(filtros),
   });
 
   const crear = useMutation({
     mutationFn: (dto) => usuarioService.crear(dto),
-    onSuccess:  () => queryClient.invalidateQueries(['usuarios'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
   });
 
   const editar = useMutation({
     mutationFn: ({ id, dto }) => usuarioService.editar(id, dto),
-    onSuccess:  () => queryClient.invalidateQueries(['usuarios'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
   });
 
   const activar = useMutation({
     mutationFn: (id) => usuarioService.activar(id),
-    onSuccess:  () => queryClient.invalidateQueries(['usuarios'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
   });
 
   const inactivar = useMutation({
     mutationFn: (id) => usuarioService.inactivar(id),
-    onSuccess:  () => queryClient.invalidateQueries(['usuarios'])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
   });
 
-  return { usuarios: data || [], isLoading, filtros, setFiltros, crear, editar, activar, inactivar };
+  return {
+    usuarios: listado.items,
+    totalElementos: listado.totalElementos,
+    totalPaginas: listado.totalPaginas,
+    isLoading: listado.isLoading,
+    isFetching: listado.isFetching,
+    isError: listado.isError,
+    filtros: listado.filtros,
+    setFiltros: listado.setFiltros,
+    actualizarFiltros: listado.actualizarFiltros,
+    irAPagina: listado.irAPagina,
+    crear,
+    editar,
+    activar,
+    inactivar,
+  };
 }

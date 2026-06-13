@@ -115,7 +115,7 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
           onClick={() =>
             onGestionar
               ? onGestionar(fila)
-              : navigate(`/vinculacion/${fila.practicaId}`)
+              : navigate(`/vinculacion/${fila.asignacionId ?? fila.practicaId}`)
           }
           style={estilos.btnGestionar}
           aria-label={`Gestionar vinculación de ${fila.estudiante?.nombre}`}

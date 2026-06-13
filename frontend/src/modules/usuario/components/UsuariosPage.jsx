@@ -4,9 +4,10 @@ import FiltrosUsuario from './FiltrosUsuario';
 import ModalUsuario   from './ModalUsuario';
 import TablaBase      from '../../../shared/components/TablaBase';
 import BadgeEstado    from '../../../shared/components/BadgeEstado';
+import Paginacion     from '../../../shared/components/Paginacion';
 
 export default function UsuariosPage() {
-  const { usuarios, isLoading, filtros, setFiltros,
+  const { usuarios, isLoading, filtros, setFiltros, totalPaginas, irAPagina,
           crear, editar, activar, inactivar } = useUsuarios();
   const [modal,    setModal]    = useState(false);
   const [editando, setEditando] = useState(null);
@@ -58,6 +59,11 @@ export default function UsuariosPage() {
 
       <FiltrosUsuario filtros={filtros} onChange={setFiltros} />
       <TablaBase columnas={columnas} datos={usuarios} cargando={isLoading} />
+      <Paginacion
+        pagina={filtros.page}
+        totalPaginas={totalPaginas}
+        onCambiarPagina={irAPagina}
+      />
 
       {modal && (
         <ModalUsuario

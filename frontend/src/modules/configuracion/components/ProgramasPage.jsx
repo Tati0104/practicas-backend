@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import configuracionService from '../services/configuracionService';
+import { MOCK_PROGRAMAS } from '@/shared/mocks/datos';
+import { ejecutarConsulta, placeholderSimple, usarMocks } from '@/shared/config/dataSource';
 import TablaBase   from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
-
-const MOCK_PROGRAMAS = [
-  { id: 1, nombre: 'Ingeniería de Sistemas', facultad: 'Facultad de Ingeniería', activo: true },
-  { id: 2, nombre: 'Ingeniería Civil',        facultad: 'Facultad de Ingeniería', activo: true },
-  { id: 3, nombre: 'Administración',          facultad: 'Facultad de Económicas', activo: false },
-];
 
 export default function ProgramasPage() {
   const [modal,  setModal]  = useState(false);
   const [nombre, setNombre] = useState('');
   const [error,  setError]  = useState('');
 
-  const { data: programas = MOCK_PROGRAMAS, isLoading } = useQuery({
-    queryKey:    ['programas'],
-    queryFn:     () => configuracionService.listarProgramas().then(r => r.data.data),
-    initialData: MOCK_PROGRAMAS
+  const { data: programas = [], isLoading } = useQuery({
+    queryKey: ['programas', usarMocks()],
+    queryFn: () =>
+      ejecutarConsulta({
+        mock: () => MOCK_PROGRAMAS,
+        api: () => configuracionService.listarProgramas().then((r) => r.data.data ?? []),
+      }),
+    placeholderData: placeholderSimple(MOCK_PROGRAMAS),
   });
 
   const guardar = () => {
