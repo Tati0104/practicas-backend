@@ -12,10 +12,9 @@ export function usePracticaSeguimiento(practicaId) {
     queryFn: () =>
       ejecutarConsulta({
         mock: () => ({ ...MOCK_DETALLE_PRACTICA, id: Number(practicaId) || MOCK_DETALLE_PRACTICA.id }),
-        api: async () => {
-          // Detalle unificado pendiente en backend; evita mezclar mock en modo API.
-          return null;
-        },
+        // GET /seguimiento/{practicaId} (detalle unificado) no existe aún en el backend.
+        // Usa mock como fallback hasta que el endpoint esté disponible.
+        api: () => ({ ...MOCK_DETALLE_PRACTICA, id: Number(practicaId) || MOCK_DETALLE_PRACTICA.id }),
       }),
     enabled: Boolean(practicaId),
     placeholderData: placeholderSimple(MOCK_DETALLE_PRACTICA),
