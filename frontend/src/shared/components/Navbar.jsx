@@ -1,4 +1,5 @@
 import useAuth from '../hooks/useAuth';
+import NotificacionesBell from './NotificacionesBell';
 
 const nombreRol = {
   ADMIN:            'Administrador',
@@ -20,9 +21,12 @@ export default function Navbar() {
       <span style={estilos.bienvenida}>
         Bienvenido/a, <strong>{usuario?.nombre}</strong>
       </span>
-      <span style={estilos.rol}>
-        {nombreRol[usuario?.rol] || usuario?.rol}
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <NotificacionesBell />
+        <span style={estilos.rol}>
+          {nombreRol[usuario?.rol] || usuario?.rol}
+        </span>
+      </div>
     </header>
   );
 }
