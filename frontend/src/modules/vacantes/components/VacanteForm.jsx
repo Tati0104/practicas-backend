@@ -1,47 +1,50 @@
-// src/modules/vacantes/components/VacanteForm.jsx
-
-/**
- * Formulario (modal) para crear o editar una vacante.
- * - Usa React Hook Form + Zod para validación.
- * - Campos obligatorios con etiquetas visibles y mensajes de error.
- * - Al cerrar el modal se llama reset() para limpiar.
- * - Llama a create o edit mutation a través de useVacantesMutaciones.
- */
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
+import http from '../../../shared/services/http';
 
-// Esquema Zod con los campos requeridos para una vacante.
 const vacanteSchema = z.object({
-  id: z.number().optional(), // solo para edición
-  empresa: z.string().min(1, 'Empresa es requerida'),
-  cargo: z.string().min(1, 'Cargo es requerido'),
-  modalidad: z.enum(['PRESENCIAL', 'REMOTO', 'HÍBRIDO']),
-  cuposTotal: z.number().int().positive('Cupos totales debe ser positivo'),
-  cuposDisponibles: z.number().int().nonnegative('Cupos disponibles debe ser >= 0'),
-  estado: z.enum([
-    'ACTIVA',
-    'PENDIENTE_APROBACION',
-    'PAUSADA',
-    'CUPOS_COMPLETOS',
-    'CERRADA'
-  ])
+  empresaId:               z.coerce.number().int().positive('Empresa es requerida'),
+  programaId:              z.coerce.number().int().positive('Programa es requerido'),
+  cargo:                   z.string().min(1, 'Cargo es requerido'),
+  descripcionPerfil:       z.string().min(1, 'Descripción del perfil es requerida'),
+  modalidad:               z.enum(['PRESENCIAL', 'REMOTO', 'HÍBRIDO'], { errorMap: () => ({ message: 'Modalidad es requerida' }) }),
+  cuposTotales:            z.coerce.number().int().min(1, 'Debe ser al menos 1'),
+  area:                    z.string().optional(),
+  requisitos:              z.string().optional(),
+  fechaInicioDisponibilidad: z.string().optional(),
+  fechaFinDisponibilidad:    z.string().optional(),
 });
 
 export default function VacanteForm({ isOpen, onClose, vacante }) {
   const isEdit = !!vacante?.id;
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm({
+  const { data: empresas = [] } = useQuery({
+    queryKey: ['empresas-select'],
+    queryFn: async () => {
+      const r = await http.get('/empresas');
+      console.log('[VacanteForm] empresas raw:', r.data);
+      const lista = r.data?.content ?? (Array.isArray(r.data) ? r.data : []);
+      console.log('[VacanteForm] empresas lista:', lista);
+      return lista;
+    },
+    enabled: isOpen,
+    staleTime: 0,
+  });
+
+  const { data: programas = [] } = useQuery({
+    queryKey: ['programas-select'],
+    queryFn: () => http.get('/programas').then(r => r.data ?? []),
+    enabled: isOpen,
+  });
+
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(vacanteSchema),
-    defaultValues: vacante || {}
+    defaultValues: vacante ?? {},
   });
 
   const { crear, editar } = useVacantesMutaciones({
@@ -49,14 +52,11 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
       toast.success(isEdit ? 'Vacante actualizada' : 'Vacante creada');
       onClose();
     },
-    onError: err => toast.error(err?.message || 'Error al guardar')
+    onError: err => toast.error(err?.response?.data?.message ?? err?.message ?? 'Error al guardar'),
   });
 
-  // Cuando el modal se abre con una vacante para editar, cargamos los valores.
   useEffect(() => {
-    if (isOpen) {
-      reset(vacante || {});
-    }
+    if (isOpen) reset(vacante ?? {});
   }, [isOpen, vacante, reset]);
 
   const onSubmit = data => {
@@ -69,103 +69,119 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
 
   if (!isOpen) return null;
 
+  const fldError = (key) => errors[key] && (
+    <p className="text-red-600 text-sm mt-1">{errors[key].message}</p>
+  );
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg">
+      <div className="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg overflow-y-auto max-h-[90vh]">
         <h2 className="text-xl font-semibold mb-4">
-          {isEdit ? 'Editar Vacante' : 'Crear Vacante'}
+          {isEdit ? 'Editar vacante' : 'Crear vacante'}
         </h2>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
           {/* Empresa */}
           <div>
             <label className="block text-sm font-medium mb-1">Empresa</label>
-            <input
-              {...register('empresa')}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.empresa && (
-              <p className="text-red-600 text-sm mt-1">{errors.empresa.message}</p>
-            )}
+            <select {...register('empresaId')} className="w-full border rounded px-3 py-2">
+              <option value="">— Selecciona empresa —</option>
+              {empresas.map(e => (
+                <option key={e.id} value={e.id}>{e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`}</option>
+              ))}
+            </select>
+            {fldError('empresaId')}
+          </div>
+
+          {/* Programa */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Programa</label>
+            <select {...register('programaId')} className="w-full border rounded px-3 py-2">
+              <option value="">— Selecciona programa —</option>
+              {programas.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+            {fldError('programaId')}
           </div>
 
           {/* Cargo */}
           <div>
             <label className="block text-sm font-medium mb-1">Cargo</label>
-            <input
-              {...register('cargo')}
-              className="w-full border rounded px-3 py-2"
-            />
-            {errors.cargo && (
-              <p className="text-red-600 text-sm mt-1">{errors.cargo.message}</p>
-            )}
+            <input {...register('cargo')} className="w-full border rounded px-3 py-2" placeholder="Ej: Desarrollador Backend" />
+            {fldError('cargo')}
+          </div>
+
+          {/* Descripción del perfil */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Descripción del perfil</label>
+            <textarea {...register('descripcionPerfil')} rows={3}
+              className="w-full border rounded px-3 py-2 resize-none"
+              placeholder="Describe el perfil requerido para el cargo..." />
+            {fldError('descripcionPerfil')}
           </div>
 
           {/* Modalidad */}
           <div>
             <label className="block text-sm font-medium mb-1">Modalidad</label>
             <select {...register('modalidad')} className="w-full border rounded px-3 py-2">
+              <option value="">— Selecciona modalidad —</option>
               <option value="PRESENCIAL">Presencial</option>
               <option value="REMOTO">Remoto</option>
               <option value="HÍBRIDO">Híbrido</option>
             </select>
-            {errors.modalidad && (
-              <p className="text-red-600 text-sm mt-1">{errors.modalidad.message}</p>
-            )}
+            {fldError('modalidad')}
           </div>
 
-          {/* Cupos */}
+          {/* Cupos totales */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Cupos totales</label>
+            <input type="number" min={1} {...register('cuposTotales')}
+              className="w-full border rounded px-3 py-2" placeholder="Ej: 3" />
+            {fldError('cuposTotales')}
+          </div>
+
+          {/* Área (opcional) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Área <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input {...register('area')} className="w-full border rounded px-3 py-2"
+              placeholder="Ej: Tecnología, Administración..." />
+          </div>
+
+          {/* Requisitos (opcional) */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Requisitos <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <textarea {...register('requisitos')} rows={2}
+              className="w-full border rounded px-3 py-2 resize-none"
+              placeholder="Conocimientos, habilidades, etc." />
+          </div>
+
+          {/* Fechas (opcionales) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Cupos Totales</label>
-              <input
-                type="number"
-                {...register('cuposTotal', { valueAsNumber: true })}
-                className="w-full border rounded px-3 py-2"
-              />
-              {errors.cuposTotal && (
-                <p className="text-red-600 text-sm mt-1">{errors.cuposTotal.message}</p>
-              )}
+              <label className="block text-sm font-medium mb-1">Disponible desde</label>
+              <input type="date" {...register('fechaInicioDisponibilidad')}
+                className="w-full border rounded px-3 py-2" />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Cupos Disponibles</label>
-              <input
-                type="number"
-                {...register('cuposDisponibles', { valueAsNumber: true })}
-                className="w-full border rounded px-3 py-2"
-              />
-              {errors.cuposDisponibles && (
-                <p className="text-red-600 text-sm mt-1">{errors.cuposDisponibles.message}</p>
-              )}
+              <label className="block text-sm font-medium mb-1">Disponible hasta</label>
+              <input type="date" {...register('fechaFinDisponibilidad')}
+                className="w-full border rounded px-3 py-2" />
             </div>
           </div>
 
-          {/* Estado */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Estado</label>
-            <select {...register('estado')} className="w-full border rounded px-3 py-2">
-              <option value="ACTIVA">Activa</option>
-              <option value="PENDIENTE_APROBACION">Pendiente Aproba​ción</option>
-              <option value="PAUSADA">Pausada</option>
-              <option value="CUPOS_COMPLETOS">Cupos completos</option>
-              <option value="CERRADA">Cerrada</option>
-            </select>
-            {errors.estado && (
-              <p className="text-red-600 text-sm mt-1">{errors.estado.message}</p>
-            )}
-          </div>
-
-          <div className="flex justify-end space-x-2 mt-4">
-            <button
-              type="button"
-              onClick={() => { onClose(); reset(); }}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded"
-            >
+          <div className="flex justify-end space-x-2 pt-2">
+            <button type="button" onClick={() => { onClose(); reset(); }}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded">
               Cancelar
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
+            <button type="submit" disabled={isSubmitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60">
               {isEdit ? 'Actualizar' : 'Crear'}
             </button>
           </div>

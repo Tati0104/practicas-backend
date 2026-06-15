@@ -14,6 +14,7 @@ import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
 import VacantesFiltros from '../components/VacantesFiltros';
 import VacantesTabla from '../components/VacantesTabla';
 import VacanteCard from '../components/VacanteCard';
+import VacanteForm from '../components/VacanteForm';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import Paginacion from '../../../shared/components/Paginacion';
 import { toast } from 'react-hot-toast';
@@ -43,17 +44,31 @@ export default function VacantesPage() {
     toast.error(err?.message || 'Error en la operación');
   } });
 
-  const isDesktop = useEsDesktop(); // usa el hook nativo definido arriba
+  const isDesktop = useEsDesktop();
   const { canCreate, canEdit, canApprove, canReject, canPause, canClose } = usePermisos();
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [vacanteEditando, setVacanteEditando] = useState(null);
 
-  // Si ocurre un error, podemos mostrar un toast (también manejado por UI externa).
   useEffect(() => {
     if (isError) toast.error('Error al cargar vacantes');
   }, [isError]);
 
+  const abrirCrear = () => { setVacanteEditando(null); setFormAbierto(true); };
+  const cerrarForm = () => { setFormAbierto(false); setVacanteEditando(null); refetch(); };
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">Vacantes</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Vacantes</h1>
+        {canCreate && (
+          <button
+            onClick={abrirCrear}
+            className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-800"
+          >
+            + Nueva vacante
+          </button>
+        )}
+      </div>
       <VacantesFiltros filtros={filtros} setFiltros={setFiltros} />
       {isLoading && (<div className="flex justify-center py-8"><span className="loader"/></div>)}
       {!isLoading && vacantes.length === 0 && (
@@ -75,6 +90,12 @@ export default function VacantesPage() {
         totalPaginas={totalPaginas}
         onCambiarPagina={irAPagina}
         className="mt-4"
+      />
+
+      <VacanteForm
+        isOpen={formAbierto}
+        onClose={cerrarForm}
+        vacante={vacanteEditando}
       />
     </div>
   );
