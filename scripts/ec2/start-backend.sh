@@ -25,12 +25,20 @@ stop_backend() {
     kill "$pid" 2>/dev/null || kill -9 "$pid" 2>/dev/null || true
     sleep 2
   fi
-  # Solo procesos java del JAR de producción (evita matar la sesión SSH)
-  pid="$(pgrep -f "^java -jar ${JAR}$" | head -n 1 || true)"
-  if [[ -n "$pid" ]]; then
-    kill "$pid" 2>/dev/null || kill -9 "$pid" 2>/dev/null || true
-    sleep 2
+
+  # Cualquier instancia del JAR (./app.jar o ruta absoluta)
+  while read -r pid; do
+    [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || kill -9 "$pid" 2>/dev/null || true
+  done < <(pgrep -f '[j]ava -jar.*app\.jar' || true)
+
+  # Liberar puerto 8080 si quedó colgado
+  if command -v lsof >/dev/null 2>&1; then
+    while read -r pid; do
+      [[ -n "$pid" ]] && kill -9 "$pid" 2>/dev/null || true
+    done < <(lsof -t -i:8080 2>/dev/null || true)
   fi
+
+  sleep 2
   rm -f "$PID_FILE"
 }
 
