@@ -36,3 +36,4 @@ build/
 .env
 application-dev-local.yml
 **/application-dev-local.yml
+scripts/ec2/practi.env
