@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Secretos locales (no commitear)
+.env
+application-dev-local.yml
+**/application-dev-local.yml

@@ -1,5 +1,8 @@
 # Perfil desarrollo: BD local + logging DEBUG
+# Credenciales SMTP: usar variables de entorno o application-dev-local.yml (no commitear secretos).
 spring:
+  config:
+    import: optional:classpath:application-dev-local.yml,optional:file:./application-dev-local.yml
   datasource:
     url: jdbc:postgresql://localhost:5432/practicas_db
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -17,11 +20,11 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: "ehs012407@gmail.com"
-    password: "igovhjscgsqesbpz"
-    from-name: "Sistema de Prácticas"
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from-name: ${MAIL_FROM_NAME:Sistema de Prácticas}
     properties:
       mail:
         smtp:

@@ -118,14 +118,26 @@ El API queda disponible en **http://localhost:8080**.
 | `SPRING_DATASOURCE_PASSWORD` | Contraseña PostgreSQL | `postgres` |
 | `JWT_SECRET` | Clave para firmar tokens JWT | Valor en `application-dev.yml` |
 | `MAIL_MODE` | `stub` = sin envío real de correos; `smtp` = Gmail/SMTP | `stub` |
-| `MAIL_PASSWORD` | Contraseña SMTP (solo si `MAIL_MODE=smtp`) | — |
+| `MAIL_USERNAME` | Correo remitente SMTP (solo si `MAIL_MODE=smtp`) | — |
+| `MAIL_PASSWORD` | App password de Gmail (solo si `MAIL_MODE=smtp`) | — |
+| `MAIL_HOST` | Servidor SMTP | `smtp.gmail.com` |
+| `MAIL_PORT` | Puerto SMTP | `587` |
 | `SERVER_PORT` | Puerto del backend | `8080` |
 
-Ejemplo en PowerShell:
+**Opción A — variables de entorno (PowerShell):**
 
 ```powershell
 $env:MAIL_MODE="smtp"
+$env:MAIL_USERNAME="tu-correo@gmail.com"
 $env:MAIL_PASSWORD="tu-app-password"
+.\mvnw.cmd spring-boot:run
+```
+
+**Opción B — archivo local (recomendado en equipo):**
+
+```powershell
+copy src\main\resources\application-dev-local.yml.example src\main\resources\application-dev-local.yml
+# Edita application-dev-local.yml con tu correo y app password (ese archivo está en .gitignore)
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -358,7 +370,7 @@ docker compose up -d
 |------------|--------|
 | **PostgreSQL** | Servicio gestionado (Railway, Render, AWS RDS, etc.) |
 | **Backend** | `.\mvnw.cmd clean package -DskipTests` → ejecutar JAR con perfil `prod` |
-| **Variables backend** | `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `MAIL_MODE`, `PORT` |
+| **Variables backend** | `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `MAIL_MODE`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `PORT` |
 | **Frontend** | `npm run build` con `VITE_API_URL=https://api.tudominio.com` |
 | **Estáticos** | Servir `frontend/dist/` con Nginx, Vercel, Netlify, etc. |
 
@@ -372,6 +384,8 @@ DB_USER=postgres
 DB_PASSWORD=********
 JWT_SECRET=clave-segura-larga-y-unica
 MAIL_MODE=smtp
+MAIL_USERNAME=correo@dominio.com
+MAIL_PASSWORD=app-password-smtp
 PORT=8080
 ```
 
@@ -379,7 +393,7 @@ PORT=8080
 
 ## Reglas para trabajo en equipo
 
-1. **No commitear** `frontend/.env`, contraseñas ni secretos JWT reales.
+1. **No commitear** `frontend/.env`, `application-dev-local.yml`, contraseñas ni secretos JWT reales.
 2. **No modificar** migraciones Flyway ya mergeadas (`V{n}__*.sql`). Crear siempre una nueva versión.
 3. **No hardcodear** URLs de API en el código; usar `VITE_API_URL` y variables de entorno.
 4. **No cambiar** puertos ni credenciales en `application-dev.yml` sin acuerdo del equipo; preferir variables de entorno.
