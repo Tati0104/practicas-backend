@@ -30,9 +30,15 @@ public class ScopeGuardInterceptor implements HandlerInterceptor {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
-                // Si no hay autenticación, para propósitos de prueba locales podemos dejar pasar 
-                // o denegar de forma estricta. Lo denegamos si tiene un scope específico requerido.
                 throw new NegocioException("Acceso denegado. Se requiere autenticación para el scope: " + requiredScope);
+            }
+
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> "ADMIN".equalsIgnoreCase(a.getAuthority())
+                            || "ROLE_ADMIN".equalsIgnoreCase(a.getAuthority()));
+
+            if (isAdmin) {
+                return true;
             }
 
             boolean hasAuthority = auth.getAuthorities().stream()
