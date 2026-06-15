@@ -97,18 +97,18 @@ export const GRUPOS_NAVEGACION = [
     nombre: 'Vacantes y postulaciones',
     items: [
       {
+        id: 'vacantes-postulaciones',
+        nombre: 'Vacantes y postulaciones',
+        ruta: '/vacantes-postulaciones',
+        icono: 'ClipboardList',
+        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA],
+      },
+      {
         id: 'vacantes',
         nombre: 'Vacantes',
         ruta: '/vacantes',
         icono: 'ClipboardList',
-        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.SECRETARIA, ROLES.EMPRESA],
-      },
-      {
-        id: 'asignaciones',
-        nombre: 'Asignaciones',
-        ruta: '/asignaciones',
-        icono: 'Link2',
-        roles: [ROLES.COORD_PRACTICA],
+        roles: [ROLES.SECRETARIA, ROLES.EMPRESA],
       },
     ],
   },
@@ -230,6 +230,9 @@ export function obtenerMenuPorRol(rol) {
 export function esRutaActiva(item, pathname) {
   if (item.prefijo) {
     return pathname === item.ruta || pathname.startsWith(`${item.ruta}/`);
+  }
+  if (item.ruta === '/vacantes-postulaciones') {
+    return pathname === item.ruta || pathname.startsWith('/asignaciones');
   }
   return pathname === item.ruta;
 }

@@ -40,6 +40,7 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
   if (!isOpen) return null;
 
   const vacanteSeleccionada = vacantes.find((v) => String(v.id) === String(vacanteId));
+  const estudianteSeleccionado = estudiantes.find((e) => String(e.id) === String(estudianteId));
 
   return (
     <Modal
@@ -112,9 +113,9 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
             <p className="text-sm text-gray-700">
               <strong>Empresa:</strong> {vacanteSeleccionada.empresa}
             </p>
-            {estudianteId && (
+            {estudianteSeleccionado && (
               <p className="mt-1 text-sm text-gray-700">
-                <strong>Estudiante ID:</strong> {estudianteId}
+                <strong>Estudiante:</strong> {estudianteSeleccionado.nombre}
               </p>
             )}
           </div>

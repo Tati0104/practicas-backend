@@ -4,7 +4,6 @@ import FiltrosEstudiante from './FiltrosEstudiante';
 import ModalRegistroEstudiante from './ModalRegistroEstudiante';
 import ImportarExcel from './ImportarExcel';
 import TablaBase from '../../../shared/components/TablaBase';
-import BadgeEstado from '../../../shared/components/BadgeEstado';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Badge, Button, PageHeader } from '@/shared/components/ui';
 
@@ -23,11 +22,30 @@ export default function EstudiantesPage() {
     totalPaginas,
     irAPagina,
     registrar,
+    editar,
     marcarApto,
     marcarNoApto,
   } = useEstudiantes();
   const [modalRegistro, setModalRegistro] = useState(false);
+  const [editando, setEditando] = useState(null);
   const [modalImportar, setModalImportar] = useState(false);
+
+  const abrirRegistrar = () => {
+    setEditando(null);
+    setModalRegistro(true);
+  };
+
+  const abrirEditar = (estudiante) => {
+    setEditando(estudiante);
+    setModalRegistro(true);
+  };
+
+  const cerrarModal = () => {
+    setModalRegistro(false);
+    setEditando(null);
+  };
+
+  const guardando = registrar.isPending || editar.isPending;
 
   const columnas = [
     { key: 'nombre', titulo: 'Nombre' },
@@ -43,12 +61,14 @@ export default function EstudiantesPage() {
         </Badge>
       ),
     },
-    { key: 'activo', titulo: 'Estado', render: (e) => <BadgeEstado activo={e.activo} /> },
     {
       key: 'acciones',
       titulo: 'Acciones',
       render: (e) => (
         <div className="flex flex-wrap gap-1.5">
+          <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
+            Editar
+          </Button>
           {e.estadoAptitud === 'SIN_EVALUAR' && (
             <>
               <Button variant="success" size="sm" onClick={() => marcarApto.mutate(e.id)}>
@@ -77,7 +97,7 @@ export default function EstudiantesPage() {
             <Button variant="success" onClick={() => setModalImportar(true)}>
               Importar Excel
             </Button>
-            <Button onClick={() => setModalRegistro(true)}>+ Registrar</Button>
+            <Button onClick={abrirRegistrar}>+ Registrar</Button>
           </>
         }
       />
@@ -88,9 +108,16 @@ export default function EstudiantesPage() {
 
       {modalRegistro && (
         <ModalRegistroEstudiante
-          guardando={registrar.isPending}
-          onGuardar={(dto) => registrar.mutate(dto, { onSuccess: () => setModalRegistro(false) })}
-          onCerrar={() => setModalRegistro(false)}
+          estudiante={editando}
+          guardando={guardando}
+          onGuardar={(dto) => {
+            if (editando) {
+              editar.mutate({ id: editando.id, dto }, { onSuccess: cerrarModal });
+            } else {
+              registrar.mutate(dto, { onSuccess: cerrarModal });
+            }
+          }}
+          onCerrar={cerrarModal}
         />
       )}
       {modalImportar && (
