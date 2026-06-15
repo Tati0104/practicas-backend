@@ -108,6 +108,24 @@ public class EstudianteServiceImpl implements EstudianteService {
             throw new NegocioException("El estudiante no posee un expediente asociado.");
         }
 
+        // Re-evaluación NO_APTO → APTO: si ya hay una instancia activa (no terminal),
+        // solo actualizar el estado sin crear una nueva instancia de práctica.
+        boolean tieneInstanciaActiva = expediente.getInstanciasPractica().stream()
+                .anyMatch(ip -> ip.getEstado() == EstadoPractica.ASIGNADA_PENDIENTE_INICIO
+                             || ip.getEstado() == EstadoPractica.EN_CURSO);
+
+        if (tieneInstanciaActiva) {
+            estudiante.setEstadoAptitud(EstadoAptitud.APTO);
+            estudiante = estudianteRepository.save(estudiante);
+            if (observadoresDisponibles != null) {
+                for (Observador obs : observadoresDisponibles) {
+                    estudiante.registrarObservador(obs);
+                }
+            }
+            estudiante.notificarObservadores("ESTUDIANTE_MARCADO_APTO", estudiante);
+            return estudiante;
+        }
+
         int siguienteNumeroPractica = expediente.getInstanciasPractica().size() + 1;
 
         if (siguienteNumeroPractica > 1) {
