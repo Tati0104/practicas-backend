@@ -12,6 +12,9 @@ const vinculacionService = {
   obtenerDocumentosPractica: (practicaId) =>
     http.get(`/practicas/${practicaId}/documentos`),
 
+  obtenerEstudiantePractica: (practicaId) =>
+    http.get(`/practicas/${practicaId}/estudiante`),
+
   subirDocumento: (asignacionId, categoria, archivo) => {
     const form = new FormData();
     form.append('archivo', archivo);

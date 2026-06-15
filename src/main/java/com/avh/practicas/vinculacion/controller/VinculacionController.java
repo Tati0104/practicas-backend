@@ -114,4 +114,19 @@ public class VinculacionController {
     ) {
         return ResponseEntity.ok(ApiResponse.ok(vinculacionService.listarDocumentosPorPractica(practicaId)));
     }
+
+    @GetMapping("/practicas/{practicaId}/estudiante")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> obtenerEstudiantePractica(
+            @PathVariable Long practicaId
+    ) {
+        com.avh.practicas.estudiante.entity.Estudiante estudiante = vinculacionService.obtenerEstudiantePorPractica(practicaId);
+        java.util.List<com.avh.practicas.estudiante.dto.DocumentoEstudianteDto> docs = estudiante.getDocumentos().stream()
+                .map(com.avh.practicas.estudiante.dto.DocumentoEstudianteDto::desde)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.ok(java.util.Map.of(
+                "id", estudiante.getId(),
+                "documentos", docs
+        )));
+    }
 }

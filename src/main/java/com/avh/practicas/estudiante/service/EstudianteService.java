@@ -16,7 +16,7 @@ public interface EstudianteService {
     Estudiante marcarNoApto(Long id, String motivo);
     Optional<Estudiante> obtenerPorId(Long id);
     Optional<Estudiante> obtenerPorIdentificacion(String identificacion);
-    Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, Pageable pageable);
+    Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, String busqueda, Pageable pageable);
     void importar(List<Estudiante> estudiantes);
     Estudiante guardar(Estudiante estudiante);
 }

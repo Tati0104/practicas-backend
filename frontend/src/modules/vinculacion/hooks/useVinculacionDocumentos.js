@@ -5,6 +5,23 @@ import {
   usarMocks,
 } from '@/shared/config/dataSource';
 import { claveQueryDocumentos, obtenerDocumentosAsignacion } from '../utils/vinculacionApi';
+import vinculacionService from '../services/vinculacionService';
+
+async function cargarDocumentosCompletos(asignacionId) {
+  const data = await obtenerDocumentosAsignacion(asignacionId);
+  let estudianteBase = null;
+
+  if (data.practicaId) {
+    try {
+      const resp = await vinculacionService.obtenerEstudiantePractica(data.practicaId);
+      estudianteBase = resp.data?.data ?? resp.data ?? null;
+    } catch {
+      // Documentos base opcionales si el endpoint no está disponible.
+    }
+  }
+
+  return { ...data, estudianteBase };
+}
 
 export function useVinculacionDocumentos(asignacionId) {
   const useMocks = usarMocks();
@@ -14,7 +31,7 @@ export function useVinculacionDocumentos(asignacionId) {
     queryFn: () =>
       ejecutarConsulta({
         mock: () => MOCK_DOCUMENTOS_DETALLE,
-        api: () => obtenerDocumentosAsignacion(asignacionId),
+        api: () => cargarDocumentosCompletos(asignacionId),
       }),
     enabled: Boolean(asignacionId),
     staleTime: 60_000,
@@ -28,6 +45,7 @@ export function useVinculacionDocumentos(asignacionId) {
     convenioId: data?.convenioId ?? null,
     practicaId: data?.practicaId ?? null,
     detalle: data?.detalle ?? null,
+    estudianteBase: data?.estudianteBase ?? null,
     isLoading,
     isError,
     refetch,

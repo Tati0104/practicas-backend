@@ -13,6 +13,19 @@ const variantAptitud = {
   SIN_EVALUAR: 'warning',
 };
 
+function BadgeDocumentoBase({ activo, label }) {
+  return (
+    <span
+      className={[
+        'inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+        activo ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500',
+      ].join(' ')}
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function EstudiantesPage() {
   const {
     estudiantes,
@@ -60,6 +73,20 @@ export default function EstudiantesPage() {
           {e.estadoAptitud}
         </Badge>
       ),
+    },
+    {
+      key: 'documentos',
+      titulo: 'Documentos base',
+      render: (e) => {
+        const tieneHojaVida = e.documentos?.some((d) => d.tipo === 'HOJA_DE_VIDA');
+        const tienePazSalvo = e.documentos?.some((d) => d.tipo === 'PAZ_Y_SALVO');
+        return (
+          <div className="flex flex-wrap gap-1">
+            <BadgeDocumentoBase activo={tieneHojaVida} label="HV" />
+            <BadgeDocumentoBase activo={tienePazSalvo} label="P&S" />
+          </div>
+        );
+      },
     },
     {
       key: 'acciones',

@@ -40,4 +40,6 @@ public interface VinculacionService {
     void confirmarVinculacion(Long practicaId, ConfirmarVinculacionRequest request);
 
     DocumentosPorCategoriaResponse listarDocumentosPorPractica(Long practicaId);
+
+    com.avh.practicas.estudiante.entity.Estudiante obtenerEstudiantePorPractica(Long practicaId);
 }

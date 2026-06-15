@@ -241,6 +241,14 @@ public class VinculacionServiceImpl implements VinculacionService {
         return new DocumentosPorCategoriaResponse(practicaId, porCategoria);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public com.avh.practicas.estudiante.entity.Estudiante obtenerEstudiantePorPractica(Long practicaId) {
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+        return practica.getExpediente().getEstudiante();
+    }
+
     private DocumentoCargadoResponse registrarDocumento(
             Long asignacionId,
             MultipartFile archivo,
