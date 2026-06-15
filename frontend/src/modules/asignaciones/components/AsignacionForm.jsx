@@ -14,6 +14,10 @@ const schema = z.object({
   estudianteId: z.string().min(1, 'Selecciona un estudiante'),
 });
 
+function nombreEmpresa(vacante) {
+  return vacante?.empresaNombre ?? vacante?.empresa ?? '—';
+}
+
 export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) {
   const {
     register,
@@ -63,7 +67,7 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
             </option>
             {vacantes.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.cargo} · {v.empresa} (cupos: {v.cuposDisponibles})
+                {v.cargo} · {nombreEmpresa(v)} (cupos: {v.cuposDisponibles})
               </option>
             ))}
           </Select>
@@ -92,7 +96,7 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
             </option>
             {estudiantes.map((e) => (
               <option key={e.id} value={e.id}>
-                {e.nombre} · {e.codigo} · {e.programa}
+                {e.nombre} · {e.identificacion ?? e.codigo ?? '—'}
               </option>
             ))}
           </Select>
@@ -111,7 +115,7 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
               <strong>Cargo:</strong> {vacanteSeleccionada.cargo}
             </p>
             <p className="text-sm text-gray-700">
-              <strong>Empresa:</strong> {vacanteSeleccionada.empresa}
+              <strong>Empresa:</strong> {nombreEmpresa(vacanteSeleccionada)}
             </p>
             {estudianteSeleccionado && (
               <p className="mt-1 text-sm text-gray-700">

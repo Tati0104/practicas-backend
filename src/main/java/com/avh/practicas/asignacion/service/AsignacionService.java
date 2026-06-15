@@ -66,6 +66,7 @@ public class AsignacionService {
     private final EstudianteRepository estudianteRepository;
     private final VacanteRepository vacanteRepository;
     private final VacanteResponseMapper vacanteResponseMapper;
+    private final AsignacionResponseMapper asignacionResponseMapper;
     private final BitacoraService bitacoraService;
     private final NotificadorEventos notificadorEventos;
 
@@ -102,7 +103,7 @@ public class AsignacionService {
         // Observer: se emite evento para correo, panel y bitacora cuando aplique.
         notificar(TipoEventoSistema.ASIGNACION_CREADA, guardada, request.coordinadorId());
 
-        return AsignacionResponse.desdeEntidad(guardada);
+        return asignacionResponseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -115,7 +116,7 @@ public class AsignacionService {
         registrarHistorial(guardada, anterior, guardada.getEstado(), responsableId, motivo);
         registrarBitacora(guardada, TipoAccion.MODIFICACION, responsableId, anterior, guardada.getEstado());
         notificar(TipoEventoSistema.ASIGNACION_EN_VINCULACION, guardada, responsableId);
-        return AsignacionResponse.desdeEntidad(guardada);
+        return asignacionResponseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -128,7 +129,7 @@ public class AsignacionService {
         registrarHistorial(guardada, anterior, guardada.getEstado(), responsableId, motivo);
         registrarBitacora(guardada, TipoAccion.MODIFICACION, responsableId, anterior, guardada.getEstado());
         notificar(TipoEventoSistema.ASIGNACION_VINCULADA, guardada, responsableId);
-        return AsignacionResponse.desdeEntidad(guardada);
+        return asignacionResponseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -148,7 +149,7 @@ public class AsignacionService {
         registrarHistorial(guardada, anterior, guardada.getEstado(), responsableId, motivo);
         registrarBitacora(guardada, TipoAccion.CANCELACION, responsableId, anterior, guardada.getEstado());
         notificar(TipoEventoSistema.ASIGNACION_CANCELADA, guardada, responsableId);
-        return AsignacionResponse.desdeEntidad(guardada);
+        return asignacionResponseMapper.toResponse(guardada);
     }
 
     @Transactional(readOnly = true)
@@ -158,7 +159,7 @@ public class AsignacionService {
                 .stream()
                 .map(HistorialAsignacionResponse::desdeEntidad)
                 .toList();
-        return new AsignacionDetalleResponse(AsignacionResponse.desdeEntidad(asignacion), historial);
+        return new AsignacionDetalleResponse(asignacionResponseMapper.toResponse(asignacion), historial);
     }
 
     @Transactional(readOnly = true)
@@ -168,7 +169,7 @@ public class AsignacionService {
                                            EstadoAsignacion estado,
                                            Pageable pageable) {
         return asignacionRepository.findAll(conFiltros(estudianteId, vacanteId, coordinadorId, estado), pageable)
-                .map(AsignacionResponse::desdeEntidad);
+                .map(asignacionResponseMapper::toResponse);
     }
 
     @Transactional(readOnly = true)

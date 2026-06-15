@@ -138,7 +138,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
                 <AsignacionesPage />
               </RutaPrivada>
             }
@@ -147,7 +147,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones/:id"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
                 <AsignacionDetallePage />
               </RutaPrivada>
             }

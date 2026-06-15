@@ -38,12 +38,20 @@ export default function useEstudiantes() {
 
   const marcarApto = useMutation({
     mutationFn: (id) => estudianteService.marcarApto(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estudiantes'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      toast.success('Estudiante marcado como apto');
+    },
+    onError: alError,
   });
 
   const marcarNoApto = useMutation({
     mutationFn: ({ id, motivo }) => estudianteService.marcarNoApto(id, motivo),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estudiantes'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      toast.success('Estudiante marcado como no apto');
+    },
+    onError: alError,
   });
 
   const importarExcel = useMutation({

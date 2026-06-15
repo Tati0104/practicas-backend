@@ -15,9 +15,15 @@ public record AsignacionResponse(
         String motivoCancelacion,
         LocalDateTime fechaCreacion,
         LocalDateTime fechaActualizacion,
-        LocalDateTime fechaVinculacion
+        LocalDateTime fechaVinculacion,
+        AsignacionEstudianteResumen estudiante,
+        AsignacionVacanteResumen vacante
 ) {
-    public static AsignacionResponse desdeEntidad(Asignacion asignacion) {
+    public static AsignacionResponse desdeEntidad(
+            Asignacion asignacion,
+            AsignacionEstudianteResumen estudiante,
+            AsignacionVacanteResumen vacante
+    ) {
         return new AsignacionResponse(
                 asignacion.getId(),
                 asignacion.getEstudianteId(),
@@ -28,7 +34,9 @@ public record AsignacionResponse(
                 asignacion.getMotivoCancelacion(),
                 asignacion.getFechaCreacion(),
                 asignacion.getFechaActualizacion(),
-                asignacion.getFechaVinculacion()
+                asignacion.getFechaVinculacion(),
+                estudiante,
+                vacante
         );
     }
 }

@@ -4,11 +4,12 @@ import { Button } from '@/shared/components/ui';
 
 const TIPOS_ACEPTADOS = [
   'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
 ];
 
-const EXTENSIONES_LEGIBLES = '.pdf, .doc, .docx';
+const EXTENSIONES_LEGIBLES = '.pdf, .jpg, .jpeg, .png';
 
 export default function SubirDocumentoDropzone({
   titulo,

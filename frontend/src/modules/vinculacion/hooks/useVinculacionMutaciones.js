@@ -1,6 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import { usarMocks } from '@/shared/config/dataSource';
 import vinculacionService from '../services/vinculacionService';
+import {
+  claveQueryDocumentos,
+  fusionarDocumentoSubido,
+  obtenerDocumentosAsignacion,
+} from '../utils/vinculacionApi';
 
 const CATEGORIA_API = {
   HOJA_VIDA: 'HOJA_VIDA',
@@ -32,10 +38,41 @@ async function subirConFallback(asignacionId, tipo, archivo) {
 
 export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = {}) {
   const queryClient = useQueryClient();
+  const queryKey = claveQueryDocumentos(asignacionId, usarMocks());
 
-  const alExito = (mensaje) => () => {
-    queryClient.invalidateQueries(['vinculacion-documentos', asignacionId]);
-    queryClient.invalidateQueries(['vinculacion']);
+  const sincronizarDocumentos = async () => {
+    if (usarMocks() || !asignacionId) return;
+    try {
+      const data = await obtenerDocumentosAsignacion(asignacionId);
+      queryClient.setQueryData(queryKey, (prev) => {
+        if (!prev?.documentos?.length) return data;
+
+        const documentos = data.documentos.map((doc) => {
+          if (doc.id) return doc;
+          const local = prev.documentos.find((item) => item.tipo === doc.tipo);
+          return local?.id ? { ...doc, ...local } : doc;
+        });
+
+        return { ...data, documentos };
+      });
+    } catch {
+      // Si falla la recarga, conservamos la caché actualizada localmente.
+    }
+  };
+
+  const alExitoSubida = (mensaje) => async (response, variables) => {
+    queryClient.setQueryData(queryKey, (prev) =>
+      fusionarDocumentoSubido(prev, variables, response)
+    );
+    await sincronizarDocumentos();
+    queryClient.invalidateQueries({ queryKey: ['vinculacion'] });
+    toast.success(mensaje);
+    onSuccess?.();
+  };
+
+  const alExito = (mensaje) => async () => {
+    await sincronizarDocumentos();
+    queryClient.invalidateQueries({ queryKey: ['vinculacion'] });
     toast.success(mensaje);
     onSuccess?.();
   };
@@ -52,7 +89,8 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
 
   const subirDocumento = useMutation({
     mutationFn: ({ tipo, archivo }) => subirConFallback(asignacionId, tipo, archivo),
-    onSuccess: (_, { tipo }) => alExito(MENSAJES[tipo] ?? 'Documento subido')(),
+    onSuccess: (response, variables) =>
+      alExitoSubida(MENSAJES[variables.tipo] ?? 'Documento subido')(response, variables),
     onError: alError,
   });
 

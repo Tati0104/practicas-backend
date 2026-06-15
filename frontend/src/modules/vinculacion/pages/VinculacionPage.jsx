@@ -62,6 +62,13 @@ export default function VinculacionPage() {
 
       <VinculacionFiltros filtros={filtros} setFiltros={setFiltros} />
 
+      {!isLoading && !isError && vinculaciones.length > 0 && (
+        <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          Para subir hoja de vida, carta, proyecto o convenio, haz clic en{' '}
+          <strong>Gestionar</strong> en el estudiante correspondiente.
+        </div>
+      )}
+
       {isLoading && (
         <p className="py-10 text-center text-sm text-gray-500">Cargando procesos de vinculación...</p>
       )}
@@ -75,7 +82,10 @@ export default function VinculacionPage() {
       {!isLoading && !isError && vinculaciones.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-400">
           <FolderOpen className="mx-auto mb-2 h-8 w-8 opacity-50" aria-hidden="true" />
-          No hay procesos de vinculación que coincidan con los filtros aplicados.
+          <p>No hay procesos de vinculación que coincidan con los filtros aplicados.</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Si aún no hay asignaciones, créalas en Vacantes y Postulaciones.
+          </p>
         </div>
       )}
 

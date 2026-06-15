@@ -6,19 +6,28 @@
  */
 import http from '../../../shared/services/http.js';
 import { paramsListado } from '../../../shared/utils/paginacion.js';
+import { normalizarAsignacion, normalizarPaginaAsignaciones } from '../utils/asignacionMapper.js';
 
 const asignacionService = {
   /** GET /asignaciones?page=&size=&estado=&estudianteId=&vacanteId= */
-  listar: (filtros) => http.get('/asignaciones', { params: paramsListado(filtros) }),
+  listar: async (filtros) => {
+    const resp = await http.get('/asignaciones', { params: paramsListado(filtros) });
+    const pagina = resp.data?.data ?? resp.data;
+    return { ...resp, data: normalizarPaginaAsignaciones(pagina) };
+  },
 
   /** POST /asignaciones */
   crear: (dto) => http.post('/asignaciones', dto),
 
   /** PATCH /asignaciones/{id}/cancelar */
-  cancelar: (id, motivo) => http.patch(`/asignaciones/${id}/cancelar`, { motivo }),
+  cancelar: (id, body) => http.patch(`/asignaciones/${id}/cancelar`, body),
 
   /** GET /asignaciones/{id} */
-  obtener: (id) => http.get(`/asignaciones/${id}`),
+  obtener: async (id) => {
+    const resp = await http.get(`/asignaciones/${id}`);
+    const payload = resp.data?.data ?? resp.data;
+    return { ...resp, data: normalizarAsignacion(payload) };
+  },
 
   /** GET /asignaciones/estudiantes-aptos?programaId= */
   estudiantesAptos: (params) => http.get('/asignaciones/estudiantes-aptos', { params }),

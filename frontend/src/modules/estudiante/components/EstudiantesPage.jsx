@@ -69,19 +69,19 @@ export default function EstudiantesPage() {
           <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
             Editar
           </Button>
-          {e.estadoAptitud === 'SIN_EVALUAR' && (
-            <>
-              <Button variant="success" size="sm" onClick={() => marcarApto.mutate(e.id)}>
-                Apto
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}
-              >
-                No apto
-              </Button>
-            </>
+          {e.estadoAptitud !== 'APTO' && (
+            <Button variant="success" size="sm" onClick={() => marcarApto.mutate(e.id)}>
+              Apto
+            </Button>
+          )}
+          {e.estadoAptitud !== 'NO_APTO' && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}
+            >
+              No apto
+            </Button>
           )}
         </div>
       ),

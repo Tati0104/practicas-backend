@@ -11,6 +11,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import asignacionService from '../services/asignacionService';
+import useAuthStore from '@/store/authStore';
+import { extraerMensajeError } from '@/modules/auth/utils/schemas';
+
+function obtenerUsuarioIdSesion() {
+  return useAuthStore.getState().usuario?.id ?? null;
+}
 
 export function useAsignacionesMutaciones({ onSuccess, onError } = {}) {
   const queryClient = useQueryClient();
@@ -24,17 +30,28 @@ export function useAsignacionesMutaciones({ onSuccess, onError } = {}) {
 
   // Helper para error: muestra toast y llama callback externo
   const alError = (err) => {
-    const msg = err?.response?.data?.message || err?.message || 'Error inesperado';
+    const data = err?.response?.data;
+    const detalle =
+      data?.data && typeof data.data === 'object'
+        ? Object.values(data.data).filter(Boolean).join('. ')
+        : '';
+    const msg = detalle || extraerMensajeError(err);
     toast.error(msg);
     if (onError) onError(err);
   };
 
   /**
    * Crear asignación.
-   * Body esperado: { estudianteId: number, vacanteId: number }
+   * Body esperado: { estudianteId: number, vacanteId: number, coordinadorId?: number }
    */
   const crear = useMutation({
-    mutationFn: (dto) => asignacionService.crear(dto),
+    mutationFn: (dto) => {
+      const coordinadorId = dto.coordinadorId ?? obtenerUsuarioIdSesion();
+      if (!coordinadorId) {
+        return Promise.reject(new Error('No se encontró tu usuario en sesión. Cierra sesión e ingresa de nuevo.'));
+      }
+      return asignacionService.crear({ ...dto, coordinadorId });
+    },
     onSuccess: alExito('Asignación creada exitosamente'),
     onError: alError,
   });
@@ -44,7 +61,13 @@ export function useAsignacionesMutaciones({ onSuccess, onError } = {}) {
    * Parámetros: { id, motivo }
    */
   const cancelar = useMutation({
-    mutationFn: ({ id, motivo }) => asignacionService.cancelar(id, motivo),
+    mutationFn: ({ id, motivo }) => {
+      const responsableId = obtenerUsuarioIdSesion();
+      if (!responsableId) {
+        return Promise.reject(new Error('No se encontró tu usuario en sesión. Cierra sesión e ingresa de nuevo.'));
+      }
+      return asignacionService.cancelar(id, { motivo, responsableId });
+    },
     onSuccess: alExito('Asignación cancelada'),
     onError: alError,
   });

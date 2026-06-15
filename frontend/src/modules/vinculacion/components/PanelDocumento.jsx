@@ -22,7 +22,7 @@ export default function PanelDocumento({
   puedeSubir = false,
   tipoFirmanteRol = null,
 }) {
-  const tieneArchivo = documento.estado !== 'PENDIENTE';
+  const archivoSubido = Boolean(documento.id);
   const requiereFirmas = documento.tipo === 'CONVENIO';
   const firmaDelRol =
     requiereFirmas && tipoFirmanteRol
@@ -38,34 +38,39 @@ export default function PanelDocumento({
         <BadgeDocumento estado={documento.estado} />
       </div>
 
-      {tieneArchivo && documento.nombre && (
+      {archivoSubido && documento.nombre && (
         <p className="flex items-center gap-1.5 break-all text-xs text-gray-600">
           <Paperclip className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {documento.nombre}
         </p>
       )}
 
-      {tieneArchivo && (
+      {archivoSubido && (
         <Button variant="info" size="sm" className="self-start" onClick={onDescargar}>
           <Download className="h-3.5 w-3.5" aria-hidden="true" />
           Descargar
         </Button>
       )}
 
-      {puedeSubir && !tieneArchivo && (
+      {puedeSubir && !archivoSubido && (
         <SubirDocumentoDropzone
           titulo={TITULOS[documento.tipo]}
           onSubir={(archivo) => onSubir(archivo)}
           isPending={isPendingSubir}
-          deshabilitado={tieneArchivo}
         />
+      )}
+
+      {!puedeSubir && !archivoSubido && (
+        <p className="rounded-lg border border-dashed border-gray-200 bg-slate-50 px-3 py-4 text-center text-sm text-gray-500">
+          Documento pendiente de carga por el coordinador.
+        </p>
       )}
 
       {requiereFirmas && (
         <>
           <hr className="border-gray-100" />
           <ProgresoFirmas firmas={documento.firmas || []} />
-          {firmaDelRol && tieneArchivo && (
+          {firmaDelRol && archivoSubido && (
             <Button
               variant="success"
               size="sm"

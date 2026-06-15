@@ -24,7 +24,7 @@ export function documentosPendientesPorDefecto() {
 
 function esErrorEndpointNuevo(err) {
   const status = err?.response?.status;
-  return status === 404 || status === 405 || status === 501;
+  return status === 403 || status === 404 || status === 405 || status === 501;
 }
 
 async function cargarCatalogosEnriquecimiento() {
@@ -135,7 +135,7 @@ export async function listarVinculaciones(filtros) {
   }
 }
 
-function mapaTipoDesdeCategoria(categoria) {
+export function mapaTipoDesdeCategoria(categoria) {
   const mapa = {
     HOJA_VIDA: 'HOJA_VIDA',
     CARTA_PRESENTACION: 'CARTA',
@@ -145,6 +145,35 @@ function mapaTipoDesdeCategoria(categoria) {
     CONVENIO: 'CONVENIO',
   };
   return mapa[categoria] ?? categoria;
+}
+
+export function claveQueryDocumentos(asignacionId, useMocks = false) {
+  return ['vinculacion-documentos', asignacionId, useMocks];
+}
+
+export function fusionarDocumentoSubido(cache, { tipo, archivo }, respuesta) {
+  const payload = respuesta?.data?.data ?? respuesta?.data ?? respuesta ?? {};
+  const documentoId = payload.documentoId ?? payload.id ?? null;
+  const practicaId = payload.practicaId ?? null;
+  const base = cache ?? normalizarRespuestaDocumentos(null);
+
+  const documentos = base.documentos.map((doc) =>
+    doc.tipo === tipo
+      ? {
+          ...doc,
+          id: documentoId,
+          nombre: archivo?.name ?? doc.nombre,
+          estado: 'SUBIDO',
+        }
+      : doc
+  );
+
+  return {
+    ...base,
+    documentos,
+    practicaId: practicaId ?? base.practicaId,
+    asignacionId: payload.asignacionId ?? base.detalle?.asignacionId ?? base.asignacionId,
+  };
 }
 
 export function normalizarRespuestaDocumentos(data) {

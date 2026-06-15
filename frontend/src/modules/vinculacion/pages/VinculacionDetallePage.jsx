@@ -27,7 +27,6 @@ export default function VinculacionDetallePage() {
   const { subirDocumento, confirmarFirma } = useVinculacionMutaciones({
     asignacionId,
     onSuccess: () => {
-      refetch();
       setFirmaSeleccionada(null);
     },
   });
@@ -68,12 +67,29 @@ export default function VinculacionDetallePage() {
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-lg py-16 text-center">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800">
-          <p className="mb-4">No se pudieron cargar los documentos. Intenta de nuevo.</p>
-          <Button variant="ghost" size="sm" onClick={refetch}>
+      <div className="mx-auto max-w-5xl">
+        <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/vinculacion')}>
+          ← Volver
+        </Button>
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          No se pudieron cargar los documentos guardados. Aun así puedes subir archivos nuevos.
+          <Button variant="ghost" size="sm" className="ml-2" onClick={refetch}>
             Reintentar
           </Button>
+        </div>
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+          {documentosOrdenados.map((documento) => (
+            <PanelDocumento
+              key={documento.tipo}
+              documento={documento}
+              asignacionId={asignacionId}
+              onSubir={(archivo) => subirDocumento.mutate({ tipo: documento.tipo, archivo })}
+              onDescargar={() => {}}
+              onFirmar={() => {}}
+              isPendingSubir={subirDocumento.isPending}
+              puedeSubir={canCreate}
+            />
+          ))}
         </div>
       </div>
     );

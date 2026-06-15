@@ -1,22 +1,26 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { MOCK_DOCUMENTOS_DETALLE } from '@/shared/mocks/datos';
 import {
   ejecutarConsulta,
-  placeholderSimple,
   usarMocks,
 } from '@/shared/config/dataSource';
-import { obtenerDocumentosAsignacion } from '../utils/vinculacionApi';
+import { claveQueryDocumentos, obtenerDocumentosAsignacion } from '../utils/vinculacionApi';
 
 export function useVinculacionDocumentos(asignacionId) {
+  const useMocks = usarMocks();
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['vinculacion-documentos', asignacionId, usarMocks()],
+    queryKey: claveQueryDocumentos(asignacionId, useMocks),
     queryFn: () =>
       ejecutarConsulta({
         mock: () => MOCK_DOCUMENTOS_DETALLE,
         api: () => obtenerDocumentosAsignacion(asignacionId),
       }),
     enabled: Boolean(asignacionId),
-    placeholderData: placeholderSimple(MOCK_DOCUMENTOS_DETALLE),
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: useMocks ? MOCK_DOCUMENTOS_DETALLE : keepPreviousData,
   });
 
   return {
