@@ -33,6 +33,7 @@ public class VacanteService {
 
     private final VacanteRepository repository;
     private final NotificadorEventos notificadorEventos;
+    private final VacanteResponseMapper responseMapper;
 
     @Transactional
     public VacanteResponse crear(VacanteRequest request) {
@@ -54,7 +55,7 @@ public class VacanteService {
 
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_CREADA, guardada, request.correoEmpresa());
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -65,7 +66,7 @@ public class VacanteService {
         vacante.setAprobadoPorId(aprobadoPorId);
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_APROBADA, guardada, null);
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -75,7 +76,7 @@ public class VacanteService {
         new VacanteContext(vacante).rechazar(motivo);
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_RECHAZADA, guardada, null);
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -85,7 +86,7 @@ public class VacanteService {
         new VacanteContext(vacante).pausar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_PAUSADA, guardada, null);
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -95,7 +96,7 @@ public class VacanteService {
         new VacanteContext(vacante).reactivar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_REACTIVADA, guardada, null);
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -105,7 +106,7 @@ public class VacanteService {
         new VacanteContext(vacante).cerrar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_CERRADA, guardada, null);
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -117,7 +118,7 @@ public class VacanteService {
         if (guardada.getEstado() == EstadoVacanteEnum.CUPOS_COMPLETOS) {
             notificar(TipoEventoSistema.VACANTE_CUPOS_COMPLETOS, guardada, null);
         }
-        return VacanteResponse.desdeEntidad(guardada);
+        return responseMapper.toResponse(guardada);
     }
 
     @Transactional
@@ -125,12 +126,12 @@ public class VacanteService {
     public VacanteResponse liberarCupo(Long id) {
         Vacante vacante = obtenerEntidad(id);
         new VacanteContext(vacante).liberarCupo();
-        return VacanteResponse.desdeEntidad(repository.save(vacante));
+        return responseMapper.toResponse(repository.save(vacante));
     }
 
     @Transactional(readOnly = true)
     public VacanteResponse obtener(Long id) {
-        return VacanteResponse.desdeEntidad(obtenerEntidad(id));
+        return responseMapper.toResponse(obtenerEntidad(id));
     }
 
     @Transactional(readOnly = true)
@@ -141,7 +142,7 @@ public class VacanteService {
                                         String area,
                                         Pageable pageable) {
         return repository.findAll(conFiltros(empresaId, programaId, estado, modalidad, area), pageable)
-                .map(VacanteResponse::desdeEntidad);
+                .map(responseMapper::toResponse);
     }
 
 
@@ -153,7 +154,7 @@ public class VacanteService {
                 .filter(v -> v.getEstado() == EstadoVacanteEnum.ACTIVA)
                 .filter(v -> v.getCuposDisponibles() != null && v.getCuposDisponibles() > 0)
                 .filter(v -> programaId == null || programaId.equals(v.getProgramaId()))
-                .map(VacanteResponse::desdeEntidad)
+                .map(responseMapper::toResponse)
                 .toList();
     }
 

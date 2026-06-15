@@ -22,4 +22,7 @@ public class EditarUsuarioRequest {
 
     private Long programaId;
     private Long facultadId;
+    private Long empresaId;
+    private String cargoTutor;
+    private String telefonoTutor;
 }

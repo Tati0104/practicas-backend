@@ -8,13 +8,17 @@ export default function VacantesTabla({ vacantes, acciones }) {
   const { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose } = acciones;
 
   const columnas = [
-    { key: 'empresa', titulo: 'Empresa' },
+    {
+      key: 'empresa',
+      titulo: 'Empresa',
+      render: (v) => v.empresaNombre ?? (v.empresaId ? `Empresa #${v.empresaId}` : '—'),
+    },
     { key: 'cargo', titulo: 'Cargo' },
     { key: 'modalidad', titulo: 'Modalidad' },
     {
       key: 'cupos',
       titulo: 'Cupos',
-      render: (v) => `${v.cuposDisponibles} / ${v.cuposTotal}`,
+      render: (v) => `${v.cuposDisponibles ?? 0} / ${v.cuposTotales ?? '—'}`,
     },
     {
       key: 'estado',

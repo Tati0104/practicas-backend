@@ -5,6 +5,10 @@ import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.repository.FacultadRepository;
 import com.avh.practicas.correo.service.IMailService;
+import com.avh.practicas.empresa.entity.Empresa;
+import com.avh.practicas.empresa.entity.TutorEmpresarial;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.enums.ScopePorRol;
@@ -31,6 +35,8 @@ public class UsuarioAdminService {
 
     private final AuthUsuarioRepository usuarioRepository;
     private final FacultadRepository facultadRepository;
+    private final EmpresaRepository empresaRepository;
+    private final TutorEmpresarialRepository tutorEmpresarialRepository;
     private final PasswordEncoder passwordEncoder;
     private final IMailService mailService;
 
@@ -61,6 +67,10 @@ public class UsuarioAdminService {
         aplicarFacultad(usuario, dto.getRol(), dto.getFacultadId());
         usuario = usuarioRepository.save(usuario);
 
+        if (dto.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            registrarTutorEmpresarial(usuario, dto);
+        }
+
         mailService.enviar(
                 dto.getCorreo(),
                 "Acceso al Sistema de Prácticas — AVH",
@@ -78,7 +88,13 @@ public class UsuarioAdminService {
         usuario.setRol(dto.getRol());
         usuario.setScope(ScopePorRol.resolver(dto.getRol()));
         aplicarFacultad(usuario, dto.getRol(), dto.getFacultadId());
-        return toDto(usuarioRepository.save(usuario));
+        usuario = usuarioRepository.save(usuario);
+
+        if (dto.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            actualizarTutorEmpresarial(usuario, dto);
+        }
+
+        return toDto(usuario);
     }
 
     public void activar(Long id) {
@@ -149,8 +165,75 @@ public class UsuarioAdminService {
         usuario.setFacultad(null);
     }
 
+    private void registrarTutorEmpresarial(Usuario usuario, CrearUsuarioRequest dto) {
+        Empresa empresa = obtenerEmpresaActiva(dto.getEmpresaId());
+        validarDatosTutor(dto.getEmpresaId(), dto.getTelefonoTutor());
+
+        if (tutorEmpresarialRepository.existsByCorreo(dto.getCorreo())) {
+            throw new NegocioException("Ya existe un tutor registrado con el correo: " + dto.getCorreo());
+        }
+
+        TutorEmpresarial tutor = TutorEmpresarial.builder()
+                .empresa(empresa)
+                .nombre(usuario.getNombre())
+                .cargo(dto.getCargoTutor() != null && !dto.getCargoTutor().isBlank()
+                        ? dto.getCargoTutor()
+                        : "Tutor empresarial")
+                .correo(usuario.getCorreo())
+                .telefono(dto.getTelefonoTutor().trim())
+                .usuarioId(usuario.getId())
+                .activo(true)
+                .build();
+
+        tutorEmpresarialRepository.save(tutor);
+    }
+
+    private void actualizarTutorEmpresarial(Usuario usuario, EditarUsuarioRequest dto) {
+        Empresa empresa = obtenerEmpresaActiva(dto.getEmpresaId());
+        validarDatosTutor(dto.getEmpresaId(), dto.getTelefonoTutor());
+
+        TutorEmpresarial tutor = tutorEmpresarialRepository.findByCorreo(usuario.getCorreo())
+                .orElseGet(() -> TutorEmpresarial.builder()
+                        .correo(usuario.getCorreo())
+                        .usuarioId(usuario.getId())
+                        .activo(true)
+                        .build());
+
+        tutor.setEmpresa(empresa);
+        tutor.setNombre(usuario.getNombre());
+        tutor.setCargo(dto.getCargoTutor() != null && !dto.getCargoTutor().isBlank()
+                ? dto.getCargoTutor()
+                : "Tutor empresarial");
+        tutor.setTelefono(dto.getTelefonoTutor().trim());
+        tutor.setUsuarioId(usuario.getId());
+        tutor.setActivo(true);
+        tutorEmpresarialRepository.save(tutor);
+    }
+
+    private Empresa obtenerEmpresaActiva(Long empresaId) {
+        if (empresaId == null) {
+            throw new NegocioException("Debe seleccionar la empresa para el tutor empresarial.");
+        }
+        Empresa empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la empresa con id: " + empresaId));
+        if (!Boolean.TRUE.equals(empresa.getActivo())) {
+            throw new NegocioException("La empresa seleccionada está inactiva.");
+        }
+        return empresa;
+    }
+
+    private void validarDatosTutor(Long empresaId, String telefono) {
+        if (empresaId == null) {
+            throw new NegocioException("Debe seleccionar la empresa para el tutor empresarial.");
+        }
+        if (telefono == null || telefono.isBlank()) {
+            throw new NegocioException("El teléfono es obligatorio para el tutor empresarial.");
+        }
+    }
+
     private UsuarioDto toDto(Usuario u) {
-        return UsuarioDto.builder()
+        UsuarioDto.UsuarioDtoBuilder builder = UsuarioDto.builder()
                 .id(u.getId())
                 .nombre(u.getNombre())
                 .correo(u.getCorreo())
@@ -158,7 +241,16 @@ public class UsuarioAdminService {
                 .scope(u.getScope())
                 .activo(Boolean.TRUE.equals(u.getActivo()))
                 .primeraVez(Boolean.TRUE.equals(u.getPrimeraVez()))
-                .facultadId(u.getFacultad() != null ? u.getFacultad().getId() : null)
-                .build();
+                .facultadId(u.getFacultad() != null ? u.getFacultad().getId() : null);
+
+        if (u.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            tutorEmpresarialRepository.findByCorreo(u.getCorreo()).ifPresent(tutor -> {
+                builder.empresaId(tutor.getEmpresa().getId());
+                builder.cargoTutor(tutor.getCargo());
+                builder.telefonoTutor(tutor.getTelefono());
+            });
+        }
+
+        return builder.build();
     }
 }

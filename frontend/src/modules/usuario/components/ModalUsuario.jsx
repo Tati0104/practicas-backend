@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import configuracionService from '../../configuracion/services/configuracionService';
+import empresaService from '../../empresa/services/empresaService';
 import { MOCK_FACULTADES } from '@/shared/mocks/datos';
 import { ejecutarConsulta, usarMocks } from '@/shared/config/dataSource';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
-import { dtoUsuario, opcionesRol, requiereFacultad } from '../constants/catalogoUsuario';
+import { dtoUsuario, opcionesRol, requiereEmpresa, requiereFacultad } from '../constants/catalogoUsuario';
+
+const FORM_VACIO = {
+  nombre: '',
+  correo: '',
+  rol: '',
+  facultadId: '',
+  empresaId: '',
+  cargoTutor: '',
+  telefonoTutor: '',
+};
 
 export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
-  const [form, setForm] = useState({ nombre: '', correo: '', rol: '', facultadId: '' });
+  const [form, setForm] = useState(FORM_VACIO);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -17,9 +28,12 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
         correo: usuario.correo,
         rol: usuario.rol,
         facultadId: usuario.facultadId ? String(usuario.facultadId) : '',
+        empresaId: usuario.empresaId ? String(usuario.empresaId) : '',
+        cargoTutor: usuario.cargoTutor ?? '',
+        telefonoTutor: usuario.telefonoTutor ?? '',
       });
     } else {
-      setForm({ nombre: '', correo: '', rol: '', facultadId: '' });
+      setForm(FORM_VACIO);
     }
   }, [usuario]);
 
@@ -32,6 +46,12 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       }),
   });
 
+  const { data: empresas = [] } = useQuery({
+    queryKey: ['empresas-select-usuario'],
+    queryFn: () =>
+      empresaService.listar({ page: 0, size: 500, activo: true }).then((r) => r.data?.content ?? []),
+  });
+
   const campo = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const cambiarRol = (rol) => {
@@ -39,6 +59,9 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       ...f,
       rol,
       facultadId: requiereFacultad(rol) ? f.facultadId : '',
+      empresaId: requiereEmpresa(rol) ? f.empresaId : '',
+      cargoTutor: requiereEmpresa(rol) ? f.cargoTutor : '',
+      telefonoTutor: requiereEmpresa(rol) ? f.telefonoTutor : '',
     }));
   };
 
@@ -59,9 +82,22 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       setError('Debe seleccionar la facultad para este rol');
       return;
     }
+    if (requiereEmpresa(form.rol)) {
+      if (!form.empresaId) {
+        setError('Debe seleccionar la empresa para el tutor empresarial');
+        return;
+      }
+      if (!form.telefonoTutor.trim()) {
+        setError('El teléfono es obligatorio para el tutor empresarial');
+        return;
+      }
+    }
     setError('');
     onGuardar(dtoUsuario(form));
   };
+
+  const mostrarFacultad = requiereFacultad(form.rol);
+  const mostrarEmpresa = requiereEmpresa(form.rol);
 
   return (
     <Modal
@@ -101,11 +137,11 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
           <Input
             value={form.correo}
             onChange={(e) => campo('correo', e.target.value)}
-            placeholder="correo@avh.edu.co"
+            placeholder="correo@empresa.com"
             disabled={!!usuario}
           />
         </div>
-        <div className={requiereFacultad(form.rol) ? '' : 'sm:col-span-2'}>
+        <div className={mostrarFacultad || mostrarEmpresa ? '' : 'sm:col-span-2'}>
           <label className="mb-1 block text-xs font-semibold text-gray-700">Rol</label>
           <Select value={form.rol} onChange={(e) => cambiarRol(e.target.value)}>
             <option value="">Seleccionar rol</option>
@@ -116,7 +152,7 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
             ))}
           </Select>
         </div>
-        {requiereFacultad(form.rol) && (
+        {mostrarFacultad && (
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-700">Facultad</label>
             <Select
@@ -134,6 +170,43 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
               Verá y gestionará los programas y estudiantes de esta facultad.
             </p>
           </div>
+        )}
+        {mostrarEmpresa && (
+          <>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-semibold text-gray-700">Empresa</label>
+              <Select
+                value={form.empresaId}
+                onChange={(e) => campo('empresaId', e.target.value)}
+              >
+                <option value="">Seleccionar empresa</option>
+                {empresas.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`}
+                  </option>
+                ))}
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                El tutor quedará vinculado a esta empresa en el sistema.
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-700">Cargo en la empresa</label>
+              <Input
+                value={form.cargoTutor}
+                onChange={(e) => campo('cargoTutor', e.target.value)}
+                placeholder="Ej: Jefe de recursos humanos"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-700">Teléfono</label>
+              <Input
+                value={form.telefonoTutor}
+                onChange={(e) => campo('telefonoTutor', e.target.value)}
+                placeholder="Ej: 3001234567"
+              />
+            </div>
+          </>
         )}
       </div>
 

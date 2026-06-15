@@ -11,13 +11,15 @@ export default function VacanteCard({ vacante, acciones }) {
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
           <h3 className="font-semibold text-gray-900">{vacante.cargo}</h3>
-          <p className="text-sm text-gray-600">{vacante.empresa}</p>
+          <p className="text-sm text-gray-600">
+            {vacante.empresaNombre ?? (vacante.empresaId ? `Empresa #${vacante.empresaId}` : 'Sin empresa')}
+          </p>
         </div>
         <BadgeVacanteEstado estado={vacante.estado} />
       </div>
       <p className="text-sm text-gray-600">{vacante.modalidad}</p>
       <p className="text-sm text-gray-600">
-        Cupos: {vacante.cuposDisponibles} / {vacante.cuposTotal}
+        Cupos: {vacante.cuposDisponibles ?? 0} / {vacante.cuposTotales ?? '—'}
       </p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {canApprove && vacante.estado === 'PENDIENTE_APROBACION' && (

@@ -15,6 +15,9 @@ export const ROLES = [
 /** Roles que deben tener una facultad asignada. */
 export const ROLES_CON_FACULTAD = ['COORD_ACADEMICA', 'COORD_PRACTICA', 'SECRETARIA'];
 
+/** Roles que deben estar vinculados a una empresa. */
+export const ROLES_CON_EMPRESA = ['TUTOR_EMPRESARIAL'];
+
 const ETIQUETAS_ROL = {
   ADMIN: 'Administrador',
   DIRECCION: 'Dirección',
@@ -52,12 +55,16 @@ export function requiereFacultad(rol) {
   return ROLES_CON_FACULTAD.includes(rol);
 }
 
+export function requiereEmpresa(rol) {
+  return ROLES_CON_EMPRESA.includes(rol);
+}
+
 export function opcionesRol(incluirTodos = false) {
   const opciones = ROLES.map((value) => ({ value, label: etiquetaRol(value) }));
   return incluirTodos ? [{ value: '', label: 'Todos los roles' }, ...opciones] : opciones;
 }
 
-export function dtoUsuario({ nombre, correo, rol, facultadId }) {
+export function dtoUsuario({ nombre, correo, rol, facultadId, empresaId, cargoTutor, telefonoTutor }) {
   const dto = {
     nombre: nombre.trim(),
     correo: correo.trim(),
@@ -67,6 +74,12 @@ export function dtoUsuario({ nombre, correo, rol, facultadId }) {
 
   if (requiereFacultad(rol)) {
     dto.facultadId = facultadId ? Number(facultadId) : null;
+  }
+
+  if (requiereEmpresa(rol)) {
+    dto.empresaId = empresaId ? Number(empresaId) : null;
+    dto.cargoTutor = cargoTutor?.trim() || 'Tutor empresarial';
+    dto.telefonoTutor = telefonoTutor?.trim() || '';
   }
 
   return dto;

@@ -27,6 +27,7 @@ import com.avh.practicas.vacante.dto.VacanteResponse;
 import com.avh.practicas.vacante.entity.EstadoVacanteEnum;
 import com.avh.practicas.vacante.entity.Vacante;
 import com.avh.practicas.vacante.repository.VacanteRepository;
+import com.avh.practicas.vacante.service.VacanteResponseMapper;
 import com.avh.practicas.vacante.state.VacanteContext;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,7 @@ public class AsignacionService {
     private final HistorialAsignacionRepository historialRepository;
     private final EstudianteRepository estudianteRepository;
     private final VacanteRepository vacanteRepository;
+    private final VacanteResponseMapper vacanteResponseMapper;
     private final BitacoraService bitacoraService;
     private final NotificadorEventos notificadorEventos;
 
@@ -188,7 +190,7 @@ public class AsignacionService {
                 .filter(v -> v.getEstado() == EstadoVacanteEnum.ACTIVA)
                 .filter(v -> v.getCuposDisponibles() != null && v.getCuposDisponibles() > 0)
                 .filter(v -> programaId == null || programaId.equals(v.getProgramaId()))
-                .map(VacanteResponse::desdeEntidad)
+                .map(vacanteResponseMapper::toResponse)
                 .toList();
     }
 

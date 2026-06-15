@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
+import empresaService from '../../empresa/services/empresaService';
 import http from '../../../shared/services/http';
 
 const vacanteSchema = z.object({
@@ -24,16 +25,13 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
   const isEdit = !!vacante?.id;
 
   const { data: empresas = [] } = useQuery({
-    queryKey: ['empresas-select'],
+    queryKey: ['empresas-select-vacante'],
     queryFn: async () => {
-      const r = await http.get('/empresas');
-      console.log('[VacanteForm] empresas raw:', r.data);
-      const lista = r.data?.content ?? (Array.isArray(r.data) ? r.data : []);
-      console.log('[VacanteForm] empresas lista:', lista);
-      return lista;
+      const r = await empresaService.listar({ page: 0, size: 500, activo: true });
+      return r.data?.content ?? [];
     },
     enabled: isOpen,
-    staleTime: 0,
+    staleTime: 60_000,
   });
 
   const { data: programas = [] } = useQuery({

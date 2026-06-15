@@ -8,7 +8,9 @@ import java.time.LocalDate;
 public record VacanteResponse(
         Long id,
         Long empresaId,
+        String empresaNombre,
         Long programaId,
+        String programaNombre,
         Long creadoPorId,
         Long aprobadoPorId,
         String cargo,
@@ -25,11 +27,16 @@ public record VacanteResponse(
         LocalDate fechaInicioDisponibilidad,
         LocalDate fechaFinDisponibilidad
 ) {
-    public static VacanteResponse desdeEntidad(Vacante vacante) {
+    public static VacanteResponse desdeEntidad(
+            Vacante vacante,
+            String empresaNombre,
+            String programaNombre) {
         return new VacanteResponse(
                 vacante.getId(),
                 vacante.getEmpresaId(),
+                empresaNombre,
                 vacante.getProgramaId(),
+                programaNombre,
                 vacante.getCreadoPorId(),
                 vacante.getAprobadoPorId(),
                 vacante.getCargo(),
