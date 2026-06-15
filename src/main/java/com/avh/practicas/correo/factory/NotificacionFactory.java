@@ -15,6 +15,9 @@ public abstract class NotificacionFactory {
     public void enviar(EventoSistema evento) {
         Notificacion notificacion = crearNotificacion(evento);
         for (String destinatario : notificacion.getDestinatarios()) {
+            if (destinatario == null || destinatario.isBlank()) {
+                continue;
+            }
             boolean enviado = mailService.enviar(destinatario, notificacion.getAsunto(), notificacion.getMensaje());
             if (!enviado) {
                 throw new NegocioException("No se pudo enviar el correo a: " + destinatario);

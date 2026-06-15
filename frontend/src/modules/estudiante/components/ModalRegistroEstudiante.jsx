@@ -1,24 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import configuracionService from '../../configuracion/services/configuracionService';
 import { MOCK_PROGRAMAS } from '@/shared/mocks/datos';
 import { ejecutarConsulta, usarMocks } from '@/shared/config/dataSource';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
 
-export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando = false }) {
-  const [form, setForm] = useState({
-    nombre: '',
-    identificacion: '',
-    correo: '',
-    telefono: '',
-    contactoEmergencia: '',
-    programaId: '',
-    semestre: '',
-    creditosAprobados: '',
-    promedioAcumulado: '',
-  });
+const formularioVacio = {
+  nombre: '',
+  identificacion: '',
+  correo: '',
+  telefono: '',
+  contactoEmergencia: '',
+  programaId: '',
+  semestre: '',
+  creditosAprobados: '',
+  promedioAcumulado: '',
+};
+
+export default function ModalRegistroEstudiante({ estudiante, onGuardar, onCerrar, guardando = false }) {
+  const esEdicion = Boolean(estudiante?.id);
+  const [form, setForm] = useState(formularioVacio);
   const [error, setError] = useState('');
   const campo = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    if (estudiante) {
+      setForm({
+        nombre: estudiante.nombre ?? '',
+        identificacion: estudiante.identificacion ?? '',
+        correo: estudiante.correo ?? '',
+        telefono: estudiante.telefono ?? '',
+        contactoEmergencia: estudiante.contactoEmergencia ?? '',
+        programaId: estudiante.programa?.id ? String(estudiante.programa.id) : '',
+        semestre: estudiante.semestre != null ? String(estudiante.semestre) : '',
+        creditosAprobados:
+          estudiante.creditosAprobados != null ? String(estudiante.creditosAprobados) : '',
+        promedioAcumulado:
+          estudiante.promedioAcumulado != null ? String(estudiante.promedioAcumulado) : '',
+      });
+    } else {
+      setForm(formularioVacio);
+    }
+    setError('');
+  }, [estudiante]);
 
   const { data: programas = [] } = useQuery({
     queryKey: ['programas', usarMocks()],
@@ -28,6 +52,13 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
         api: () => configuracionService.listarProgramas().then((r) => r.data ?? []),
       }),
   });
+
+  const programasActivos = programas.filter((p) => p.activo !== false);
+  const programasOpciones =
+    esEdicion && estudiante?.programa?.id
+      && !programasActivos.some((p) => p.id === estudiante.programa.id)
+      ? [...programasActivos, estudiante.programa]
+      : programasActivos;
 
   const guardar = () => {
     if (!form.nombre.trim()) {
@@ -63,7 +94,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
 
   return (
     <Modal
-      titulo="Registrar estudiante"
+      titulo={esEdicion ? 'Editar estudiante' : 'Registrar estudiante'}
       onCerrar={onCerrar}
       ancho="max-w-xl"
       acciones={
@@ -72,7 +103,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
             Cancelar
           </Button>
           <Button size="sm" onClick={guardar} disabled={guardando}>
-            {guardando ? 'Registrando...' : 'Registrar'}
+            {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Registrar'}
           </Button>
         </div>
       }
@@ -98,6 +129,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
             value={form.identificacion}
             onChange={(e) => campo('identificacion', e.target.value)}
             placeholder="Ej: 1001234567"
+            disabled={esEdicion}
           />
         </div>
         <div>
@@ -107,6 +139,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
             value={form.correo}
             onChange={(e) => campo('correo', e.target.value)}
             placeholder="correo@avh.edu.co"
+            disabled={esEdicion}
           />
         </div>
         <div>
@@ -134,7 +167,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
             onChange={(e) => campo('programaId', e.target.value)}
           >
             <option value="">— Selecciona un programa —</option>
-            {programas.filter((p) => p.activo !== false).map((p) => (
+            {programasOpciones.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nombre}
               </option>

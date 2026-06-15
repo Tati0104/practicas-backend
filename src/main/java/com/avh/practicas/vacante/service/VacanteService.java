@@ -11,6 +11,7 @@ import com.avh.practicas.vacante.repository.VacanteRepository;
 import com.avh.practicas.vacante.state.VacanteContext;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VacanteService {
 
     private final VacanteRepository repository;
@@ -187,18 +189,23 @@ public class VacanteService {
     }
 
     private void notificar(TipoEventoSistema tipo, Vacante vacante, String correoEmpresa) {
-        notificadorEventos.notificar(EventoSistema.crear(
-                tipo,
-                vacante.getCreadoPorId(),
-                "VACANTES",
-                vacante.getId(),
-                Map.of(
-                        "cargo", vacante.getCargo(),
-                        "estado", vacante.getEstado().name(),
-                        "empresaId", vacante.getEmpresaId(),
-                        "programaId", vacante.getProgramaId(),
-                        "correoEmpresa", correoEmpresa == null ? "" : correoEmpresa
-                )
-        ));
+        try {
+            notificadorEventos.notificar(EventoSistema.crear(
+                    tipo,
+                    vacante.getCreadoPorId(),
+                    "VACANTES",
+                    vacante.getId(),
+                    Map.of(
+                            "cargo", vacante.getCargo(),
+                            "estado", vacante.getEstado().name(),
+                            "empresaId", vacante.getEmpresaId(),
+                            "programaId", vacante.getProgramaId(),
+                            "correoEmpresa", correoEmpresa == null ? "" : correoEmpresa
+                    )
+            ));
+        } catch (Exception ex) {
+            log.warn("Vacante {} creada/actualizada, pero falló la notificación por correo: {}",
+                    vacante.getId(), ex.getMessage());
+        }
     }
 }

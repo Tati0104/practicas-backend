@@ -6,6 +6,7 @@ import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.shared.enums.Scope;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -53,6 +54,38 @@ public class ProgramaServiceProxy implements ProgramaService {
                 .orElse(null);
     }
 
+    private Long obtenerFacultadIdDelUsuario(Usuario usuario) {
+        return usuario.getFacultad() != null ? usuario.getFacultad().getId() : null;
+    }
+
+    private List<Programa> filtrarProgramasPorScope(Usuario usuario, List<Programa> programas) {
+        if (usuario == null) {
+            return programas;
+        }
+
+        if (usuario.getScope() == Scope.PROGRAMA) {
+            Programa programaUsuario = obtenerProgramaDelUsuario(usuario);
+            if (programaUsuario != null) {
+                return programas.stream()
+                        .filter(p -> p.getId().equals(programaUsuario.getId()))
+                        .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
+        }
+
+        if (usuario.getScope() == Scope.FACULTAD) {
+            Long facultadId = obtenerFacultadIdDelUsuario(usuario);
+            if (facultadId != null) {
+                return programas.stream()
+                        .filter(p -> p.getFacultad() != null && facultadId.equals(p.getFacultad().getId()))
+                        .collect(Collectors.toList());
+            }
+            return Collections.emptyList();
+        }
+
+        return programas;
+    }
+
     @Override
     public Programa crear(Programa programa) {
         Usuario usuario = obtenerUsuarioActual();
@@ -98,51 +131,30 @@ public class ProgramaServiceProxy implements ProgramaService {
     @Override
     public List<Programa> obtenerTodos() {
         Usuario usuario = obtenerUsuarioActual();
-        List<Programa> todos = realService.obtenerTodos();
-        if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            Programa programaUsuario = obtenerProgramaDelUsuario(usuario);
-            if (programaUsuario != null) {
-                return todos.stream()
-                        .filter(p -> p.getId().equals(programaUsuario.getId()))
-                        .collect(Collectors.toList());
-            } else {
-                return Collections.emptyList();
-            }
-        }
-        return todos;
+        return filtrarProgramasPorScope(usuario, realService.obtenerTodos());
     }
 
     @Override
     public List<Programa> obtenerPorFacultad(Long facultadId) {
         Usuario usuario = obtenerUsuarioActual();
-        List<Programa> todos = realService.obtenerPorFacultad(facultadId);
-        if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            Programa programaUsuario = obtenerProgramaDelUsuario(usuario);
-            if (programaUsuario != null) {
-                return todos.stream()
-                        .filter(p -> p.getId().equals(programaUsuario.getId()))
-                        .collect(Collectors.toList());
-            } else {
+        if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
+            Long facultadUsuario = obtenerFacultadIdDelUsuario(usuario);
+            if (facultadUsuario == null || !facultadUsuario.equals(facultadId)) {
                 return Collections.emptyList();
             }
         }
-        return todos;
+        return filtrarProgramasPorScope(usuario, realService.obtenerPorFacultad(facultadId));
     }
 
     @Override
     public List<Programa> obtenerActivosPorFacultad(Long facultadId) {
         Usuario usuario = obtenerUsuarioActual();
-        List<Programa> todos = realService.obtenerActivosPorFacultad(facultadId);
-        if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            Programa programaUsuario = obtenerProgramaDelUsuario(usuario);
-            if (programaUsuario != null) {
-                return todos.stream()
-                        .filter(p -> p.getId().equals(programaUsuario.getId()))
-                        .collect(Collectors.toList());
-            } else {
+        if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
+            Long facultadUsuario = obtenerFacultadIdDelUsuario(usuario);
+            if (facultadUsuario == null || !facultadUsuario.equals(facultadId)) {
                 return Collections.emptyList();
             }
         }
-        return todos;
+        return filtrarProgramasPorScope(usuario, realService.obtenerActivosPorFacultad(facultadId));
     }
 }

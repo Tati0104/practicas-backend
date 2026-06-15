@@ -1,17 +1,5 @@
 import { FiltrosBar, FiltroSelect } from '@/shared/components/filtros';
-
-const ROLES = [
-  { value: '', label: 'Todos los roles' },
-  { value: 'ADMIN', label: 'ADMIN' },
-  { value: 'DIRECCION', label: 'DIRECCION' },
-  { value: 'COORD_ACADEMICA', label: 'COORD_ACADEMICA' },
-  { value: 'COORD_PRACTICA', label: 'COORD_PRACTICA' },
-  { value: 'SECRETARIA', label: 'SECRETARIA' },
-  { value: 'DOCENTE_ASESOR', label: 'DOCENTE_ASESOR' },
-  { value: 'EMPRESA', label: 'EMPRESA' },
-  { value: 'TUTOR_EMPRESARIAL', label: 'TUTOR_EMPRESARIAL' },
-  { value: 'ESTUDIANTE', label: 'ESTUDIANTE' },
-];
+import { opcionesRol } from '../constants/catalogoUsuario';
 
 const ACTIVO = [
   { value: '', label: 'Todos los estados' },
@@ -26,7 +14,7 @@ export default function FiltrosUsuario({ filtros, onChange }) {
     <FiltrosBar variant="inline">
       <FiltroSelect
         compacto
-        opciones={ROLES}
+        opciones={opcionesRol(true)}
         value={filtros.rol || ''}
         onChange={(e) => actualizar({ rol: e.target.value || undefined })}
       />

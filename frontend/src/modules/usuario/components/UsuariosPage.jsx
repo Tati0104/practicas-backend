@@ -6,6 +6,7 @@ import TablaBase from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Badge, Button, PageHeader } from '@/shared/components/ui';
+import { etiquetaRol } from '../constants/catalogoUsuario';
 
 export default function UsuariosPage() {
   const {
@@ -48,7 +49,7 @@ export default function UsuariosPage() {
     {
       key: 'rol',
       titulo: 'Rol',
-      render: (u) => <Badge variant="purple">{u.rol}</Badge>,
+      render: (u) => <Badge variant="purple">{etiquetaRol(u.rol)}</Badge>,
     },
     { key: 'activo', titulo: 'Estado', render: (u) => <BadgeEstado activo={u.activo} /> },
     {

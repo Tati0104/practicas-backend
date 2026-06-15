@@ -2,8 +2,13 @@ package com.avh.practicas.usuario.service;
 
 import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.auth.repository.AuthUsuarioRepository;
+import com.avh.practicas.configuracion.entity.Facultad;
+import com.avh.practicas.configuracion.repository.FacultadRepository;
 import com.avh.practicas.correo.service.IMailService;
 import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.enums.Scope;
+import com.avh.practicas.shared.enums.ScopePorRol;
+import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.usuario.dto.*;
 import jakarta.persistence.criteria.Predicate;
@@ -25,6 +30,7 @@ import java.util.List;
 public class UsuarioAdminService {
 
     private final AuthUsuarioRepository usuarioRepository;
+    private final FacultadRepository facultadRepository;
     private final PasswordEncoder passwordEncoder;
     private final IMailService mailService;
 
@@ -47,11 +53,12 @@ public class UsuarioAdminService {
                 .correo(dto.getCorreo())
                 .passwordHash(passwordEncoder.encode(passwordTemporal))
                 .rol(dto.getRol())
-                .scope(dto.getScope())
+                .scope(ScopePorRol.resolver(dto.getRol()))
                 .activo(true)
                 .primeraVez(true)
                 .build();
 
+        aplicarFacultad(usuario, dto.getRol(), dto.getFacultadId());
         usuario = usuarioRepository.save(usuario);
 
         mailService.enviar(
@@ -69,7 +76,8 @@ public class UsuarioAdminService {
         Usuario usuario = buscarPorId(id);
         usuario.setNombre(dto.getNombre());
         usuario.setRol(dto.getRol());
-        usuario.setScope(dto.getScope());
+        usuario.setScope(ScopePorRol.resolver(dto.getRol()));
+        aplicarFacultad(usuario, dto.getRol(), dto.getFacultadId());
         return toDto(usuarioRepository.save(usuario));
     }
 
@@ -126,6 +134,21 @@ public class UsuarioAdminService {
         return sb.toString();
     }
 
+    private void aplicarFacultad(Usuario usuario, Rol rol, Long facultadId) {
+        Scope scope = ScopePorRol.resolver(rol);
+        if (scope == Scope.FACULTAD) {
+            if (facultadId == null) {
+                throw new NegocioException("Debe seleccionar la facultad para este rol.");
+            }
+            Facultad facultad = facultadRepository.findById(facultadId)
+                    .orElseThrow(() -> new RecursoNoEncontradoException(
+                            "No se encontró la facultad con id: " + facultadId));
+            usuario.setFacultad(facultad);
+            return;
+        }
+        usuario.setFacultad(null);
+    }
+
     private UsuarioDto toDto(Usuario u) {
         return UsuarioDto.builder()
                 .id(u.getId())
@@ -135,6 +158,7 @@ public class UsuarioAdminService {
                 .scope(u.getScope())
                 .activo(Boolean.TRUE.equals(u.getActivo()))
                 .primeraVez(Boolean.TRUE.equals(u.getPrimeraVez()))
+                .facultadId(u.getFacultad() != null ? u.getFacultad().getId() : null)
                 .build();
     }
 }

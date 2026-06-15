@@ -22,7 +22,7 @@ public class CrearUsuarioRequest {
     @NotNull(message = "El rol es obligatorio")
     private Rol rol;
 
-    @NotNull(message = "El scope es obligatorio")
+    /** Ignorado: se asigna automáticamente según el rol. */
     private Scope scope;
 
     private Long programaId;

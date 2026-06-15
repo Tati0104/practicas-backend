@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react';
 import empresaService from '../services/empresaService';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
 
-export default function ModalEmpresa({ onGuardar, onCerrar }) {
-  const [form, setForm] = useState({
-    nit: '',
-    razonSocial: '',
-    sector: '',
-    direccion: '',
-    municipio: '',
-    telefono: '',
-  });
+const formularioVacio = {
+  nit: '',
+  razonSocial: '',
+  sector: '',
+  direccion: '',
+  municipio: '',
+  telefono: '',
+};
+
+export default function ModalEmpresa({ empresa, onGuardar, onCerrar, guardando = false }) {
+  const esEdicion = Boolean(empresa?.id);
+  const [form, setForm] = useState(formularioVacio);
   const [sectores, setSectores] = useState([]);
   const [error, setError] = useState('');
 
@@ -20,6 +23,22 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
       .then((res) => setSectores(res.data ?? []))
       .catch(() => setSectores([]));
   }, []);
+
+  useEffect(() => {
+    if (empresa) {
+      setForm({
+        nit: empresa.nit ?? '',
+        razonSocial: empresa.razonSocial ?? '',
+        sector: empresa.sector?.id ? String(empresa.sector.id) : '',
+        direccion: empresa.direccion ?? '',
+        municipio: empresa.municipio ?? '',
+        telefono: empresa.telefono ?? '',
+      });
+    } else {
+      setForm(formularioVacio);
+    }
+    setError('');
+  }, [empresa]);
 
   const campo = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -43,16 +62,16 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
 
   return (
     <Modal
-      titulo="Registrar empresa"
+      titulo={esEdicion ? 'Editar empresa' : 'Registrar empresa'}
       onCerrar={onCerrar}
       ancho="max-w-lg"
       acciones={
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="secondary" size="sm" onClick={onCerrar}>
+          <Button variant="secondary" size="sm" onClick={onCerrar} disabled={guardando}>
             Cancelar
           </Button>
-          <Button size="sm" onClick={guardar}>
-            Registrar
+          <Button size="sm" onClick={guardar} disabled={guardando}>
+            {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Registrar'}
           </Button>
         </div>
       }

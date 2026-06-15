@@ -27,6 +27,15 @@ export default function useEstudiantes() {
     onError: alError,
   });
 
+  const editar = useMutation({
+    mutationFn: ({ id, dto }) => estudianteService.editar(id, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      toast.success('Estudiante actualizado correctamente');
+    },
+    onError: alError,
+  });
+
   const marcarApto = useMutation({
     mutationFn: (id) => estudianteService.marcarApto(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estudiantes'] }),
@@ -54,6 +63,7 @@ export default function useEstudiantes() {
     actualizarFiltros: listado.actualizarFiltros,
     irAPagina: listado.irAPagina,
     registrar,
+    editar,
     marcarApto,
     marcarNoApto,
     importarExcel,

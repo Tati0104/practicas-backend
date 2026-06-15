@@ -1,5 +1,6 @@
 package com.avh.practicas.auth.entity;
 
+import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.shared.domain.BaseEntity;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
@@ -7,6 +8,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,6 +44,10 @@ public class Usuario extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private Scope scope;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facultad_id")
+    private Facultad facultad;
 
     @Column(nullable = false)
     @Builder.Default

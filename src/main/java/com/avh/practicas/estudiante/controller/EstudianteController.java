@@ -59,20 +59,7 @@ public class EstudianteController {
     @PutMapping("/{id}")
     @ScopeGuard("ESTUDIANTE_EDITAR")
     public ResponseEntity<Estudiante> editar(@PathVariable Long id, @Valid @RequestBody EstudianteDto dto) {
-        // En un CRUD real, implementaríamos editar en EstudianteService.
-        // Reutilizamos registrar o lanzamos excepción si no implementamos la edición detallada de campos.
-        // Aquí actualizamos campos básicos del estudiante:
-        Estudiante estudianteExistente = estudianteService.obtenerPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
-        
-        estudianteExistente.setNombre(dto.getNombre());
-        estudianteExistente.setTelefono(dto.getTelefono());
-        estudianteExistente.setContactoEmergencia(dto.getContactoEmergencia());
-        estudianteExistente.setSemestre(dto.getSemestre());
-        estudianteExistente.setCreditosAprobados(dto.getCreditosAprobados() != null ? dto.getCreditosAprobados() : 0);
-        estudianteExistente.setPromedioAcumulado(dto.getPromedioAcumulado() != null ? dto.getPromedioAcumulado() : 0.0);
-        
-        Estudiante estudianteActualizado = estudianteService.guardar(estudianteExistente);
+        Estudiante estudianteActualizado = estudianteService.editar(id, dto);
         return ResponseEntity.ok(estudianteActualizado);
     }
 

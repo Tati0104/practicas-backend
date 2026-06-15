@@ -1,7 +1,9 @@
 package com.avh.practicas.shared.security;
 
 import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.entity.Programa;
+import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -32,11 +34,14 @@ class ScopeGuardTest {
     @Mock
     private BitacoraService bitacoraService;
 
+    @Mock
+    private ProgramaRepository programaRepository;
+
     private ScopeGuard scopeGuard;
 
     @BeforeEach
     void setUp() {
-        scopeGuard = new ScopeGuard(estudianteRepository, bitacoraService);
+        scopeGuard = new ScopeGuard(estudianteRepository, programaRepository, bitacoraService);
     }
 
     @Test

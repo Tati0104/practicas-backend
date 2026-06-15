@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface EstudianteService {
     Estudiante registrar(EstudianteDto dto);
+    Estudiante editar(Long id, EstudianteDto dto);
     Estudiante marcarApto(Long id);
     Estudiante marcarNoApto(Long id, String motivo);
     Optional<Estudiante> obtenerPorId(Long id);

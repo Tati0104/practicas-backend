@@ -87,6 +87,30 @@ public class EstudianteServiceImpl implements EstudianteService {
 
     @Override
     @Transactional
+    public Estudiante editar(Long id, EstudianteDto dto) {
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
+
+        Programa programa = programaRepository.findById(dto.getProgramaId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el programa con id: " + dto.getProgramaId()));
+
+        if (!programa.getActivo()) {
+            throw new NegocioException("No se puede asignar un programa inactivo al estudiante.");
+        }
+
+        estudiante.setNombre(dto.getNombre());
+        estudiante.setTelefono(dto.getTelefono());
+        estudiante.setContactoEmergencia(dto.getContactoEmergencia());
+        estudiante.setSemestre(dto.getSemestre());
+        estudiante.setCreditosAprobados(dto.getCreditosAprobados() != null ? dto.getCreditosAprobados() : 0);
+        estudiante.setPromedioAcumulado(dto.getPromedioAcumulado() != null ? dto.getPromedioAcumulado() : 0.0);
+        estudiante.setPrograma(programa);
+
+        return estudianteRepository.save(estudiante);
+    }
+
+    @Override
+    @Transactional
     public Estudiante marcarApto(Long id) {
         Estudiante estudiante = estudianteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));

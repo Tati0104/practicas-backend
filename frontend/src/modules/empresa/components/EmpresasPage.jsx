@@ -15,10 +15,29 @@ export default function EmpresasPage() {
     totalPaginas,
     irAPagina,
     registrar,
+    editar,
     activar,
     inactivar,
   } = useEmpresas();
   const [modal, setModal] = useState(false);
+  const [editando, setEditando] = useState(null);
+
+  const abrirRegistrar = () => {
+    setEditando(null);
+    setModal(true);
+  };
+
+  const abrirEditar = (empresa) => {
+    setEditando(empresa);
+    setModal(true);
+  };
+
+  const cerrarModal = () => {
+    setModal(false);
+    setEditando(null);
+  };
+
+  const guardando = registrar.isPending || editar.isPending;
 
   const actualizarBusqueda = (busqueda) => {
     setFiltros((prev) => ({
@@ -44,13 +63,18 @@ export default function EmpresasPage() {
       key: 'acciones',
       titulo: 'Acciones',
       render: (e) => (
-        <Button
-          variant={e.activo ? 'danger' : 'success'}
-          size="sm"
-          onClick={() => (e.activo ? inactivar.mutate(e.id) : activar.mutate(e.id))}
-        >
-          {e.activo ? 'Inactivar' : 'Activar'}
-        </Button>
+        <div className="flex flex-wrap gap-1.5">
+          <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
+            Editar
+          </Button>
+          <Button
+            variant={e.activo ? 'danger' : 'success'}
+            size="sm"
+            onClick={() => (e.activo ? inactivar.mutate(e.id) : activar.mutate(e.id))}
+          >
+            {e.activo ? 'Inactivar' : 'Activar'}
+          </Button>
+        </div>
       ),
     },
   ];
@@ -59,7 +83,7 @@ export default function EmpresasPage() {
     <div>
       <PageHeader
         titulo="Gestión de empresas"
-        acciones={<Button onClick={() => setModal(true)}>+ Registrar empresa</Button>}
+        acciones={<Button onClick={abrirRegistrar}>+ Registrar empresa</Button>}
       />
 
       <Input
@@ -74,11 +98,16 @@ export default function EmpresasPage() {
 
       {modal && (
         <ModalEmpresa
+          empresa={editando}
+          guardando={guardando}
           onGuardar={(form) => {
-            registrar.mutate(form);
-            setModal(false);
+            if (editando) {
+              editar.mutate({ id: editando.id, dto: form }, { onSuccess: cerrarModal });
+            } else {
+              registrar.mutate(form, { onSuccess: cerrarModal });
+            }
           }}
-          onCerrar={() => setModal(false)}
+          onCerrar={cerrarModal}
         />
       )}
     </div>

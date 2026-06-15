@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import configuracionService from '../../configuracion/services/configuracionService';
+import { MOCK_FACULTADES } from '@/shared/mocks/datos';
+import { ejecutarConsulta, usarMocks } from '@/shared/config/dataSource';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
-
-const ROLES = [
-  'ADMIN',
-  'DIRECCION',
-  'COORD_ACADEMICA',
-  'COORD_PRACTICA',
-  'SECRETARIA',
-  'DOCENTE_ASESOR',
-  'EMPRESA',
-  'TUTOR_EMPRESARIAL',
-  'ESTUDIANTE',
-];
-const SCOPES = ['GLOBAL', 'FACULTAD', 'PROGRAMA', 'ASIGNADO'];
+import { dtoUsuario, opcionesRol, requiereFacultad } from '../constants/catalogoUsuario';
 
 export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
-  const [form, setForm] = useState({ nombre: '', correo: '', rol: '', scope: '' });
+  const [form, setForm] = useState({ nombre: '', correo: '', rol: '', facultadId: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -24,14 +16,31 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
         nombre: usuario.nombre,
         correo: usuario.correo,
         rol: usuario.rol,
-        scope: usuario.scope,
+        facultadId: usuario.facultadId ? String(usuario.facultadId) : '',
       });
     } else {
-      setForm({ nombre: '', correo: '', rol: '', scope: '' });
+      setForm({ nombre: '', correo: '', rol: '', facultadId: '' });
     }
   }, [usuario]);
 
+  const { data: facultades = [] } = useQuery({
+    queryKey: ['facultades', usarMocks()],
+    queryFn: () =>
+      ejecutarConsulta({
+        mock: () => MOCK_FACULTADES,
+        api: () => configuracionService.listarFacultades().then((r) => r.data ?? []),
+      }),
+  });
+
   const campo = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+
+  const cambiarRol = (rol) => {
+    setForm((f) => ({
+      ...f,
+      rol,
+      facultadId: requiereFacultad(rol) ? f.facultadId : '',
+    }));
+  };
 
   const guardar = () => {
     if (!form.nombre.trim()) {
@@ -46,12 +55,12 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       setError('El rol es obligatorio');
       return;
     }
-    if (!form.scope) {
-      setError('El scope es obligatorio');
+    if (requiereFacultad(form.rol) && !form.facultadId) {
+      setError('Debe seleccionar la facultad para este rol');
       return;
     }
     setError('');
-    onGuardar(form);
+    onGuardar(dtoUsuario(form));
   };
 
   return (
@@ -96,32 +105,40 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
             disabled={!!usuario}
           />
         </div>
-        <div>
+        <div className={requiereFacultad(form.rol) ? '' : 'sm:col-span-2'}>
           <label className="mb-1 block text-xs font-semibold text-gray-700">Rol</label>
-          <Select value={form.rol} onChange={(e) => campo('rol', e.target.value)}>
+          <Select value={form.rol} onChange={(e) => cambiarRol(e.target.value)}>
             <option value="">Seleccionar rol</option>
-            {ROLES.map((r) => (
-              <option key={r} value={r}>
-                {r}
+            {opcionesRol().map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
               </option>
             ))}
           </Select>
         </div>
-        <div>
-          <label className="mb-1 block text-xs font-semibold text-gray-700">Scope</label>
-          <Select value={form.scope} onChange={(e) => campo('scope', e.target.value)}>
-            <option value="">Seleccionar scope</option>
-            {SCOPES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-        </div>
+        {requiereFacultad(form.rol) && (
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-700">Facultad</label>
+            <Select
+              value={form.facultadId}
+              onChange={(e) => campo('facultadId', e.target.value)}
+            >
+              <option value="">Seleccionar facultad</option>
+              {facultades.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nombre}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-gray-500">
+              Verá y gestionará los programas y estudiantes de esta facultad.
+            </p>
+          </div>
+        )}
       </div>
 
       {!usuario && (
-        <p className="rounded-lg bg-blue-50 px-3 py-2 text-xs text-gray-600">
+        <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs text-gray-600">
           Se enviará una contraseña temporal al correo del usuario.
         </p>
       )}

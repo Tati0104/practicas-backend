@@ -65,6 +65,19 @@ public class EstudianteServiceProxy implements EstudianteService {
     }
 
     @Override
+    public Estudiante editar(Long id, EstudianteDto dto) {
+        Usuario usuario = obtenerUsuarioActual();
+        realService.obtenerPorId(id).ifPresent(estudiante ->
+                scopeGuard.verificarScope(usuario, estudiante, "EDITAR")
+        );
+        if (dto != null) {
+            Programa programa = programaRepository.findById(dto.getProgramaId()).orElse(null);
+            scopeGuard.verificarScope(usuario, programa, "EDITAR");
+        }
+        return realService.editar(id, dto);
+    }
+
+    @Override
     public Estudiante marcarApto(Long id) {
         Usuario usuario = obtenerUsuarioActual();
         realService.obtenerPorId(id).ifPresent(estudiante -> 
@@ -102,12 +115,17 @@ public class EstudianteServiceProxy implements EstudianteService {
     public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, Pageable pageable) {
         Usuario usuario = obtenerUsuarioActual();
         if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            // Si el scope es PROGRAMA, verificar correspondencia
             Estudiante estudianteAsociado = estudianteRepository.findByCorreo(usuario.getCorreo()).orElse(null);
-            if (estudianteAsociado == null || estudianteAsociado.getPrograma() == null 
+            if (estudianteAsociado == null || estudianteAsociado.getPrograma() == null
                     || programa == null || !estudianteAsociado.getPrograma().getNombre().equalsIgnoreCase(programa)) {
                 throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
             }
+        }
+        if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
+            if (usuario.getFacultad() == null) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: usuario sin facultad asignada");
+            }
+            facultad = String.valueOf(usuario.getFacultad().getId());
         }
         return realService.listar(programa, facultad, aptitud, estadoPractica, pageable);
     }

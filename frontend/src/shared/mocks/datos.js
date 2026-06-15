@@ -18,7 +18,7 @@ export const MOCK_EMPRESAS = [
 
 export const MOCK_USUARIOS = [
   { id: 1, nombre: 'Admin AVH', correo: 'admin@avh.edu.co', rol: 'ADMIN', scope: 'GLOBAL', activo: true },
-  { id: 2, nombre: 'Coord Práctica', correo: 'coord@avh.edu.co', rol: 'COORD_PRACTICA', scope: 'PROGRAMA', activo: true },
+  { id: 2, nombre: 'Coord Práctica', correo: 'coord@avh.edu.co', rol: 'COORD_PRACTICA', scope: 'FACULTAD', facultadId: 1, activo: true },
   { id: 3, nombre: 'Coord Académica', correo: 'academica@avh.edu.co', rol: 'COORD_ACADEMICA', scope: 'FACULTAD', activo: true },
   { id: 4, nombre: 'Docente Asesor', correo: 'docente@avh.edu.co', rol: 'DOCENTE_ASESOR', scope: 'ASIGNADO', activo: false },
 ];

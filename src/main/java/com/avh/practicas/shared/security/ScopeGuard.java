@@ -2,7 +2,9 @@ package com.avh.practicas.shared.security;
 
 import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.configuracion.entity.CatalogoPractica;
+import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.entity.Programa;
+import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
 public class ScopeGuard {
 
     private final EstudianteRepository estudianteRepository;
+    private final ProgramaRepository programaRepository;
     private final BitacoraService bitacoraService;
 
     public boolean verificarScope(Usuario usuario, Object recurso, String accion) {
@@ -41,15 +44,21 @@ public class ScopeGuard {
             Programa programaRecurso = obtenerProgramaDelRecurso(recurso);
 
             if (programaUsuario == null || programaRecurso == null || !programaUsuario.getId().equals(programaRecurso.getId())) {
-                String tablaAfectada = obtenerNombreTabla(recurso);
-                String detalle = String.format(
-                        "Acceso denegado: recurso fuera del scope del programa. Usuario: %s, Recurso ID: %s",
-                        usuario.getCorreo(),
-                        obtenerIdRecurso(recurso)
-                );
+                registrarAccesoDenegado(usuario, recurso, accion, "programa");
+                throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
+            }
+        }
 
-                bitacoraService.registrar(tablaAfectada, accion, usuario, detalle);
+        if (usuario.getScope() == Scope.FACULTAD) {
+            if (recurso instanceof Empresa || recurso instanceof TutorEmpresarial) {
+                return true;
+            }
 
+            Long facultadUsuario = obtenerFacultadIdDelUsuario(usuario);
+            Long facultadRecurso = obtenerFacultadIdDelRecurso(recurso);
+
+            if (facultadUsuario == null || facultadRecurso == null || !facultadUsuario.equals(facultadRecurso)) {
+                registrarAccesoDenegado(usuario, recurso, accion, "facultad");
                 throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
             }
         }
@@ -64,6 +73,13 @@ public class ScopeGuard {
                     .orElse(null);
         }
 
+        return null;
+    }
+
+    private Long obtenerFacultadIdDelUsuario(Usuario usuario) {
+        if (usuario.getFacultad() != null) {
+            return usuario.getFacultad().getId();
+        }
         return null;
     }
 
@@ -108,6 +124,53 @@ public class ScopeGuard {
         return null;
     }
 
+    private Long obtenerFacultadIdDelRecurso(Object recurso) {
+        if (recurso instanceof Facultad facultad) {
+            return facultad.getId();
+        }
+
+        if (recurso instanceof Programa programa) {
+            return programa.getFacultad() != null ? programa.getFacultad().getId() : null;
+        }
+
+        if (recurso instanceof Estudiante estudiante) {
+            Programa programa = estudiante.getPrograma();
+            return programa != null && programa.getFacultad() != null ? programa.getFacultad().getId() : null;
+        }
+
+        if (recurso instanceof Vacante vacante && vacante.getProgramaId() != null) {
+            return programaRepository.findById(vacante.getProgramaId())
+                    .map(Programa::getFacultad)
+                    .map(Facultad::getId)
+                    .orElse(null);
+        }
+
+        if (recurso instanceof InstanciaPractica instanciaPractica
+                && instanciaPractica.getExpediente() != null
+                && instanciaPractica.getExpediente().getEstudiante() != null) {
+            Programa programa = instanciaPractica.getExpediente().getEstudiante().getPrograma();
+            return programa != null && programa.getFacultad() != null ? programa.getFacultad().getId() : null;
+        }
+
+        if (recurso instanceof CatalogoPractica catalogoPractica) {
+            Programa programa = catalogoPractica.getPrograma();
+            return programa != null && programa.getFacultad() != null ? programa.getFacultad().getId() : null;
+        }
+
+        return null;
+    }
+
+    private void registrarAccesoDenegado(Usuario usuario, Object recurso, String accion, String tipoScope) {
+        String tablaAfectada = obtenerNombreTabla(recurso);
+        String detalle = String.format(
+                "Acceso denegado: recurso fuera del scope del %s. Usuario: %s, Recurso ID: %s",
+                tipoScope,
+                usuario.getCorreo(),
+                obtenerIdRecurso(recurso)
+        );
+        bitacoraService.registrar(tablaAfectada, accion, usuario, detalle);
+    }
+
     private String obtenerNombreTabla(Object recurso) {
         if (recurso == null) {
             return "DESCONOCIDO";
@@ -115,6 +178,7 @@ public class ScopeGuard {
 
         if (recurso instanceof Estudiante) return "estudiantes";
         if (recurso instanceof Programa) return "programas";
+        if (recurso instanceof Facultad) return "facultades";
         if (recurso instanceof Vacante) return "vacantes";
         if (recurso instanceof InstanciaPractica) return "instancias_practica";
         if (recurso instanceof CatalogoPractica) return "catalogo_practicas";
