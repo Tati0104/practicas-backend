@@ -12,6 +12,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  KeyRound,
   Link2,
   LogOut,
   Mail,
@@ -172,7 +173,22 @@ export default function Sidebar({ abierto, onCerrar }) {
           </div>
         </nav>
 
-        <div className="shrink-0 p-3 pb-5">
+        <div className="shrink-0 space-y-0.5 p-3 pb-5">
+          <NavLink
+            to="/cambiar-password"
+            onClick={alNavegar}
+            className={({ isActive }) =>
+              [
+                'mx-3 flex w-[calc(100%-1.5rem)] min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                isActive
+                  ? 'nav-item-active'
+                  : 'text-white/75 hover:bg-white/10 hover:text-white',
+              ].join(' ')
+            }
+          >
+            <KeyRound className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">Cambiar contraseña</span>
+          </NavLink>
           <button
             type="button"
             onClick={handleLogout}

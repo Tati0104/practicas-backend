@@ -55,7 +55,7 @@ export default function CambiarPasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <p className="text-sm text-gray-600">
-        Por seguridad, debes establecer una nueva contraseña antes de acceder al sistema.
+        Elige una contraseña segura con al menos 8 caracteres, una mayúscula y un número.
       </p>
 
       <div>
