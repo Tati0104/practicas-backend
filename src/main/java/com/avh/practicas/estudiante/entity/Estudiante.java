@@ -58,6 +58,11 @@ public class Estudiante implements Sujeto {
     @OneToOne(mappedBy = "estudiante", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private Expediente expediente;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "estudiante_id")
+    @Builder.Default
+    private List<DocumentoEstudiante> documentos = new ArrayList<>();
+
     @Transient
     @Builder.Default
     private List<Observador> observadores = new ArrayList<>();

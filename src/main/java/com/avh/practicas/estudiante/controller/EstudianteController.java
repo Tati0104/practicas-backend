@@ -138,4 +138,44 @@ public class EstudianteController {
                     .body(Map.of("error", "Error al leer el archivo enviado: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/{id}/documentos")
+    @ScopeGuard("ESTUDIANTE_EDITAR")
+    public ResponseEntity<?> cargarDocumento(
+            @PathVariable Long id,
+            @RequestParam("tipo") String tipo,
+            @RequestParam("archivo") MultipartFile archivo) {
+        
+        Estudiante estudiante = estudianteService.obtenerPorId(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
+
+        try {
+            // Guardar localmente
+            java.nio.file.Path directorio = java.nio.file.Paths.get("uploads", "estudiantes", String.valueOf(id));
+            java.nio.file.Files.createDirectories(directorio);
+            String nombreSeguro = java.util.UUID.randomUUID() + "_" + archivo.getOriginalFilename();
+            java.nio.file.Path destino = directorio.resolve(nombreSeguro);
+            archivo.transferTo(destino);
+
+            String url = destino.toString().replace('\\', '/');
+
+            com.avh.practicas.estudiante.entity.DocumentoEstudiante doc = com.avh.practicas.estudiante.entity.DocumentoEstudiante.builder()
+                    .estudianteId(id)
+                    .nombre(archivo.getOriginalFilename())
+                    .url(url)
+                    .tipo(tipo)
+                    .build();
+
+            estudiante.getDocumentos().add(doc);
+            estudianteService.guardar(estudiante);
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Documento cargado correctamente",
+                    "url", url
+            ));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al guardar el archivo: " + e.getMessage()));
+        }
+    }
 }
