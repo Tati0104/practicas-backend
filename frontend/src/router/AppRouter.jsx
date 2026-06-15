@@ -20,6 +20,7 @@ import EmpresasPage from '@/modules/empresa/components/EmpresasPage';
 import ProgramasPage from '@/modules/configuracion/components/ProgramasPage';
 import VacantesPage from '@/modules/vacantes/pages/VacantesPage';
 import VacanteDetallePage from '@/modules/vacantes/pages/VacanteDetallePage';
+import VacantesYAsignacionesPage from '@/modules/vacantes/pages/VacantesYAsignacionesPage';
 import AsignacionesPage from '@/modules/asignaciones/pages/AsignacionesPage';
 import AsignacionDetallePage from '@/modules/asignaciones/pages/AsignacionDetallePage';
 
@@ -119,6 +120,15 @@ export default function AppRouter() {
             element={
               <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'SECRETARIA', 'EMPRESA']}>
                 <VacantesPage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
+            path="/vacantes-postulaciones"
+            element={
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
+                <VacantesYAsignacionesPage />
               </RutaPrivada>
             }
           />
