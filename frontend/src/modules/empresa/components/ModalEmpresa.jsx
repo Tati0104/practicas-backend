@@ -1,14 +1,17 @@
-import { useState } from 'react';
-
-const SECTORES = ['TECNOLOGIA','CONSTRUCCION','AGRICULTURA','SALUD',
-                  'EDUCACION','COMERCIO','INDUSTRIA','SERVICIOS'];
+import { useState, useEffect } from 'react';
+import empresaService from '../services/empresaService';
 
 export default function ModalEmpresa({ onGuardar, onCerrar }) {
-  const [form,  setForm]  = useState({
-    nit: '', razonSocial: '', sector: '',
-    direccion: '', municipio: '', telefono: ''
-  });
-  const [error, setError] = useState('');
+  const [form,     setForm]     = useState({ nit: '', razonSocial: '', sector: '', direccion: '', municipio: '', telefono: '' });
+  const [sectores, setSectores] = useState([]);
+  const [error,    setError]    = useState('');
+
+  useEffect(() => {
+    empresaService.listarSectores()
+      .then(res => setSectores(res.data))
+      .catch(() => setSectores([]));
+  }, []);
+
   const campo = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const guardar = () => {
@@ -16,7 +19,8 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
     if (!form.razonSocial.trim()) { setError('La razón social es obligatoria'); return; }
     if (!form.sector)             { setError('El sector es obligatorio');        return; }
     setError('');
-    onGuardar(form);
+    const { sector: sectorId, ...resto } = form;
+    onGuardar({ ...resto, sector: { id: Number(sectorId) } });
   };
 
   const fld = (label, key, placeholder = '') => (
@@ -43,7 +47,7 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
             <select value={form.sector} onChange={e => campo('sector', e.target.value)}
               style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 13 }}>
               <option value="">Seleccionar</option>
-              {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+              {sectores.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
             </select>
           </div>
           {fld('Municipio',  'municipio',  'Ej: Armenia')}

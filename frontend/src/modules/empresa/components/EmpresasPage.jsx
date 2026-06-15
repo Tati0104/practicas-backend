@@ -31,7 +31,7 @@ export default function EmpresasPage() {
     { key: 'nit',        titulo: 'NIT' },
     { key: 'razonSocial',titulo: 'Razón social' },
     { key: 'sector',     titulo: 'Sector',
-      render: e => <span style={{ fontSize: 11, padding: '3px 8px', background: '#e0e7ff', color: '#3730a3', borderRadius: 20, fontWeight: 500 }}>{e.sector}</span> },
+      render: e => <span style={{ fontSize: 11, padding: '3px 8px', background: '#e0e7ff', color: '#3730a3', borderRadius: 20, fontWeight: 500 }}>{e.sector?.nombre}</span> },
     { key: 'municipio',  titulo: 'Municipio' },
     { key: 'activo',     titulo: 'Estado', render: e => <BadgeEstado activo={e.activo} /> },
     {
