@@ -75,7 +75,7 @@ export const MOCK_VINCULACIONES = [
       { id: 10, tipo: 'HOJA_VIDA', nombre: 'HV_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
       { id: 1, tipo: 'CARTA', nombre: 'Carta_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
       { id: 11, tipo: 'PROYECTO', nombre: null, estado: 'PENDIENTE', firmas: [] },
-      { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'DOCENTE_ASESOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null }] },
+      { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
     ],
   },
   {
@@ -87,7 +87,7 @@ export const MOCK_VINCULACIONES = [
       { id: 12, tipo: 'HOJA_VIDA', nombre: 'HV_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
       { id: 3, tipo: 'CARTA', nombre: 'Carta_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
       { id: 13, tipo: 'PROYECTO', nombre: 'Proyecto_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
-      { id: 4, tipo: 'CONVENIO', nombre: 'Convenio_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [{ tipoFirmante: 'DOCENTE_ASESOR', firmado: true, fechaFirma: '2024-03-08' }, { tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null }] },
+      { id: 4, tipo: 'CONVENIO', nombre: 'Convenio_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [{ tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: true, fechaFirma: '2024-03-08' }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
     ],
   },
 ];
@@ -102,7 +102,7 @@ export const MOCK_DOCUMENTOS = [
   { id: 10, tipo: 'HOJA_VIDA', nombre: 'HV_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
   { id: 1, tipo: 'CARTA', nombre: 'Carta_presentacion_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
   { id: 11, tipo: 'PROYECTO', nombre: null, estado: 'PENDIENTE', firmas: [] },
-  { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'DOCENTE_ASESOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null }] },
+  { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
 ];
 
 export const MOCK_DOCUMENTOS_DETALLE = {

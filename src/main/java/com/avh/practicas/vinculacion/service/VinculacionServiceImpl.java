@@ -163,17 +163,17 @@ public class VinculacionServiceImpl implements VinculacionService {
         LocalDateTime ahora = LocalDateTime.now();
 
         switch (rol) {
-            case DOCENTE_ASESOR -> {
-                if (convenio.getFirmaCoordinadorAt() != null) {
-                    throw new NegocioException("La firma del docente asesor ya fue registrada.");
-                }
-                convenio.setFirmaCoordinadorAt(ahora);
-            }
             case TUTOR_EMPRESARIAL -> {
                 if (convenio.getFirmaTutorAt() != null) {
                     throw new NegocioException("La firma del tutor empresarial ya fue registrada.");
                 }
                 convenio.setFirmaTutorAt(ahora);
+            }
+            case ESTUDIANTE -> {
+                if (convenio.getFirmaEstudianteAt() != null) {
+                    throw new NegocioException("La firma del estudiante ya fue registrada.");
+                }
+                convenio.setFirmaEstudianteAt(ahora);
             }
         }
 
@@ -394,7 +394,7 @@ public class VinculacionServiceImpl implements VinculacionService {
 
     private void validarFirmasCompletas(Convenio convenio) {
         if (!convenio.tieneFirmasCompletas()) {
-            throw new NegocioException("El convenio debe tener las firmas del docente asesor y del tutor empresarial antes de vincular.");
+            throw new NegocioException("El convenio debe tener las firmas del tutor empresarial y del estudiante antes de vincular.");
         }
     }
 

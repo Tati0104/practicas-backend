@@ -7,8 +7,8 @@ import { normalizarPagina } from '@/shared/utils/paginacion';
 const TIPOS_DOCUMENTO = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
 
 const FIRMAS_VACIAS = [
-  { tipoFirmante: 'DOCENTE_ASESOR', firmado: false, fechaFirma: null },
   { tipoFirmante: 'TUTOR_EMPRESARIAL', firmado: false, fechaFirma: null },
+  { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null },
 ];
 
 export function documentosPendientesPorDefecto() {

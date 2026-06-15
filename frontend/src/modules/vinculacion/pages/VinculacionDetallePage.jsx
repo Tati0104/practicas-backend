@@ -13,8 +13,8 @@ import { Button, PageHeader } from '@/shared/components/ui';
 const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
 
 const ROL_A_FIRMANTE = {
-  DOCENTE_ASESOR: 'DOCENTE_ASESOR',
   TUTOR_EMPRESARIAL: 'TUTOR_EMPRESARIAL',
+  ESTUDIANTE: 'ESTUDIANTE',
 };
 
 function documentoCompleto(doc) {

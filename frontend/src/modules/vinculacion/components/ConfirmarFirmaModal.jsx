@@ -2,8 +2,8 @@ import { AlertTriangle } from 'lucide-react';
 import { Button, Modal } from '@/shared/components/ui';
 
 const ETIQUETAS_FIRMANTE = {
-  DOCENTE_ASESOR: 'Docente Asesor',
   TUTOR_EMPRESARIAL: 'Tutor Empresarial',
+  ESTUDIANTE: 'Estudiante',
 };
 
 export default function ConfirmarFirmaModal({
