@@ -127,17 +127,15 @@ public final class DocumentoVinculacionSupport {
 
     private static List<FirmaConvenioDto> firmasDesdeConvenio(Convenio convenio) {
         return List.of(
-                new FirmaConvenioDto("COORDINADOR", convenio.getFirmaCoordinadorAt() != null, convenio.getFirmaCoordinadorAt()),
-                new FirmaConvenioDto("TUTOR", convenio.getFirmaTutorAt() != null, convenio.getFirmaTutorAt()),
-                new FirmaConvenioDto("ESTUDIANTE", convenio.getFirmaEstudianteAt() != null, convenio.getFirmaEstudianteAt())
+                new FirmaConvenioDto("DOCENTE_ASESOR", convenio.getFirmaCoordinadorAt() != null, convenio.getFirmaCoordinadorAt()),
+                new FirmaConvenioDto("TUTOR_EMPRESARIAL", convenio.getFirmaTutorAt() != null, convenio.getFirmaTutorAt())
         );
     }
 
     private static List<FirmaConvenioDto> firmasVacias() {
         return List.of(
-                new FirmaConvenioDto("COORDINADOR", false, null),
-                new FirmaConvenioDto("TUTOR", false, null),
-                new FirmaConvenioDto("ESTUDIANTE", false, null)
+                new FirmaConvenioDto("DOCENTE_ASESOR", false, null),
+                new FirmaConvenioDto("TUTOR_EMPRESARIAL", false, null)
         );
     }
 }

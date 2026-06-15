@@ -2,15 +2,20 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, Rocket } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import useAuthStore from '@/store/authStore';
 import { useVinculacionDocumentos } from '../hooks/useVinculacionDocumentos';
 import { useVinculacionMutaciones } from '../hooks/useVinculacionMutaciones';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import PanelDocumento from '../components/PanelDocumento';
-import PanelDocumentoBase from '../components/PanelDocumentoBase';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 import { Button, PageHeader } from '@/shared/components/ui';
 
 const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
+
+const ROL_A_FIRMANTE = {
+  DOCENTE_ASESOR: 'DOCENTE_ASESOR',
+  TUTOR_EMPRESARIAL: 'TUTOR_EMPRESARIAL',
+};
 
 function documentoCompleto(doc) {
   if (!doc || doc.estado === 'PENDIENTE') return false;
@@ -23,7 +28,7 @@ export default function VinculacionDetallePage() {
   const navigate = useNavigate();
   const [firmaSeleccionada, setFirmaSeleccionada] = useState(null);
 
-  const { documentos, convenioId, detalle, estudianteBase, isLoading, isError, refetch } =
+  const { documentos, convenioId, detalle, isLoading, isError, refetch } =
     useVinculacionDocumentos(asignacionId);
   const { subirDocumento, confirmarFirma } = useVinculacionMutaciones({
     asignacionId,
@@ -32,6 +37,8 @@ export default function VinculacionDetallePage() {
     },
   });
   const { canCreate } = usePermisos();
+  const rol = useAuthStore((state) => state.rol);
+  const tipoFirmanteRol = ROL_A_FIRMANTE[rol] ?? null;
 
   const documentosOrdenados = ORDEN_TIPOS.map(
     (tipo) => documentos.find((d) => d.tipo === tipo) ?? { tipo, estado: 'PENDIENTE', firmas: [] }
@@ -141,30 +148,10 @@ export default function VinculacionDetallePage() {
             isPendingSubir={subirDocumento.isPending}
             isPendingFirma={confirmarFirma.isPending}
             puedeSubir={canCreate}
-            tipoFirmanteRol="COORDINADOR"
+            tipoFirmanteRol={tipoFirmanteRol}
           />
         ))}
       </div>
-
-      {estudianteBase && (
-        <div className="mb-6">
-          <h2 className="mb-3 text-sm font-bold text-gray-700">Documentos base del estudiante</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <PanelDocumentoBase
-              tipo="HOJA_DE_VIDA"
-              estudiante={estudianteBase}
-              puedeSubir={canCreate}
-              onSubidoExitosamente={refetch}
-            />
-            <PanelDocumentoBase
-              tipo="PAZ_Y_SALVO"
-              estudiante={estudianteBase}
-              puedeSubir={canCreate}
-              onSubidoExitosamente={refetch}
-            />
-          </div>
-        </div>
-      )}
 
       <div className="border-t border-gray-200 pt-5">
         {!puedeActivar && (

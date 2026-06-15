@@ -163,29 +163,23 @@ public class VinculacionServiceImpl implements VinculacionService {
         LocalDateTime ahora = LocalDateTime.now();
 
         switch (rol) {
-            case COORDINADOR -> {
+            case DOCENTE_ASESOR -> {
                 if (convenio.getFirmaCoordinadorAt() != null) {
-                    throw new NegocioException("La firma del coordinador ya fue registrada.");
+                    throw new NegocioException("La firma del docente asesor ya fue registrada.");
                 }
                 convenio.setFirmaCoordinadorAt(ahora);
             }
-            case TUTOR -> {
+            case TUTOR_EMPRESARIAL -> {
                 if (convenio.getFirmaTutorAt() != null) {
                     throw new NegocioException("La firma del tutor empresarial ya fue registrada.");
                 }
                 convenio.setFirmaTutorAt(ahora);
             }
-            case ESTUDIANTE -> {
-                if (convenio.getFirmaEstudianteAt() != null) {
-                    throw new NegocioException("La firma del estudiante ya fue registrada.");
-                }
-                convenio.setFirmaEstudianteAt(ahora);
-            }
         }
 
         convenioRepository.save(convenio);
 
-        if (convenio.tieneTresFirmas()) {
+        if (convenio.tieneFirmasCompletas()) {
             Long practicaId = convenio.getInstanciaPracticaId();
             if (practicaId == null) {
                 throw new NegocioException("El convenio no tiene práctica asociada para completar la vinculación.");
@@ -207,7 +201,7 @@ public class VinculacionServiceImpl implements VinculacionService {
                 .orElseThrow(() -> new NegocioException(
                         "No existe convenio asociado a la práctica " + practicaId));
 
-        validarTresFirmas(convenio);
+        validarFirmasCompletas(convenio);
         validarPracticaPendienteDeVinculacion(practicaId);
 
         if (request.fechaFin().isBefore(request.fechaInicio())) {
@@ -398,9 +392,9 @@ public class VinculacionServiceImpl implements VinculacionService {
         return practica.getId();
     }
 
-    private void validarTresFirmas(Convenio convenio) {
-        if (!convenio.tieneTresFirmas()) {
-            throw new NegocioException("El convenio debe tener las tres firmas confirmadas antes de vincular.");
+    private void validarFirmasCompletas(Convenio convenio) {
+        if (!convenio.tieneFirmasCompletas()) {
+            throw new NegocioException("El convenio debe tener las firmas del docente asesor y del tutor empresarial antes de vincular.");
         }
     }
 

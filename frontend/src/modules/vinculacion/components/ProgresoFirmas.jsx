@@ -1,9 +1,8 @@
 import { Check, Circle } from 'lucide-react';
 
 const ETIQUETAS = {
-  COORDINADOR: 'Coord.',
-  TUTOR: 'Tutor',
-  ESTUDIANTE: 'Estud.',
+  DOCENTE_ASESOR: 'Docente',
+  TUTOR_EMPRESARIAL: 'Tutor',
 };
 
 export default function ProgresoFirmas({ firmas = [] }) {

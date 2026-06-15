@@ -50,7 +50,8 @@ public class Convenio {
     @Column(name = "firma_estudiante_at")
     private LocalDateTime firmaEstudianteAt;
 
-    public boolean tieneTresFirmas() {
-        return firmaCoordinadorAt != null && firmaTutorAt != null && firmaEstudianteAt != null;
+    /** Docente asesor (columna legacy) + tutor empresarial. */
+    public boolean tieneFirmasCompletas() {
+        return firmaCoordinadorAt != null && firmaTutorAt != null;
     }
 }
