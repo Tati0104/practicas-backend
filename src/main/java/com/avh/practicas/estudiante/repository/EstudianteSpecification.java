@@ -13,10 +13,18 @@ public class EstudianteSpecification {
             String programa,
             String facultad,
             EstadoAptitud aptitud,
-            String estadoPractica) {
+            String estadoPractica,
+            String busqueda) {
 
         return (Root<Estudiante> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             Predicate predicate = cb.conjunction();
+
+            if (StringUtils.hasText(busqueda)) {
+                String patron = "%" + busqueda.toLowerCase() + "%";
+                Predicate porNombre = cb.like(cb.lower(root.get("nombre")), patron);
+                Predicate porIdentificacion = cb.like(cb.lower(root.get("identificacion")), patron);
+                predicate = cb.and(predicate, cb.or(porNombre, porIdentificacion));
+            }
 
             if (StringUtils.hasText(programa)) {
                 try {

@@ -213,9 +213,9 @@ public class EstudianteServiceImpl implements EstudianteService {
     }
 
     @Override
-    public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, Pageable pageable) {
+    public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, String busqueda, Pageable pageable) {
         return estudianteRepository.findAll(
-                EstudianteSpecification.filtrar(programa, facultad, aptitud, estadoPractica),
+                EstudianteSpecification.filtrar(programa, facultad, aptitud, estadoPractica, busqueda),
                 pageable
         );
     }

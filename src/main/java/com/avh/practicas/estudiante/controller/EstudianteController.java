@@ -36,8 +36,9 @@ public class EstudianteController {
             @RequestParam(required = false) String facultad,
             @RequestParam(required = false) EstadoAptitud aptitud,
             @RequestParam(required = false) String estadoPractica,
+            @RequestParam(required = false) String busqueda,
             Pageable pageable) {
-        Page<Estudiante> estudiantes = estudianteService.listar(programa, facultad, aptitud, estadoPractica, pageable);
+        Page<Estudiante> estudiantes = estudianteService.listar(programa, facultad, aptitud, estadoPractica, busqueda, pageable);
         return ResponseEntity.ok(estudiantes);
     }
 

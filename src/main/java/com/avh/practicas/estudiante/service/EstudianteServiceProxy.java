@@ -99,7 +99,7 @@ public class EstudianteServiceProxy implements EstudianteService {
     }
 
     @Override
-    public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, Pageable pageable) {
+    public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, String busqueda, Pageable pageable) {
         Usuario usuario = obtenerUsuarioActual();
         if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
             // Si el scope es PROGRAMA, verificar correspondencia
@@ -109,7 +109,7 @@ public class EstudianteServiceProxy implements EstudianteService {
                 throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
             }
         }
-        return realService.listar(programa, facultad, aptitud, estadoPractica, pageable);
+        return realService.listar(programa, facultad, aptitud, estadoPractica, busqueda, pageable);
     }
 
     @Override
