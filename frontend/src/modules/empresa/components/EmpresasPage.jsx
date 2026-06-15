@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useEmpresas } from '../hooks/useEmpresas';
 import ModalEmpresa from './ModalEmpresa';
+import ModalDetalleEmpresa from './ModalDetalleEmpresa';
+import ModalInactivarEmpresa from './ModalInactivarEmpresa';
 import TablaBase from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 import Paginacion from '../../../shared/components/Paginacion';
@@ -19,22 +21,61 @@ export default function EmpresasPage() {
     activar,
     inactivar,
   } = useEmpresas();
-  const [modal, setModal] = useState(false);
+
+  const [modalForm, setModalForm] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [detalle, setDetalle] = useState(null);
+  const [inactivando, setInactivando] = useState(null);
 
   const abrirRegistrar = () => {
     setEditando(null);
-    setModal(true);
+    setModalForm(true);
   };
 
   const abrirEditar = (empresa) => {
     setEditando(empresa);
-    setModal(true);
+    setModalForm(true);
   };
 
-  const cerrarModal = () => {
-    setModal(false);
+  const abrirDetalle = (empresa) => {
+    setDetalle(empresa);
+  };
+
+  const abrirInactivar = (empresa) => {
+    setInactivando(empresa);
+  };
+
+  const cerrarForm = () => {
+    setModalForm(false);
     setEditando(null);
+  };
+
+  const cerrarDetalle = () => setDetalle(null);
+
+  const cerrarInactivar = () => setInactivando(null);
+
+  const confirmarInactivacion = (motivo) => {
+    inactivar.mutate(
+      { id: inactivando.id, motivo },
+      {
+        onSuccess: () => {
+          cerrarInactivar();
+          if (detalle?.id === inactivando.id) cerrarDetalle();
+        },
+      }
+    );
+  };
+
+  const reactivarEmpresa = (empresa) => {
+    activar.mutate(empresa.id, {
+      onSuccess: () => {
+        setDetalle((prev) =>
+          prev?.id === empresa.id
+            ? { ...prev, activo: true, motivoInactivacion: null, fechaInactivacion: null }
+            : prev
+        );
+      },
+    });
   };
 
   const guardando = registrar.isPending || editar.isPending;
@@ -53,9 +94,7 @@ export default function EmpresasPage() {
     {
       key: 'sector',
       titulo: 'Sector',
-      render: (e) => (
-        <Badge variant="purple">{e.sector?.nombre ?? '—'}</Badge>
-      ),
+      render: (e) => <Badge variant="purple">{e.sector?.nombre ?? '—'}</Badge>,
     },
     { key: 'municipio', titulo: 'Municipio' },
     { key: 'activo', titulo: 'Estado', render: (e) => <BadgeEstado activo={e.activo} /> },
@@ -64,16 +103,21 @@ export default function EmpresasPage() {
       titulo: 'Acciones',
       render: (e) => (
         <div className="flex flex-wrap gap-1.5">
+          <Button variant="ghost" size="sm" onClick={() => abrirDetalle(e)}>
+            Ver
+          </Button>
           <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
             Editar
           </Button>
-          <Button
-            variant={e.activo ? 'danger' : 'success'}
-            size="sm"
-            onClick={() => (e.activo ? inactivar.mutate(e.id) : activar.mutate(e.id))}
-          >
-            {e.activo ? 'Inactivar' : 'Activar'}
-          </Button>
+          {e.activo ? (
+            <Button variant="danger" size="sm" onClick={() => abrirInactivar(e)}>
+              Inactivar
+            </Button>
+          ) : (
+            <Button variant="success" size="sm" onClick={() => reactivarEmpresa(e)}>
+              Activar
+            </Button>
+          )}
         </div>
       ),
     },
@@ -96,18 +140,40 @@ export default function EmpresasPage() {
       <TablaBase columnas={columnas} datos={empresas} cargando={isLoading} />
       <Paginacion pagina={filtros.page} totalPaginas={totalPaginas} onCambiarPagina={irAPagina} />
 
-      {modal && (
+      {modalForm && (
         <ModalEmpresa
           empresa={editando}
           guardando={guardando}
           onGuardar={(form) => {
             if (editando) {
-              editar.mutate({ id: editando.id, dto: form }, { onSuccess: cerrarModal });
+              editar.mutate({ id: editando.id, dto: form }, { onSuccess: cerrarForm });
             } else {
-              registrar.mutate(form, { onSuccess: cerrarModal });
+              registrar.mutate(form, { onSuccess: cerrarForm });
             }
           }}
-          onCerrar={cerrarModal}
+          onCerrar={cerrarForm}
+        />
+      )}
+
+      {detalle && (
+        <ModalDetalleEmpresa
+          empresa={detalle}
+          onCerrar={cerrarDetalle}
+          onInactivar={(empresa) => {
+            cerrarDetalle();
+            abrirInactivar(empresa);
+          }}
+          onActivar={reactivarEmpresa}
+          activando={activar.isPending}
+        />
+      )}
+
+      {inactivando && (
+        <ModalInactivarEmpresa
+          empresa={inactivando}
+          guardando={inactivar.isPending}
+          onConfirmar={confirmarInactivacion}
+          onCerrar={cerrarInactivar}
         />
       )}
     </div>

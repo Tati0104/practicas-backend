@@ -1,13 +1,21 @@
 package com.avh.practicas.vinculacion.controller;
 
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
 import com.avh.practicas.shared.api.ApiResponse;
 import com.avh.practicas.vinculacion.dto.ConfirmarVinculacionRequest;
 import com.avh.practicas.vinculacion.dto.DocumentoCargadoResponse;
+import com.avh.practicas.vinculacion.dto.DocumentosAsignacionResponse;
 import com.avh.practicas.vinculacion.dto.DocumentosPorCategoriaResponse;
+import com.avh.practicas.vinculacion.dto.VinculacionListadoResponse;
+import com.avh.practicas.vinculacion.entity.CategoriaDocumento;
 import com.avh.practicas.vinculacion.entity.RolFirmaConvenio;
 import com.avh.practicas.vinculacion.service.VinculacionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +27,44 @@ public class VinculacionController {
 
     private final VinculacionService vinculacionService;
 
+    @GetMapping("/vinculaciones")
+    public Page<VinculacionListadoResponse> listar(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) Long programaId,
+            @RequestParam(required = false) Long empresaId,
+            @RequestParam(required = false) EstadoAsignacion estado,
+            Pageable pageable
+    ) {
+        return vinculacionService.listar(busqueda, programaId, empresaId, estado, pageable);
+    }
+
+    @GetMapping("/vinculaciones/asignaciones/{asignacionId}/documentos")
+    public ResponseEntity<ApiResponse<DocumentosAsignacionResponse>> obtenerDocumentosAsignacion(
+            @PathVariable Long asignacionId
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(vinculacionService.obtenerDocumentosAsignacion(asignacionId)));
+    }
+
+    @PostMapping(value = "/vinculaciones/asignaciones/{asignacionId}/documentos/{categoria}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DocumentoCargadoResponse>> cargarDocumento(
+            @PathVariable Long asignacionId,
+            @PathVariable CategoriaDocumento categoria,
+            @RequestParam("archivo") MultipartFile archivo
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Documento cargado correctamente",
+                vinculacionService.cargarDocumento(asignacionId, categoria, archivo)
+        ));
+    }
+
     @PostMapping(value = "/vinculaciones/asignaciones/{asignacionId}/carta", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DocumentoCargadoResponse>> cargarCarta(
             @PathVariable Long asignacionId,
             @RequestParam("archivo") MultipartFile archivo
     ) {
         return ResponseEntity.ok(ApiResponse.ok(
-                "Carta de vinculación cargada correctamente",
+                "Carta de presentación cargada correctamente",
                 vinculacionService.cargarCarta(asignacionId, archivo)
         ));
     }
@@ -39,6 +78,16 @@ public class VinculacionController {
                 "Convenio cargado correctamente",
                 vinculacionService.cargarConvenio(asignacionId, archivo)
         ));
+    }
+
+    @GetMapping("/vinculaciones/documentos/{documentoId}/descargar")
+    public ResponseEntity<Resource> descargarDocumento(@PathVariable Long documentoId) {
+        Resource resource = vinculacionService.descargarDocumento(documentoId);
+        String nombre = vinculacionService.nombreDescargaDocumento(documentoId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombre + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @PostMapping("/vinculaciones/convenios/{convenioId}/firmas/{rol}")

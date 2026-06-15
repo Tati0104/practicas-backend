@@ -1,34 +1,45 @@
-// src/modules/vinculacion/hooks/useVinculacionMutaciones.js
-
-/**
- * Agrupa todas las mutaciones del módulo Vinculación:
- *
- *  - subirCarta(asignacionId, archivo)
- *  - subirConvenio(asignacionId, archivo)
- *  - confirmarFirma(convenioId, tipoFirmante)
- *
- * Cada mutación:
- *   1. Llama al servicio correspondiente.
- *   2. Invalida la query 'vinculacion-documentos' para refrescar el panel.
- *   3. Muestra toast.success o toast.error según el resultado.
- *   4. Llama al callback onSuccess/onError si se proveen.
- */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import vinculacionService from '../services/vinculacionService';
 
-export function useVinculacionMutaciones({ practicaId, onSuccess, onError } = {}) {
+const CATEGORIA_API = {
+  HOJA_VIDA: 'HOJA_VIDA',
+  CARTA: 'CARTA_PRESENTACION',
+  PROYECTO: 'PROYECTO_PRACTICA',
+  CONVENIO: 'CONVENIO_PRACTICA',
+};
+
+const MENSAJES = {
+  HOJA_VIDA: 'Hoja de vida subida correctamente',
+  CARTA: 'Carta de presentación subida correctamente',
+  PROYECTO: 'Documento del proyecto subido correctamente',
+  CONVENIO: 'Convenio subido correctamente',
+};
+
+async function subirConFallback(asignacionId, tipo, archivo) {
+  try {
+    return await vinculacionService.subirDocumento(asignacionId, CATEGORIA_API[tipo], archivo);
+  } catch (err) {
+    const status = err?.response?.status;
+    if (status !== 404 && status !== 405 && status !== 501) throw err;
+
+    if (tipo === 'CARTA') return vinculacionService.subirCarta(asignacionId, archivo);
+    if (tipo === 'CONVENIO') return vinculacionService.subirConvenio(asignacionId, archivo);
+
+    throw err;
+  }
+}
+
+export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = {}) {
   const queryClient = useQueryClient();
 
-  // Helper: invalida cache y llama callback externo
   const alExito = (mensaje) => () => {
-    // Invalida documentos de la práctica actual para que se recarguen
-    queryClient.invalidateQueries(['vinculacion-documentos', practicaId]);
+    queryClient.invalidateQueries(['vinculacion-documentos', asignacionId]);
+    queryClient.invalidateQueries(['vinculacion']);
     toast.success(mensaje);
-    if (onSuccess) onSuccess();
+    onSuccess?.();
   };
 
-  // Helper: extrae mensaje legible del backend y muestra toast
   const alError = (err) => {
     const msg =
       err?.response?.data?.mensaje ||
@@ -36,36 +47,15 @@ export function useVinculacionMutaciones({ practicaId, onSuccess, onError } = {}
       err?.message ||
       'Error inesperado. Intenta de nuevo.';
     toast.error(msg);
-    if (onError) onError(err);
+    onError?.(err);
   };
 
-  /**
-   * Sube carta de presentación.
-   * Parámetros: { asignacionId, archivo }
-   */
-  const subirCarta = useMutation({
-    mutationFn: ({ asignacionId, archivo }) =>
-      vinculacionService.subirCarta(asignacionId, archivo),
-    onSuccess: alExito('Carta de presentación subida correctamente'),
+  const subirDocumento = useMutation({
+    mutationFn: ({ tipo, archivo }) => subirConFallback(asignacionId, tipo, archivo),
+    onSuccess: (_, { tipo }) => alExito(MENSAJES[tipo] ?? 'Documento subido')(),
     onError: alError,
   });
 
-  /**
-   * Sube convenio de práctica.
-   * Parámetros: { asignacionId, archivo }
-   */
-  const subirConvenio = useMutation({
-    mutationFn: ({ asignacionId, archivo }) =>
-      vinculacionService.subirConvenio(asignacionId, archivo),
-    onSuccess: alExito('Convenio subido correctamente'),
-    onError: alError,
-  });
-
-  /**
-   * Confirma la firma de un firmante.
-   * Parámetros: { convenioId, tipoFirmante }
-   * tipoFirmante: 'COORDINADOR' | 'TUTOR' | 'ESTUDIANTE'
-   */
   const confirmarFirma = useMutation({
     mutationFn: ({ convenioId, tipoFirmante }) =>
       vinculacionService.confirmarFirma(convenioId, tipoFirmante),
@@ -73,5 +63,5 @@ export function useVinculacionMutaciones({ practicaId, onSuccess, onError } = {}
     onError: alError,
   });
 
-  return { subirCarta, subirConvenio, confirmarFirma };
+  return { subirDocumento, confirmarFirma };
 }

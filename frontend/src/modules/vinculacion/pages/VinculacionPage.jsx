@@ -54,7 +54,10 @@ export default function VinculacionPage() {
     <div>
       <PageHeader
         titulo="Vinculación y documentos"
-        descripcion={subtitulo || 'Gestión de cartas y convenios de práctica'}
+        descripcion={
+          subtitulo ||
+          'Gestión de hoja de vida, carta, proyecto y convenio de práctica'
+        }
       />
 
       <VinculacionFiltros filtros={filtros} setFiltros={setFiltros} />
@@ -87,7 +90,7 @@ export default function VinculacionPage() {
       {!isLoading && !isError && vinculaciones.length > 0 && !esDesktop && (
         <div className="flex flex-col gap-3">
           {vinculaciones.map((v) => (
-            <VinculacionCard key={v.practicaId} vinculacion={v} onGestionar={irADetalle} />
+            <VinculacionCard key={v.asignacionId ?? v.practicaId} vinculacion={v} onGestionar={irADetalle} />
           ))}
         </div>
       )}

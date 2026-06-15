@@ -1,5 +1,3 @@
-// src/modules/vinculacion/pages/VinculacionDetallePage.jsx
-
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, Rocket } from 'lucide-react';
@@ -11,14 +9,23 @@ import PanelDocumento from '../components/PanelDocumento';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 import { Button, PageHeader } from '@/shared/components/ui';
 
+const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
+
+function documentoCompleto(doc) {
+  if (!doc || doc.estado === 'PENDIENTE') return false;
+  if (doc.tipo === 'CONVENIO') return doc.estado === 'FIRMADO';
+  return doc.estado === 'SUBIDO' || doc.estado === 'FIRMADO';
+}
+
 export default function VinculacionDetallePage() {
-  const { practicaId } = useParams();
+  const { asignacionId } = useParams();
   const navigate = useNavigate();
   const [firmaSeleccionada, setFirmaSeleccionada] = useState(null);
 
-  const { documentos, isLoading, isError, refetch } = useVinculacionDocumentos(practicaId);
-  const { subirCarta, subirConvenio, confirmarFirma } = useVinculacionMutaciones({
-    practicaId,
+  const { documentos, convenioId, detalle, isLoading, isError, refetch } =
+    useVinculacionDocumentos(asignacionId);
+  const { subirDocumento, confirmarFirma } = useVinculacionMutaciones({
+    asignacionId,
     onSuccess: () => {
       refetch();
       setFirmaSeleccionada(null);
@@ -26,22 +33,19 @@ export default function VinculacionDetallePage() {
   });
   const { canCreate } = usePermisos();
 
-  const documentosFirmados = documentos.filter((d) => d.estado === 'FIRMADO').length;
-  const totalDocumentos = documentos.length;
-  const puedeActivar = totalDocumentos > 0 && documentosFirmados === totalDocumentos;
+  const documentosOrdenados = ORDEN_TIPOS.map(
+    (tipo) => documentos.find((d) => d.tipo === tipo) ?? { tipo, estado: 'PENDIENTE', firmas: [] }
+  );
 
-  const carta = documentos.find((d) => d.tipo === 'CARTA');
-  const convenio = documentos.find((d) => d.tipo === 'CONVENIO');
+  const completos = documentosOrdenados.filter(documentoCompleto).length;
+  const totalDocumentos = documentosOrdenados.length;
+  const puedeActivar = completos === totalDocumentos;
 
-  const handleSubir = (tipo, asignacionId, archivo) => {
-    if (tipo === 'CARTA') {
-      subirCarta.mutate({ asignacionId, archivo });
-    } else {
-      subirConvenio.mutate({ asignacionId, archivo });
-    }
-  };
+  const estudiante = detalle?.estudiante;
+  const vacante = detalle?.vacante;
 
   const handleDescargar = async (documentoId, nombre) => {
+    if (!documentoId) return;
     try {
       const { default: svc } = await import('../services/vinculacionService');
       const resp = await svc.descargarDocumento(documentoId);
@@ -52,7 +56,7 @@ export default function VinculacionDetallePage() {
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      // toast en servicio
+      toast.error('No se pudo descargar el documento');
     }
   };
 
@@ -76,14 +80,18 @@ export default function VinculacionDetallePage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-5xl">
       <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/vinculacion')}>
         ← Volver
       </Button>
 
       <PageHeader
         titulo="Gestión de documentos"
-        descripcion={`Práctica #${practicaId} — Sube y firma los documentos requeridos para activar la práctica.`}
+        descripcion={
+          estudiante
+            ? `${estudiante.nombre} · ${vacante?.cargo ?? 'Práctica'} · ${vacante?.empresa ?? ''}`
+            : `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
+        }
       />
 
       <div
@@ -95,58 +103,37 @@ export default function VinculacionDetallePage() {
         <span
           className={`text-sm font-bold ${puedeActivar ? 'text-emerald-700' : 'text-gray-700'}`}
         >
-          {documentosFirmados}/{totalDocumentos} documentos firmados
+          {completos}/{totalDocumentos} documentos completos
         </span>
         {puedeActivar && (
           <span className="text-xs font-semibold text-emerald-700">
-            Todos los documentos están firmados
+            Todos los documentos están listos
           </span>
         )}
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {carta ? (
+        {documentosOrdenados.map((documento) => (
           <PanelDocumento
-            documento={carta}
-            asignacionId={practicaId}
-            onSubir={(asignacionId, archivo) => handleSubir('CARTA', asignacionId, archivo)}
-            onDescargar={() => handleDescargar(carta.id, carta.nombre)}
-            onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento: carta, tipoFirmante })}
-            isPendingSubir={subirCarta.isPending}
+            key={documento.tipo}
+            documento={documento}
+            asignacionId={asignacionId}
+            onSubir={(archivo) => subirDocumento.mutate({ tipo: documento.tipo, archivo })}
+            onDescargar={() => handleDescargar(documento.id, documento.nombre)}
+            onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento, tipoFirmante })}
+            isPendingSubir={subirDocumento.isPending}
             isPendingFirma={confirmarFirma.isPending}
             puedeSubir={canCreate}
             tipoFirmanteRol="COORDINADOR"
           />
-        ) : (
-          <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400">
-            Carta de Presentación — no disponible aún
-          </div>
-        )}
-
-        {convenio ? (
-          <PanelDocumento
-            documento={convenio}
-            asignacionId={practicaId}
-            onSubir={(asignacionId, archivo) => handleSubir('CONVENIO', asignacionId, archivo)}
-            onDescargar={() => handleDescargar(convenio.id, convenio.nombre)}
-            onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento: convenio, tipoFirmante })}
-            isPendingSubir={subirConvenio.isPending}
-            isPendingFirma={confirmarFirma.isPending}
-            puedeSubir={canCreate}
-            tipoFirmanteRol="COORDINADOR"
-          />
-        ) : (
-          <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400">
-            Convenio de Práctica — no disponible aún
-          </div>
-        )}
+        ))}
       </div>
 
       <div className="border-t border-gray-200 pt-5">
         {!puedeActivar && (
           <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Para activar la práctica se requieren todas las firmas en ambos documentos.
+            Para activar la práctica se requieren los cuatro documentos y las firmas del convenio.
           </div>
         )}
         <Button
@@ -165,9 +152,9 @@ export default function VinculacionDetallePage() {
         tipoFirmante={firmaSeleccionada?.tipoFirmante}
         onClose={() => setFirmaSeleccionada(null)}
         onConfirmar={() => {
-          if (!firmaSeleccionada) return;
+          if (!firmaSeleccionada || !convenioId) return;
           confirmarFirma.mutate({
-            convenioId: firmaSeleccionada.documento.id,
+            convenioId,
             tipoFirmante: firmaSeleccionada.tipoFirmante,
           });
         }}

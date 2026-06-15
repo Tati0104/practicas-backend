@@ -5,8 +5,10 @@ import SubirDocumentoDropzone from './SubirDocumentoDropzone';
 import { Button, Card } from '@/shared/components/ui';
 
 const TITULOS = {
-  CARTA: 'Carta de Presentación',
-  CONVENIO: 'Convenio de Práctica',
+  HOJA_VIDA: 'Hoja de vida',
+  CARTA: 'Carta de presentación',
+  PROYECTO: 'Documento del proyecto práctica',
+  CONVENIO: 'Convenio de práctica',
 };
 
 export default function PanelDocumento({
@@ -21,9 +23,11 @@ export default function PanelDocumento({
   tipoFirmanteRol = null,
 }) {
   const tieneArchivo = documento.estado !== 'PENDIENTE';
-  const firmaDelRol = tipoFirmanteRol
-    ? documento.firmas?.find((f) => f.tipoFirmante === tipoFirmanteRol && !f.firmado)
-    : null;
+  const requiereFirmas = documento.tipo === 'CONVENIO';
+  const firmaDelRol =
+    requiereFirmas && tipoFirmanteRol
+      ? documento.firmas?.find((f) => f.tipoFirmante === tipoFirmanteRol && !f.firmado)
+      : null;
 
   return (
     <Card padding="p-5" className="flex flex-col gap-3">
@@ -51,27 +55,29 @@ export default function PanelDocumento({
       {puedeSubir && !tieneArchivo && (
         <SubirDocumentoDropzone
           titulo={TITULOS[documento.tipo]}
-          onSubir={(archivo) => onSubir(asignacionId, archivo)}
+          onSubir={(archivo) => onSubir(archivo)}
           isPending={isPendingSubir}
           deshabilitado={tieneArchivo}
         />
       )}
 
-      <hr className="border-gray-100" />
-
-      <ProgresoFirmas firmas={documento.firmas || []} />
-
-      {firmaDelRol && tieneArchivo && (
-        <Button
-          variant="success"
-          size="sm"
-          className="self-start"
-          onClick={() => onFirmar(tipoFirmanteRol)}
-          disabled={isPendingFirma}
-        >
-          <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-          {isPendingFirma ? 'Procesando...' : 'Confirmar mi firma'}
-        </Button>
+      {requiereFirmas && (
+        <>
+          <hr className="border-gray-100" />
+          <ProgresoFirmas firmas={documento.firmas || []} />
+          {firmaDelRol && tieneArchivo && (
+            <Button
+              variant="success"
+              size="sm"
+              className="self-start"
+              onClick={() => onFirmar(tipoFirmanteRol)}
+              disabled={isPendingFirma}
+            >
+              <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+              {isPendingFirma ? 'Procesando...' : 'Confirmar mi firma'}
+            </Button>
+          )}
+        </>
       )}
     </Card>
   );

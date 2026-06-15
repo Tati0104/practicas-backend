@@ -4,32 +4,42 @@ import com.avh.practicas.asignacion.entity.Asignacion;
 import com.avh.practicas.asignacion.entity.EstadoAsignacion;
 import com.avh.practicas.asignacion.repository.AsignacionRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
+import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
+import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.vacante.entity.Vacante;
 import com.avh.practicas.vacante.repository.VacanteRepository;
-import com.avh.practicas.vinculacion.dto.ConfirmarVinculacionRequest;
-import com.avh.practicas.vinculacion.dto.DocumentoCargadoResponse;
-import com.avh.practicas.vinculacion.dto.DocumentoPracticaDto;
-import com.avh.practicas.vinculacion.dto.DocumentosPorCategoriaResponse;
+import com.avh.practicas.vinculacion.config.VinculacionProperties;
+import com.avh.practicas.vinculacion.dto.*;
 import com.avh.practicas.vinculacion.entity.*;
 import com.avh.practicas.vinculacion.mediator.MediadorVinculacion;
 import com.avh.practicas.vinculacion.port.AlmacenArchivosPort;
 import com.avh.practicas.vinculacion.repository.*;
+import com.avh.practicas.vinculacion.support.DocumentoVinculacionSupport;
 import com.avh.practicas.vinculacion.support.ValidadorArchivoVinculacion;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,36 +51,109 @@ public class VinculacionServiceImpl implements VinculacionService {
     private final DocumentoPracticaRepository documentoPracticaRepository;
     private final PracticaVinculacionRepository practicaRepository;
     private final VacanteRepository vacanteRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final EmpresaRepository empresaRepository;
     private final TutorEmpresarialRepository tutorRepository;
     private final AlmacenArchivosPort almacenArchivos;
     private final ValidadorArchivoVinculacion validadorArchivo;
     private final MediadorVinculacion mediadorVinculacion;
     private final AsignacionService asignacionService;
+    private final VinculacionProperties vinculacionProperties;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<VinculacionListadoResponse> listar(
+            String busqueda,
+            Long programaId,
+            Long empresaId,
+            EstadoAsignacion estado,
+            Pageable pageable
+    ) {
+        String estadoParam = estado != null ? estado.name() : null;
+        return asignacionRepository.buscarVinculaciones(busqueda, programaId, empresaId, estadoParam, pageable)
+                .map(this::mapearListado);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentosAsignacionResponse obtenerDocumentosAsignacion(Long asignacionId) {
+        Asignacion asignacion = obtenerAsignacion(asignacionId);
+        ContextoVinculacion contexto = cargarContexto(asignacion);
+        Long practicaId = asignacion.getInstanciaPracticaId();
+
+        List<DocumentoPractica> documentos = documentoPracticaRepository.findByAsignacionIdOrderByFechaDesc(asignacionId);
+        if (documentos.isEmpty() && practicaId != null) {
+            documentos = documentoPracticaRepository.findByInstanciaPracticaIdOrderByFechaDesc(practicaId);
+        }
+
+        Optional<Convenio> convenio = convenioRepository.findByAsignacionId(asignacionId);
+        List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
+
+        return new DocumentosAsignacionResponse(
+                asignacionId,
+                practicaId,
+                convenio.map(Convenio::getId).orElse(null),
+                contexto.estudiante(),
+                contexto.vacante(),
+                paneles
+        );
+    }
+
+    @Override
+    @Transactional
+    public DocumentoCargadoResponse cargarDocumento(Long asignacionId, CategoriaDocumento categoria, MultipartFile archivo) {
+        DocumentoVinculacionSupport.AlmacenCategoria almacen = DocumentoVinculacionSupport.almacenPara(categoria);
+        DocumentoCargadoResponse respuesta = registrarDocumento(
+                asignacionId, archivo, categoria, almacen.toPort());
+
+        if (categoria == CategoriaDocumento.CONVENIO_PRACTICA) {
+            vincularConvenio(asignacionId, respuesta);
+        }
+        return respuesta;
+    }
 
     @Override
     @Transactional
     public DocumentoCargadoResponse cargarCarta(Long asignacionId, MultipartFile archivo) {
-        return registrarDocumento(asignacionId, archivo, CategoriaDocumento.VINCULACION, AlmacenArchivosPort.CategoriaAlmacen.CARTA);
+        return cargarDocumento(asignacionId, CategoriaDocumento.CARTA_PRESENTACION, archivo);
     }
 
     @Override
     @Transactional
     public DocumentoCargadoResponse cargarConvenio(Long asignacionId, MultipartFile archivo) {
-        DocumentoCargadoResponse respuesta = registrarDocumento(
-                asignacionId, archivo, CategoriaDocumento.CONVENIO, AlmacenArchivosPort.CategoriaAlmacen.CONVENIO);
+        return cargarDocumento(asignacionId, CategoriaDocumento.CONVENIO_PRACTICA, archivo);
+    }
 
-        Asignacion asignacion = obtenerAsignacion(asignacionId);
-        Long practicaId = resolverPracticaId(asignacion);
-        Vacante vacante = obtenerVacante(asignacion.getVacanteId());
+    @Override
+    @Transactional(readOnly = true)
+    public Resource descargarDocumento(Long documentoId) {
+        DocumentoPractica documento = documentoPracticaRepository.findById(documentoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado: " + documentoId));
 
-        Convenio convenio = convenioRepository.findByAsignacionId(asignacionId)
-                .orElseGet(() -> crearConvenioBase(asignacion, practicaId, vacante.getEmpresaId()));
+        try {
+            Path base = Paths.get(vinculacionProperties.getDirectorioUpload()).toAbsolutePath().normalize();
+            Path archivo = Paths.get(documento.getUrl()).toAbsolutePath().normalize();
+            if (!archivo.startsWith(base)) {
+                throw new NegocioException("Ruta de archivo no permitida.");
+            }
+            Resource resource = new UrlResource(archivo.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RecursoNoEncontradoException("No se pudo leer el archivo solicitado.");
+            }
+            return resource;
+        } catch (NegocioException | RecursoNoEncontradoException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new NegocioException("No se pudo descargar el archivo: " + ex.getMessage());
+        }
+    }
 
-        convenio.setUrlDocumento(respuesta.url());
-        convenio.setInstanciaPracticaId(practicaId);
-        convenioRepository.save(convenio);
-
-        return respuesta;
+    @Override
+    @Transactional(readOnly = true)
+    public String nombreDescargaDocumento(Long documentoId) {
+        return documentoPracticaRepository.findById(documentoId)
+                .map(DocumentoPractica::getNombre)
+                .orElse("documento.pdf");
     }
 
     @Override
@@ -192,6 +275,68 @@ public class VinculacionServiceImpl implements VinculacionService {
                 categoria,
                 url
         );
+    }
+
+    private void vincularConvenio(Long asignacionId, DocumentoCargadoResponse respuesta) {
+        Asignacion asignacion = obtenerAsignacion(asignacionId);
+        Long practicaId = respuesta.practicaId();
+        Vacante vacante = obtenerVacante(asignacion.getVacanteId());
+
+        Convenio convenio = convenioRepository.findByAsignacionId(asignacionId)
+                .orElseGet(() -> crearConvenioBase(asignacion, practicaId, vacante.getEmpresaId()));
+
+        convenio.setUrlDocumento(respuesta.url());
+        convenio.setInstanciaPracticaId(practicaId);
+        convenioRepository.save(convenio);
+    }
+
+    private VinculacionListadoResponse mapearListado(Asignacion asignacion) {
+        ContextoVinculacion contexto = cargarContexto(asignacion);
+        Long practicaId = asignacion.getInstanciaPracticaId();
+
+        List<DocumentoPractica> documentos = documentoPracticaRepository.findByAsignacionIdOrderByFechaDesc(asignacion.getId());
+        if (documentos.isEmpty() && practicaId != null) {
+            documentos = documentoPracticaRepository.findByInstanciaPracticaIdOrderByFechaDesc(practicaId);
+        }
+
+        Optional<Convenio> convenio = convenioRepository.findByAsignacionId(asignacion.getId());
+        List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
+
+        return new VinculacionListadoResponse(
+                asignacion.getId(),
+                practicaId,
+                asignacion.getEstado(),
+                contexto.estudiante(),
+                contexto.vacante(),
+                paneles
+        );
+    }
+
+    private ContextoVinculacion cargarContexto(Asignacion asignacion) {
+        Estudiante estudiante = estudianteRepository.findById(asignacion.getEstudianteId())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Estudiante no encontrado: " + asignacion.getEstudianteId()));
+
+        Vacante vacante = obtenerVacante(asignacion.getVacanteId());
+        Empresa empresa = empresaRepository.findById(vacante.getEmpresaId()).orElse(null);
+
+        EstudianteVinculacionDto estudianteDto = new EstudianteVinculacionDto(
+                estudiante.getId(),
+                estudiante.getNombre(),
+                estudiante.getIdentificacion(),
+                estudiante.getPrograma() != null ? estudiante.getPrograma().getNombre() : null
+        );
+
+        VacanteVinculacionDto vacanteDto = new VacanteVinculacionDto(
+                vacante.getId(),
+                vacante.getCargo(),
+                empresa != null ? empresa.getRazonSocial() : null
+        );
+
+        return new ContextoVinculacion(estudianteDto, vacanteDto);
+    }
+
+    private record ContextoVinculacion(EstudianteVinculacionDto estudiante, VacanteVinculacionDto vacante) {
     }
 
     private Convenio crearConvenioBase(Asignacion asignacion, Long practicaId, Long empresaId) {

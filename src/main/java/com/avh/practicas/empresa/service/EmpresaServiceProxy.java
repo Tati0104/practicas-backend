@@ -65,12 +65,12 @@ public class EmpresaServiceProxy implements EmpresaService {
     }
 
     @Override
-    public void desactivar(Long id) {
+    public void desactivar(Long id, String motivo) {
         Usuario usuario = obtenerUsuarioActual();
         realService.obtenerPorId(id).ifPresent(empresa -> 
             scopeGuard.verificarScope(usuario, empresa, "DESACTIVAR")
         );
-        realService.desactivar(id);
+        realService.desactivar(id, motivo);
     }
 
     @Override

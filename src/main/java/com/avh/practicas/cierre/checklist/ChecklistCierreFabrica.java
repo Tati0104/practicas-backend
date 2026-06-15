@@ -64,14 +64,14 @@ public class ChecklistCierreFabrica {
                 true,
                 List.of(
                         new ItemDocumentoCargado(
-                                "Carta de vinculación",
+                                "Carta de presentación",
                                 true,
-                                tieneDocumento(practicaId, CategoriaDocumento.VINCULACION)
+                                tieneDocumento(practicaId, CategoriaDocumento.CARTA_PRESENTACION)
                         ),
                         new ItemDocumentoCargado(
                                 "Convenio firmado",
                                 true,
-                                tieneDocumento(practicaId, CategoriaDocumento.CONVENIO)
+                                tieneDocumento(practicaId, CategoriaDocumento.CONVENIO_PRACTICA)
                         )
                 )
         ));

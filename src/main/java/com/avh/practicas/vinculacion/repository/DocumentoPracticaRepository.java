@@ -10,6 +10,8 @@ public interface DocumentoPracticaRepository extends JpaRepository<DocumentoPrac
 
     List<DocumentoPractica> findByInstanciaPracticaIdOrderByFechaDesc(Long instanciaPracticaId);
 
+    List<DocumentoPractica> findByAsignacionIdOrderByFechaDesc(Long asignacionId);
+
     List<DocumentoPractica> findByInstanciaPracticaIdAndCategoriaOrderByFechaDesc(
             Long instanciaPracticaId,
             CategoriaDocumento categoria

@@ -12,7 +12,11 @@ const empresaService = {
   registrar:        (dto)     => http.post('/empresas', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editar:           (id, dto) => http.put(`/empresas/${id}`, dto),
   activar:          (id)      => http.patch(`/empresas/${id}/activar`),
-  inactivar:        (id)      => http.patch(`/empresas/${id}/inactivar`),
+  inactivar:        (id, motivo) =>
+    http.patch(`/empresas/${id}/desactivar`, JSON.stringify({ motivo }), {
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  obtener:          (id)      => http.get(`/empresas/${id}`),
 
   // Tutores
   listarTutores:    (empresaId) =>

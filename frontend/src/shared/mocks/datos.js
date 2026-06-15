@@ -49,7 +49,9 @@ export const MOCK_VINCULACIONES = [
     estudiante: { nombre: 'Ana García', codigo: '2021001', programa: 'Ing. Sistemas' },
     vacante: { cargo: 'Desarrollador Frontend', empresa: 'Tech Solutions SAS' },
     documentos: [
-      { id: 1, tipo: 'CARTA', nombre: 'Carta_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: true, fechaFirma: '2024-03-01' }, { tipoFirmante: 'TUTOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
+      { id: 10, tipo: 'HOJA_VIDA', nombre: 'HV_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
+      { id: 1, tipo: 'CARTA', nombre: 'Carta_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
+      { id: 11, tipo: 'PROYECTO', nombre: null, estado: 'PENDIENTE', firmas: [] },
       { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'TUTOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
     ],
   },
@@ -59,7 +61,9 @@ export const MOCK_VINCULACIONES = [
     estudiante: { nombre: 'Carlos Ruiz', codigo: '2021002', programa: 'Ing. Industrial' },
     vacante: { cargo: 'Analista de Procesos', empresa: 'Constructora ABC' },
     documentos: [
-      { id: 3, tipo: 'CARTA', nombre: 'Carta_CarlosRuiz.pdf', estado: 'FIRMADO', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: true, fechaFirma: '2024-03-05' }, { tipoFirmante: 'TUTOR', firmado: true, fechaFirma: '2024-03-06' }, { tipoFirmante: 'ESTUDIANTE', firmado: true, fechaFirma: '2024-03-07' }] },
+      { id: 12, tipo: 'HOJA_VIDA', nombre: 'HV_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
+      { id: 3, tipo: 'CARTA', nombre: 'Carta_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
+      { id: 13, tipo: 'PROYECTO', nombre: 'Proyecto_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [] },
       { id: 4, tipo: 'CONVENIO', nombre: 'Convenio_CarlosRuiz.pdf', estado: 'SUBIDO', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: true, fechaFirma: '2024-03-08' }, { tipoFirmante: 'TUTOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
     ],
   },
@@ -72,9 +76,20 @@ export const MOCK_ALERTAS = [
 ];
 
 export const MOCK_DOCUMENTOS = [
-  { id: 1, tipo: 'CARTA', nombre: 'Carta_presentacion_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: true, fechaFirma: '2024-03-01' }, { tipoFirmante: 'TUTOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
+  { id: 10, tipo: 'HOJA_VIDA', nombre: 'HV_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
+  { id: 1, tipo: 'CARTA', nombre: 'Carta_presentacion_AnaGarcia.pdf', estado: 'SUBIDO', firmas: [] },
+  { id: 11, tipo: 'PROYECTO', nombre: null, estado: 'PENDIENTE', firmas: [] },
   { id: 2, tipo: 'CONVENIO', nombre: null, estado: 'PENDIENTE', firmas: [{ tipoFirmante: 'COORDINADOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'TUTOR', firmado: false, fechaFirma: null }, { tipoFirmante: 'ESTUDIANTE', firmado: false, fechaFirma: null }] },
 ];
+
+export const MOCK_DOCUMENTOS_DETALLE = {
+  asignacionId: 1,
+  practicaId: 101,
+  convenioId: 5,
+  estudiante: { nombre: 'Ana García', codigo: '2021001', programa: 'Ing. Sistemas' },
+  vacante: { cargo: 'Desarrollador Frontend', empresa: 'Tech Solutions SAS' },
+  documentos: MOCK_DOCUMENTOS,
+};
 
 export const MOCK_FACULTADES = [
   { id: 1, nombre: 'Facultad de Ingeniería', activo: true },

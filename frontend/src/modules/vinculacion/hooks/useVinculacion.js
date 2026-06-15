@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import useAuthStore from '@/store/authStore';
-import asignacionService from '../../asignaciones/services/asignacionService';
 import { MOCK_VINCULACIONES } from '@/shared/mocks/datos';
 import {
   ejecutarConsulta,
@@ -9,13 +7,14 @@ import {
   placeholderDesdeMock,
   usarMocks,
 } from '@/shared/config/dataSource';
-import { normalizarPagina } from '@/shared/utils/paginacion';
+import { listarVinculaciones } from '../utils/vinculacionApi';
 
 export function useVinculacion() {
   const [filtros, setFiltros] = useState({
     page: 0,
     size: 10,
     programaId: '',
+    empresaId: '',
     estado: '',
     busqueda: '',
   });
@@ -25,20 +24,7 @@ export function useVinculacion() {
     queryFn: () =>
       ejecutarConsulta({
         mock: () => paginarEnCliente(MOCK_VINCULACIONES, filtros),
-        api: async () => {
-          const params = { ...filtros, estado: filtros.estado || 'EN_PROCESO_VINCULACION' };
-          console.log('[useVinculacion] params enviados:', params);
-          try {
-            const resp = await asignacionService.listar(params);
-            console.log('[useVinculacion] respuesta OK:', resp.data);
-            return normalizarPagina(resp.data?.data ?? resp.data, []);
-          } catch (err) {
-            console.error('[useVinculacion] status:', err?.response?.status);
-            console.error('[useVinculacion] body:', err?.response?.data);
-            console.error('[useVinculacion] URL:', err?.config?.url, '| params:', err?.config?.params);
-            throw err;
-          }
-        },
+        api: () => listarVinculaciones(filtros),
       }),
     placeholderData: placeholderDesdeMock(MOCK_VINCULACIONES),
   });

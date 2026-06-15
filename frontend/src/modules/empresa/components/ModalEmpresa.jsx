@@ -66,7 +66,7 @@ export default function ModalEmpresa({ empresa, onGuardar, onCerrar, guardando =
       onCerrar={onCerrar}
       ancho="max-w-lg"
       acciones={
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="flex justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={onCerrar} disabled={guardando}>
             Cancelar
           </Button>

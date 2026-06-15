@@ -1,5 +1,6 @@
 package com.avh.practicas.empresa.controller;
 
+import com.avh.practicas.empresa.dto.InactivarEmpresaRequest;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.service.EmpresaService;
@@ -86,8 +87,10 @@ public class EmpresaController {
 
     @PatchMapping("/{id}/desactivar")
     @ScopeGuard("EMPRESA_DESACTIVAR")
-    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
-        empresaService.desactivar(id);
+    public ResponseEntity<Void> desactivar(
+            @PathVariable Long id,
+            @Valid @RequestBody InactivarEmpresaRequest request) {
+        empresaService.desactivar(id, request.motivo());
         return ResponseEntity.noContent().build();
     }
 

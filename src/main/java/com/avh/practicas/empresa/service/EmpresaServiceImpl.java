@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,6 +69,14 @@ public class EmpresaServiceImpl implements EmpresaService {
             if (!empresaActualizada.getActivo()) {
                 validarDesactivacion(id);
                 desactivarTutoresEnCascada(id);
+                if (empresaActualizada.getMotivoInactivacion() != null
+                        && !empresaActualizada.getMotivoInactivacion().isBlank()) {
+                    empresaExistente.setMotivoInactivacion(empresaActualizada.getMotivoInactivacion().trim());
+                    empresaExistente.setFechaInactivacion(LocalDateTime.now());
+                }
+            } else {
+                empresaExistente.setMotivoInactivacion(null);
+                empresaExistente.setFechaInactivacion(null);
             }
             empresaExistente.setActivo(empresaActualizada.getActivo());
         }
@@ -77,7 +86,11 @@ public class EmpresaServiceImpl implements EmpresaService {
 
     @Override
     @Transactional
-    public void desactivar(Long id) {
+    public void desactivar(Long id, String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new NegocioException("Debe indicar el motivo o comentario de inactivación.");
+        }
+
         Empresa empresa = empresaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + id));
 
@@ -85,6 +98,8 @@ public class EmpresaServiceImpl implements EmpresaService {
         desactivarTutoresEnCascada(id);
 
         empresa.setActivo(false);
+        empresa.setMotivoInactivacion(motivo.trim());
+        empresa.setFechaInactivacion(LocalDateTime.now());
         empresaRepository.save(empresa);
     }
 
@@ -95,6 +110,8 @@ public class EmpresaServiceImpl implements EmpresaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + id));
 
         empresa.setActivo(true);
+        empresa.setMotivoInactivacion(null);
+        empresa.setFechaInactivacion(null);
         empresaRepository.save(empresa);
     }
 

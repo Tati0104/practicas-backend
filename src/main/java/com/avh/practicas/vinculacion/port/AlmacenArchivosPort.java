@@ -10,7 +10,9 @@ public interface AlmacenArchivosPort {
     String guardar(Long asignacionId, CategoriaAlmacen categoria, MultipartFile archivo);
 
     enum CategoriaAlmacen {
-        CARTA,
-        CONVENIO
+        HOJA_VIDA,
+        CARTA_PRESENTACION,
+        PROYECTO_PRACTICA,
+        CONVENIO_PRACTICA
     }
 }

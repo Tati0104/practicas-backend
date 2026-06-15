@@ -3,6 +3,7 @@ package com.avh.practicas.empresa.entity;
 import com.avh.practicas.configuracion.entity.CatalogoItem;
 import com.avh.practicas.shared.pattern.observer.Observador;
 import com.avh.practicas.shared.pattern.observer.Sujeto;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "empresas")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "observadores"})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -44,6 +46,12 @@ public class Empresa implements Sujeto {
     @Column(nullable = false)
     @Builder.Default
     private Boolean activo = true;
+
+    @Column(name = "motivo_inactivacion")
+    private String motivoInactivacion;
+
+    @Column(name = "fecha_inactivacion")
+    private java.time.LocalDateTime fechaInactivacion;
 
     @Transient
     @Builder.Default

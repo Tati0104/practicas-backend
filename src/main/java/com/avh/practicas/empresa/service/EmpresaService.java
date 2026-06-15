@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface EmpresaService {
     Empresa registrar(Empresa empresa);
     Empresa editar(Long id, Empresa empresaActualizada);
-    void desactivar(Long id);
+    void desactivar(Long id, String motivo);
     void activar(Long id);
     Optional<Empresa> obtenerPorId(Long id);
     Optional<Empresa> obtenerPorNit(String nit);

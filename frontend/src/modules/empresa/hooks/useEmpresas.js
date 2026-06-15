@@ -38,12 +38,21 @@ export function useEmpresas() {
 
   const activar = useMutation({
     mutationFn: (id) => empresaService.activar(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['empresas'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['empresas'] });
+      toast.success('Empresa reactivada correctamente');
+    },
+    onError: alError,
   });
 
   const inactivar = useMutation({
-    mutationFn: (id) => empresaService.inactivar(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['empresas'] }),
+    mutationFn: ({ id, motivo }) => empresaService.inactivar(id, motivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['empresas'] });
+      queryClient.invalidateQueries({ queryKey: ['empresa-tutores'] });
+      toast.success('Empresa inactivada correctamente');
+    },
+    onError: alError,
   });
 
   return {

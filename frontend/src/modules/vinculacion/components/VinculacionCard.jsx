@@ -1,21 +1,31 @@
-// src/modules/vinculacion/components/VinculacionCard.jsx
-
 import { useNavigate } from 'react-router-dom';
 import BadgeDocumento from './BadgeDocumento';
 import { Button, Card } from '@/shared/components/ui';
 
+const TIPOS = [
+  { key: 'HOJA_VIDA', label: 'Hoja de vida' },
+  { key: 'CARTA', label: 'Carta' },
+  { key: 'PROYECTO', label: 'Proyecto' },
+  { key: 'CONVENIO', label: 'Convenio' },
+];
+
+function contarCompletos(docs = []) {
+  return docs.filter((d) => {
+    if (d.estado === 'PENDIENTE') return false;
+    if (d.tipo === 'CONVENIO') return d.estado === 'FIRMADO';
+    return true;
+  }).length;
+}
+
 export default function VinculacionCard({ vinculacion, onGestionar }) {
   const navigate = useNavigate();
-
-  const carta = vinculacion.documentos?.find((d) => d.tipo === 'CARTA');
-  const convenio = vinculacion.documentos?.find((d) => d.tipo === 'CONVENIO');
-  const firmados = vinculacion.documentos?.filter((d) => d.estado === 'FIRMADO').length || 0;
-  const total = vinculacion.documentos?.length || 2;
+  const completos = contarCompletos(vinculacion.documentos);
+  const total = vinculacion.documentos?.length || 4;
 
   const irADetalle = () =>
     onGestionar
       ? onGestionar(vinculacion)
-      : navigate(`/vinculacion/${vinculacion.practicaId}`);
+      : navigate(`/vinculacion/${vinculacion.asignacionId}`);
 
   return (
     <Card padding="p-4">
@@ -27,9 +37,9 @@ export default function VinculacionCard({ vinculacion, onGestionar }) {
           </div>
         </div>
         <span
-          className={`text-sm font-bold ${firmados === total ? 'text-emerald-600' : 'text-gray-700'}`}
+          className={`text-sm font-bold ${completos === total ? 'text-emerald-600' : 'text-gray-700'}`}
         >
-          {firmados}/{total}
+          {completos}/{total}
         </span>
       </div>
 
@@ -45,14 +55,15 @@ export default function VinculacionCard({ vinculacion, onGestionar }) {
       </dl>
 
       <div className="mt-3 flex flex-wrap gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Carta:</span>
-          <BadgeDocumento estado={carta?.estado || 'PENDIENTE'} />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Convenio:</span>
-          <BadgeDocumento estado={convenio?.estado || 'PENDIENTE'} />
-        </div>
+        {TIPOS.map(({ key, label }) => {
+          const doc = vinculacion.documentos?.find((d) => d.tipo === key);
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">{label}:</span>
+              <BadgeDocumento estado={doc?.estado || 'PENDIENTE'} />
+            </div>
+          );
+        })}
       </div>
 
       <Button

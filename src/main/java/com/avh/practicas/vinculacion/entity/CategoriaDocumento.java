@@ -1,6 +1,8 @@
 package com.avh.practicas.vinculacion.entity;
 
 public enum CategoriaDocumento {
-    VINCULACION,
-    CONVENIO
+    HOJA_VIDA,
+    CARTA_PRESENTACION,
+    PROYECTO_PRACTICA,
+    CONVENIO_PRACTICA
 }

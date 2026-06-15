@@ -1,14 +1,29 @@
-// src/modules/vinculacion/components/VinculacionTabla.jsx
-
 import { useNavigate } from 'react-router-dom';
 import TablaBase from '../../../shared/components/TablaBase';
 import BadgeDocumento from './BadgeDocumento';
 import { Button } from '@/shared/components/ui';
 
+const COLUMNAS_DOC = [
+  { key: 'HOJA_VIDA', titulo: 'Hoja de vida' },
+  { key: 'CARTA', titulo: 'Carta' },
+  { key: 'PROYECTO', titulo: 'Proyecto' },
+  { key: 'CONVENIO', titulo: 'Convenio' },
+];
+
+function buscarDoc(documentos, tipo) {
+  return documentos?.find((d) => d.tipo === tipo);
+}
+
+function contarCompletos(docs = []) {
+  return docs.filter((d) => {
+    if (d.estado === 'PENDIENTE') return false;
+    if (d.tipo === 'CONVENIO') return d.estado === 'FIRMADO';
+    return true;
+  }).length;
+}
+
 export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar }) {
   const navigate = useNavigate();
-
-  const contarFirmados = (docs = []) => docs.filter((d) => d.estado === 'FIRMADO').length;
 
   const columnas = [
     {
@@ -33,33 +48,25 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
         </div>
       ),
     },
-    {
-      key: 'carta',
-      titulo: 'Carta',
+    ...COLUMNAS_DOC.map(({ key, titulo }) => ({
+      key,
+      titulo,
       render: (fila) => {
-        const carta = fila.documentos?.find((d) => d.tipo === 'CARTA');
-        return <BadgeDocumento estado={carta?.estado || 'PENDIENTE'} />;
+        const doc = buscarDoc(fila.documentos, key);
+        return <BadgeDocumento estado={doc?.estado || 'PENDIENTE'} />;
       },
-    },
-    {
-      key: 'convenio',
-      titulo: 'Convenio',
-      render: (fila) => {
-        const convenio = fila.documentos?.find((d) => d.tipo === 'CONVENIO');
-        return <BadgeDocumento estado={convenio?.estado || 'PENDIENTE'} />;
-      },
-    },
+    })),
     {
       key: 'progreso',
       titulo: 'Progreso',
       render: (fila) => {
-        const firmados = contarFirmados(fila.documentos);
-        const total = fila.documentos?.length || 2;
+        const completos = contarCompletos(fila.documentos);
+        const total = fila.documentos?.length || 4;
         return (
           <span
-            className={`text-sm font-semibold ${firmados === total ? 'text-emerald-600' : 'text-gray-700'}`}
+            className={`text-sm font-semibold ${completos === total ? 'text-emerald-600' : 'text-gray-700'}`}
           >
-            {firmados}/{total} firmados
+            {completos}/{total}
           </span>
         );
       },
@@ -74,7 +81,7 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
           onClick={() =>
             onGestionar
               ? onGestionar(fila)
-              : navigate(`/vinculacion/${fila.asignacionId ?? fila.practicaId}`)
+              : navigate(`/vinculacion/${fila.asignacionId}`)
           }
           aria-label={`Gestionar vinculación de ${fila.estudiante?.nombre}`}
         >
