@@ -3,6 +3,7 @@ package com.avh.practicas.shared.exception;
 import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
 import com.avh.practicas.shared.api.ApiResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,5 +53,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ApiResponse<Void> handleForbidden(RuntimeException ex) {
         return ApiResponse.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleNotReadable(HttpMessageNotReadableException ex) {
+        return ApiResponse.error("El cuerpo de la solicitud no es válido: " + ex.getMostSpecificCause().getMessage());
     }
 }
