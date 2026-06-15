@@ -1,45 +1,63 @@
-import { FiltrosBar, FiltroInput, FiltroSelect } from '@/shared/components/filtros';
+import { useMemo } from 'react';
+import { FiltrosActivos } from '@/shared/components/filtros';
 
 const APTITUDES = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'SIN_EVALUAR', label: 'SIN_EVALUAR' },
-  { value: 'APTO', label: 'APTO' },
-  { value: 'NO_APTO', label: 'NO_APTO' },
+  { value: 'SIN_EVALUAR', label: 'Sin evaluar' },
+  { value: 'APTO', label: 'Apto' },
+  { value: 'NO_APTO', label: 'No apto' },
 ];
 
 const ACTIVO = [
-  { value: '', label: 'Activo / Inactivo' },
   { value: 'true', label: 'Activos' },
   { value: 'false', label: 'Inactivos' },
 ];
 
 export default function FiltrosEstudiante({ filtros, onChange }) {
-  const actualizar = (cambios) => onChange({ ...filtros, ...cambios, page: 0 });
+  const campos = useMemo(
+    () => [
+      {
+        key: 'busqueda',
+        label: 'Búsqueda',
+        type: 'text',
+        placeholder: 'Nombre o documento…',
+      },
+      {
+        key: 'estadoAptitud',
+        label: 'Aptitud',
+        type: 'select',
+        opciones: APTITUDES,
+      },
+      {
+        key: 'activo',
+        label: 'Estado',
+        type: 'select',
+        opciones: ACTIVO,
+      },
+    ],
+    []
+  );
+
+  const filtrosNormalizados = {
+    ...filtros,
+    activo:
+      filtros.activo === true || filtros.activo === false
+        ? String(filtros.activo)
+        : filtros.activo ?? '',
+  };
+
+  const handleChange = (nuevos) => {
+    const activo =
+      nuevos.activo === '' || nuevos.activo === undefined
+        ? undefined
+        : nuevos.activo === 'true' || nuevos.activo === true;
+    onChange({ ...nuevos, activo, page: 0 });
+  };
 
   return (
-    <FiltrosBar variant="inline">
-      <FiltroInput
-        compacto
-        placeholder="Buscar por nombre o ID..."
-        value={filtros.busqueda || ''}
-        onChange={(e) => actualizar({ busqueda: e.target.value || undefined })}
-      />
-      <FiltroSelect
-        compacto
-        opciones={APTITUDES}
-        value={filtros.estadoAptitud || ''}
-        onChange={(e) => actualizar({ estadoAptitud: e.target.value || undefined })}
-      />
-      <FiltroSelect
-        compacto
-        opciones={ACTIVO}
-        value={filtros.activo ?? ''}
-        onChange={(e) =>
-          actualizar({
-            activo: e.target.value === '' ? undefined : e.target.value === 'true',
-          })
-        }
-      />
-    </FiltrosBar>
+    <FiltrosActivos
+      campos={campos}
+      filtros={filtrosNormalizados}
+      onChange={handleChange}
+    />
   );
 }

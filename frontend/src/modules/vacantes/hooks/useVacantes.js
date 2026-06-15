@@ -14,7 +14,8 @@ export function useVacantes() {
       empresaId: '',
       programaId: '',
       estado: '',
-      busqueda: '',
+      modalidad: '',
+      area: '',
     },
   });
 
