@@ -5,7 +5,7 @@ const estudianteService = {
   listar: (filtros = {}) =>
     http.get('/estudiantes', { params: paramsListado(filtros) }),
   obtenerPorId:    (id)       => http.get(`/estudiantes/${id}`),
-  registrar:       (dto)      => http.post('/estudiantes', dto),
+  registrar:       (dto)      => http.post('/estudiantes', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editar:          (id, dto)  => http.put(`/estudiantes/${id}`, dto),
   marcarApto:      (id)       => http.patch(`/estudiantes/${id}/aptitud`, { estado: 'APTO' }),
   marcarNoApto:    (id, motivo) => http.patch(`/estudiantes/${id}/aptitud`, { estado: 'NO_APTO', motivo }),

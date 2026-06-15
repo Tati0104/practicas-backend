@@ -6,13 +6,13 @@ const configuracionService = {
   crearFacultad:    (dto)        => http.post('/facultades', dto),
   editarFacultad:   (id, dto)    => http.put(`/facultades/${id}`, dto),
   activarFacultad:  (id)         => http.patch(`/facultades/${id}/activar`),
-  inactivarFacultad:(id)         => http.patch(`/facultades/${id}/inactivar`),
+  inactivarFacultad:(id)         => http.patch(`/facultades/${id}/desactivar`),
 
   // Programas
   listarProgramas:  (facultadId) => http.get('/programas', { params: { facultadId } }),
   crearPrograma:    (dto)        => http.post('/programas', dto),
   editarPrograma:   (id, dto)    => http.put(`/programas/${id}`, dto),
-  inactivarPrograma:(id)         => http.patch(`/programas/${id}/inactivar`),
+  inactivarPrograma:(id)         => http.patch(`/programas/${id}/desactivar`),
 
   // Catálogos maestros
   listarCatalogos:  (tipo)       => http.get('/catalogos', { params: { tipo } }),

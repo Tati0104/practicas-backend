@@ -22,7 +22,7 @@ export default function EstudiantesPage() {
   const columnas = [
     { key: 'nombre',         titulo: 'Nombre' },
     { key: 'identificacion', titulo: 'Identificación' },
-    { key: 'programa',       titulo: 'Programa' },
+    { key: 'programa', titulo: 'Programa', render: e => e.programa?.nombre ?? '—' },
     { key: 'semestre',       titulo: 'Semestre' },
     {
       key: 'estadoAptitud', titulo: 'Aptitud',
@@ -88,7 +88,8 @@ export default function EstudiantesPage() {
 
       {modalRegistro && (
         <ModalRegistroEstudiante
-          onGuardar={(form) => { registrar.mutate(form); setModalRegistro(false); }}
+          guardando={registrar.isPending}
+          onGuardar={(dto) => registrar.mutate(dto, { onSuccess: () => setModalRegistro(false) })}
           onCerrar={() => setModalRegistro(false)}
         />
       )}

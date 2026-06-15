@@ -1,11 +1,13 @@
 package com.avh.practicas.estudiante.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "estudiante"})
 @Entity
 @Table(name = "expedientes")
 @Getter
