@@ -12,18 +12,29 @@ export function useVinculacionDocumentos(practicaId) {
     queryKey: ['vinculacion-documentos', practicaId, usarMocks()],
     queryFn: () =>
       ejecutarConsulta({
-        mock: () => MOCK_DOCUMENTOS,
+        mock: () => ({ documentos: MOCK_DOCUMENTOS, estudiante: { id: 1, documentos: [] } }),
         api: async () => {
-          const resp = await vinculacionService.obtenerDocumentos(practicaId);
-          return resp.data?.data ?? resp.data ?? [];
+          const respDocs = await vinculacionService.obtenerDocumentos(practicaId);
+          const docs = respDocs.data?.data ?? respDocs.data ?? [];
+          
+          let estudiante = null;
+          try {
+            const respEst = await vinculacionService.obtenerEstudiante(practicaId);
+            estudiante = respEst.data?.data ?? respEst.data ?? null;
+          } catch (e) {
+            console.error("No se pudo obtener el estudiante", e);
+          }
+          
+          return { documentos: docs, estudiante };
         },
       }),
     enabled: Boolean(practicaId),
-    placeholderData: placeholderSimple(MOCK_DOCUMENTOS),
+    placeholderData: placeholderSimple({ documentos: MOCK_DOCUMENTOS, estudiante: { id: 1, documentos: [] } }),
   });
 
   return {
-    documentos: data ?? [],
+    documentos: data?.documentos ?? [],
+    estudiante: data?.estudiante ?? null,
     isLoading,
     isError,
     refetch,

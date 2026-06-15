@@ -36,6 +36,42 @@ export default function EstudiantesPage() {
       }
     },
     {
+      key: 'documentos', titulo: 'Documentos Base',
+      render: e => {
+        const tieneHojaVida = e.documentos?.some(d => d.tipo === 'HOJA_DE_VIDA');
+        const tienePazSalvo = e.documentos?.some(d => d.tipo === 'PAZ_Y_SALVO');
+        
+        return (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '3px 10px',
+                borderRadius: 20,
+                background: tieneHojaVida ? '#d1fae5' : '#f3f4f6',
+                color: tieneHojaVida ? '#065f46' : '#6b7280',
+              }}
+            >
+              HV
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '3px 10px',
+                borderRadius: 20,
+                background: tienePazSalvo ? '#d1fae5' : '#f3f4f6',
+                color: tienePazSalvo ? '#065f46' : '#6b7280',
+              }}
+            >
+              P&S
+            </span>
+          </div>
+        );
+      }
+    },
+    {
       key: 'acciones', titulo: 'Acciones',
       render: e => (
         <div style={{ display: 'flex', gap: 6 }}>

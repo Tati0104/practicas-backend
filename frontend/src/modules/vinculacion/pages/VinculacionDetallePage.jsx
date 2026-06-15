@@ -43,6 +43,7 @@ import { useVinculacionMutaciones } from '../hooks/useVinculacionMutaciones';
 import { usePermisos }              from '../../../shared/hooks/usePermisos';
 
 import PanelDocumento      from '../components/PanelDocumento';
+import PanelDocumentoBase  from '../components/PanelDocumentoBase';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 
 export default function VinculacionDetallePage() {
@@ -54,7 +55,7 @@ export default function VinculacionDetallePage() {
   const [firmaSeleccionada, setFirmaSeleccionada] = useState(null);
 
   // ── Datos y mutaciones ─────────────────────────────────────────────────────
-  const { documentos, isLoading, isError, refetch } =
+  const { documentos, estudiante, isLoading, isError, refetch } =
     useVinculacionDocumentos(practicaId);
 
   const { subirCarta, subirConvenio, confirmarFirma } = useVinculacionMutaciones({
@@ -240,6 +241,22 @@ export default function VinculacionDetallePage() {
             </p>
           </div>
         )}
+
+        {/* Panel Hoja de Vida */}
+        <PanelDocumentoBase
+          tipo="HOJA_DE_VIDA"
+          estudiante={estudiante}
+          puedeSubir={canCreate}
+          onSubidoExitosamente={refetch}
+        />
+
+        {/* Panel Paz y Salvo */}
+        <PanelDocumentoBase
+          tipo="PAZ_Y_SALVO"
+          estudiante={estudiante}
+          puedeSubir={canCreate}
+          onSubidoExitosamente={refetch}
+        />
       </div>
 
       {/* ── Botón "Activar práctica" ── */}

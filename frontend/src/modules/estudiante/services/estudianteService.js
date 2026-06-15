@@ -15,6 +15,10 @@ const estudianteService = {
     form.append('archivo', archivo);
     return http.post('/estudiantes/importar', form,
       { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  subirDocumento:  (id, formData) => {
+    return http.post(`/estudiantes/${id}/documentos`, formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } });
   }
 };
 

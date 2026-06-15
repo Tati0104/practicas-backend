@@ -28,6 +28,9 @@ const vinculacionService = {
   obtenerDocumentos: (practicaId) =>
     http.get(`/practicas/${practicaId}/documentos`),
 
+  obtenerEstudiante: (practicaId) =>
+    http.get(`/practicas/${practicaId}/estudiante`),
+
   descargarDocumento: (documentoId) =>
     http.get(`/documentos/${documentoId}/descargar`, {
       responseType: 'blob',
