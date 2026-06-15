@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import estudianteService from '../services/estudianteService';
 import { MOCK_ESTUDIANTES } from '@/shared/mocks/datos';
 import { useListadoPaginado } from '@/shared/hooks/useListadoPaginado';
@@ -12,9 +13,18 @@ export default function useEstudiantes() {
     fetchApi: (filtros) => estudianteService.listar(filtros),
   });
 
+  const alError = (err) => {
+    const msg = err?.response?.data?.mensaje || err?.response?.data?.message || 'Error inesperado. Intenta de nuevo.';
+    toast.error(msg);
+  };
+
   const registrar = useMutation({
     mutationFn: (dto) => estudianteService.registrar(dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estudiantes'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      toast.success('Estudiante registrado correctamente');
+    },
+    onError: alError,
   });
 
   const marcarApto = useMutation({
