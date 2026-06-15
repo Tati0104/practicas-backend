@@ -33,8 +33,9 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
 
-  // Observamos el valor de vacanteId en tiempo real para cargar estudiantes
-  const vacanteId = useWatch({ control, name: 'vacanteId' });
+  // Observamos los valores en tiempo real para cargar estudiantes y mostrar resumen
+  const vacanteId     = useWatch({ control, name: 'vacanteId' });
+  const estudianteId  = useWatch({ control, name: 'estudianteId' });
 
   const { vacantes, isLoading: loadingVacantes } = useVacantesActivas();
   const { estudiantes, isLoading: loadingEstudiantes } = useEstudiantesAptos({ vacanteId });
@@ -50,11 +51,9 @@ export default function AsignacionForm({ isOpen, onClose, onCrear, isPending }) 
 
   if (!isOpen) return null;
 
-  // Vacante seleccionada (para mostrar resumen)
-  const vacanteSeleccionada = vacantes.find((v) => String(v.id) === String(vacanteId));
-  const estudianteSeleccionado = estudiantes.find(
-    (e) => String(e.id) === String(useWatch({ control, name: 'estudianteId' }))
-  );
+  // Vacante y estudiante seleccionados (para mostrar resumen)
+  const vacanteSeleccionada    = vacantes.find((v) => String(v.id) === String(vacanteId));
+  const estudianteSeleccionado = estudiantes.find((e) => String(e.id) === String(estudianteId));
 
   return (
     <div style={estilos.overlay}>
