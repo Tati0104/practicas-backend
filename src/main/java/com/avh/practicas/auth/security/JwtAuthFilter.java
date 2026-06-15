@@ -70,6 +70,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope.name()));
         }
 
+        if (rol == Rol.EMPRESA || rol == Rol.COORD_PRACTICA) {
+            authorities.add(new SimpleGrantedAuthority("EMPRESA_LISTAR"));
+        }
+
         return authorities;
     }
 }
