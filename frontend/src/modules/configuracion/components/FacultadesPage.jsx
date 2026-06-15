@@ -7,7 +7,7 @@ import { ejecutarConsulta, placeholderSimple, usarMocks } from '@/shared/config/
 import TablaBase   from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 
-export default function FacultadesPage() {
+export default function FacultadesPage({ esSubComponente = false }) {
   const [modal,    setModal]    = useState(false);
   const [editando, setEditando] = useState(null);
   const [nombre,   setNombre]   = useState('');
@@ -85,10 +85,10 @@ export default function FacultadesPage() {
   ];
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div style={esSubComponente ? {} : { padding: 20, fontFamily: 'Arial, sans-serif' }}>
       <div style={estilos.encabezado}>
-        <h2 style={estilos.titulo}>Facultades</h2>
-        <button onClick={abrirCrear} style={estilos.btnPrimario}>+ Nueva facultad</button>
+        {!esSubComponente && <h2 style={estilos.titulo}>Facultades</h2>}
+        <button onClick={abrirCrear} style={{ ...estilos.btnPrimario, marginLeft: esSubComponente ? 'auto' : 0 }}>+ Nueva facultad</button>
       </div>
 
       <TablaBase columnas={columnas} datos={facultades} cargando={isLoading} />

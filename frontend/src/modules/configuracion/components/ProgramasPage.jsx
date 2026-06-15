@@ -7,7 +7,7 @@ import { ejecutarConsulta, placeholderSimple, usarMocks } from '@/shared/config/
 import TablaBase   from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 
-export default function ProgramasPage() {
+export default function ProgramasPage({ esSubComponente = false }) {
   const [modal,      setModal]      = useState(false);
   const [editando,   setEditando]   = useState(null);
   const [nombre,     setNombre]     = useState('');
@@ -96,11 +96,11 @@ export default function ProgramasPage() {
   ];
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div style={esSubComponente ? {} : { fontFamily: 'Arial, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e3a5f', margin: 0 }}>Programas</h2>
+        {!esSubComponente && <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e3a5f', margin: 0 }}>Programas</h2>}
         <button onClick={abrirCrear}
-          style={{ padding: '9px 18px', background: '#1e3a5f', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+          style={{ padding: '9px 18px', background: '#1e3a5f', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, marginLeft: esSubComponente ? 'auto' : 0 }}>
           + Nuevo programa
         </button>
       </div>

@@ -5,8 +5,7 @@ const menuPorRol = {
   ADMIN: [
     { ruta: '/dashboard',                icono: '🏠', nombre: 'Inicio' },
     { ruta: '/admin/usuarios',           icono: '👥', nombre: 'Usuarios' },
-    { ruta: '/configuracion/facultades', icono: '🏫', nombre: 'Facultades' },
-    { ruta: '/configuracion/programas',  icono: '📚', nombre: 'Programas' },
+    { ruta: '/configuracion/academica',  icono: '🏫', nombre: 'Facultades y Programas' },
     { ruta: '/estudiantes',              icono: '🎓', nombre: 'Estudiantes' },
     { ruta: '/empresas',                 icono: '🏢', nombre: 'Empresas' },
     { ruta: '/vacantes-postulaciones',   icono: '📋', nombre: 'Vacantes y Postulaciones' },
@@ -14,9 +13,9 @@ const menuPorRol = {
     { ruta: '/seguimiento',              icono: '📊', nombre: 'Seguimiento' },
   ],
   COORD_ACADEMICA: [
-    { ruta: '/dashboard',          icono: '🏠', nombre: 'Inicio' },
-    { ruta: '/configuracion/programas',  icono: '📚', nombre: 'Programas' },
-    { ruta: '/estudiantes',        icono: '🎓', nombre: 'Estudiantes' },
+    { ruta: '/dashboard',                icono: '🏠', nombre: 'Inicio' },
+    { ruta: '/configuracion/academica',  icono: '🏫', nombre: 'Facultades y Programas' },
+    { ruta: '/estudiantes',              icono: '🎓', nombre: 'Estudiantes' },
   ],
   COORD_PRACTICA: [
     { ruta: '/dashboard',              icono: '🏠', nombre: 'Inicio' },

@@ -14,7 +14,7 @@ import { VinculacionPage, VinculacionDetallePage } from '@/modules/vinculacion';
 import { CierrePage } from '@/modules/cierre';
 import DashboardPage from '@/modules/dashboard/components/DashboardPage';
 import UsuariosPage from '@/modules/usuario/components/UsuariosPage';
-import FacultadesPage from '@/modules/configuracion/components/FacultadesPage';
+import FacultadesProgramasPage from '@/modules/configuracion/components/FacultadesProgramasPage';
 import EstudiantesPage from '@/modules/estudiante/components/EstudiantesPage';
 import EmpresasPage from '@/modules/empresa/components/EmpresasPage';
 import ProgramasPage from '@/modules/configuracion/components/ProgramasPage';
@@ -71,13 +71,15 @@ export default function AppRouter() {
           />
 
           <Route
-            path="/configuracion/facultades"
+            path="/configuracion/academica"
             element={
               <RutaPrivada roles={['ADMIN', 'COORD_ACADEMICA']}>
-                <FacultadesPage />
+                <FacultadesProgramasPage />
               </RutaPrivada>
             }
           />
+          <Route path="/configuracion/facultades" element={<Navigate to="/configuracion/academica" replace />} />
+          <Route path="/configuracion/programas" element={<Navigate to="/configuracion/academica" replace />} />
 
           <Route
             path="/estudiantes"
@@ -102,15 +104,6 @@ export default function AppRouter() {
             element={
               <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'SECRETARIA']}>
                 <EmpresasPage />
-              </RutaPrivada>
-            }
-          />
-
-          <Route
-            path="/configuracion/programas"
-            element={
-              <RutaPrivada roles={['ADMIN', 'COORD_ACADEMICA']}>
-                <ProgramasPage />
               </RutaPrivada>
             }
           />
