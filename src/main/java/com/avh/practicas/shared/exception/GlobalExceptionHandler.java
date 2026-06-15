@@ -27,9 +27,21 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(ex.getMessage());
     }
 
-    @ExceptionHandler({BadRequestException.class, IllegalArgumentException.class})
+    @ExceptionHandler({BadRequestException.class, IllegalArgumentException.class, NegocioException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBadRequest(RuntimeException ex) {
+        return ApiResponse.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleRecursoNoEncontrado(RecursoNoEncontradoException ex) {
+        return ApiResponse.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(AccesoNoAutorizadoException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleAccesoNoAutorizado(AccesoNoAutorizadoException ex) {
         return ApiResponse.error(ex.getMessage());
     }
 

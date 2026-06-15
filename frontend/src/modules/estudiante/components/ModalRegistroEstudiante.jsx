@@ -134,7 +134,7 @@ export default function ModalRegistroEstudiante({ onGuardar, onCerrar, guardando
             onChange={(e) => campo('programaId', e.target.value)}
           >
             <option value="">— Selecciona un programa —</option>
-            {programas.map((p) => (
+            {programas.filter((p) => p.activo !== false).map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nombre}
               </option>

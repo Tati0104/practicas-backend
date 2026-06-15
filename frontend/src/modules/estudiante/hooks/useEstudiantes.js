@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import estudianteService from '../services/estudianteService';
 import { MOCK_ESTUDIANTES } from '@/shared/mocks/datos';
 import { useListadoPaginado } from '@/shared/hooks/useListadoPaginado';
+import { extraerMensajeError } from '@/modules/auth/utils/schemas';
 
 export default function useEstudiantes() {
   const queryClient = useQueryClient();
@@ -14,8 +15,7 @@ export default function useEstudiantes() {
   });
 
   const alError = (err) => {
-    const msg = err?.response?.data?.mensaje || err?.response?.data?.message || 'Error inesperado. Intenta de nuevo.';
-    toast.error(msg);
+    toast.error(extraerMensajeError(err));
   };
 
   const registrar = useMutation({
