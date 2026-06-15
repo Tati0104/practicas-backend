@@ -10,7 +10,7 @@ const schema = z.object({
 const ESTADOS = [
   { value: '', label: 'Todos los estados' },
   { value: 'ASIGNADA', label: 'Asignada' },
-  { value: 'EN_VINCULACION', label: 'En Vinculación' },
+  { value: 'EN_PROCESO_VINCULACION', label: 'En Vinculación' },
   { value: 'VINCULADA', label: 'Vinculada' },
   { value: 'CANCELADA', label: 'Cancelada' },
 ];

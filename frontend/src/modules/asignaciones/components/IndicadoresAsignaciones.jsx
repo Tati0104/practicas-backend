@@ -14,11 +14,11 @@
 export default function IndicadoresAsignaciones({ asignaciones = [] }) {
   // Calcula cuántas tienen cada estado
   const activas = asignaciones.filter(
-    (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_VINCULACION'
+    (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_PROCESO_VINCULACION'
   ).length;
 
   const enVinculacion = asignaciones.filter(
-    (a) => a.estado === 'EN_VINCULACION'
+    (a) => a.estado === 'EN_PROCESO_VINCULACION'
   ).length;
 
   // "Canceladas este mes": las canceladas cuya fecha de asignación sea del mes actual

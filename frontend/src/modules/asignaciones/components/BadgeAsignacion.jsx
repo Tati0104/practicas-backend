@@ -2,7 +2,7 @@
 
 /**
  * Badge de color para los estados de una asignación.
- * Estados posibles: ASIGNADA | EN_VINCULACION | VINCULADA | CANCELADA
+ * Estados posibles: ASIGNADA | EN_PROCESO_VINCULACION | VINCULADA | CANCELADA
  *
  * Nota: el BadgeEstado compartido solo maneja activo/inactivo (booleano),
  * por eso creamos uno específico para los estados de asignación.
@@ -11,14 +11,14 @@
 // Mapa de estado → { fondo, texto }
 const COLORES = {
   ASIGNADA:       { bg: '#dbeafe', color: '#1e40af' }, // azul
-  EN_VINCULACION: { bg: '#fef9c3', color: '#854d0e' }, // amarillo
+  EN_PROCESO_VINCULACION: { bg: '#fef9c3', color: '#854d0e' }, // amarillo
   VINCULADA:      { bg: '#d1fae5', color: '#065f46' }, // verde
   CANCELADA:      { bg: '#fee2e2', color: '#991b1b' }, // rojo
 };
 
 const ETIQUETAS = {
   ASIGNADA:       'Asignada',
-  EN_VINCULACION: 'En Vinculación',
+  EN_PROCESO_VINCULACION: 'En Vinculación',
   VINCULADA:      'Vinculada',
   CANCELADA:      'Cancelada',
 };
