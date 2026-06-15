@@ -1,114 +1,59 @@
 // src/modules/asignaciones/components/AsignacionCard.jsx
 
-/**
- * Tarjeta individual de asignación para vista móvil.
- * Muestra los mismos datos que la tabla pero en formato card apilado.
- * Se usa cuando el ancho de pantalla es < 1280px.
- */
 import { useNavigate } from 'react-router-dom';
 import BadgeAsignacion from './BadgeAsignacion';
+import { Button, Card } from '@/shared/components/ui';
 
 export default function AsignacionCard({ asignacion, onCancelar, canCancelar }) {
   const navigate = useNavigate();
 
   return (
-    <div style={estilos.card}>
-      {/* Encabezado: nombre del estudiante + badge de estado */}
-      <div style={estilos.header}>
+    <Card padding="p-4">
+      <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <div style={estilos.nombre}>{asignacion.estudiante?.nombre || '—'}</div>
-          <div style={estilos.subInfo}>
+          <div className="font-bold text-gray-900">{asignacion.estudiante?.nombre || '—'}</div>
+          <div className="text-xs text-gray-500">
             {asignacion.estudiante?.codigo} · {asignacion.estudiante?.programa}
           </div>
         </div>
         <BadgeAsignacion estado={asignacion.estado} />
       </div>
 
-      {/* Datos de la vacante */}
-      <div style={estilos.fila}>
-        <span style={estilos.label}>Cargo:</span>
-        <span style={estilos.valor}>{asignacion.vacante?.cargo || '—'}</span>
-      </div>
-      <div style={estilos.fila}>
-        <span style={estilos.label}>Empresa:</span>
-        <span style={estilos.valor}>{asignacion.vacante?.empresa || '—'}</span>
-      </div>
-      <div style={estilos.fila}>
-        <span style={estilos.label}>Fecha:</span>
-        <span style={estilos.valor}>
-          {asignacion.fechaAsignacion
-            ? new Date(asignacion.fechaAsignacion).toLocaleDateString('es-CO')
-            : '—'}
-        </span>
-      </div>
+      <dl className="space-y-1 text-sm">
+        <div className="flex gap-2">
+          <dt className="min-w-[70px] text-gray-500">Cargo:</dt>
+          <dd className="font-medium text-gray-900">{asignacion.vacante?.cargo || '—'}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="min-w-[70px] text-gray-500">Empresa:</dt>
+          <dd className="font-medium text-gray-900">{asignacion.vacante?.empresa || '—'}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="min-w-[70px] text-gray-500">Fecha:</dt>
+          <dd className="font-medium text-gray-900">
+            {asignacion.fechaAsignacion
+              ? new Date(asignacion.fechaAsignacion).toLocaleDateString('es-CO')
+              : '—'}
+          </dd>
+        </div>
+      </dl>
 
-      {/* Botones de acción */}
-      <div style={estilos.acciones}>
-        <button
+      <div className="mt-3 flex gap-2">
+        <Button
+          size="sm"
+          className="flex-1 bg-blue-600 hover:bg-blue-700"
           onClick={() => navigate(`/asignaciones/${asignacion.id}`)}
-          style={estilos.btnVer}
         >
           Ver detalle
-        </button>
-
+        </Button>
         {canCancelar &&
           asignacion.estado !== 'CANCELADA' &&
           asignacion.estado !== 'VINCULADA' && (
-            <button
-              onClick={() => onCancelar(asignacion)}
-              style={estilos.btnCancelar}
-            >
+            <Button variant="danger" size="sm" className="flex-1" onClick={() => onCancelar(asignacion)}>
               Cancelar
-            </button>
+            </Button>
           )}
       </div>
-    </div>
+    </Card>
   );
 }
-
-const estilos = {
-  card: {
-    background: '#ffffff',
-    border: '1px solid #e5e7eb',
-    borderRadius: 10,
-    padding: 16,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  nombre:  { fontWeight: 700, fontSize: 14, color: '#111827' },
-  subInfo: { fontSize: 11, color: '#6b7280', marginTop: 2 },
-  fila:    { display: 'flex', gap: 8, fontSize: 13 },
-  label:   { color: '#6b7280', minWidth: 65 },
-  valor:   { color: '#111827', fontWeight: 500 },
-  acciones: { display: 'flex', gap: 8, marginTop: 8 },
-  btnVer: {
-    flex: 1,
-    padding: '7px 0',
-    background: '#2563eb',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 6,
-    fontSize: 13,
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-  btnCancelar: {
-    flex: 1,
-    padding: '7px 0',
-    background: '#fee2e2',
-    color: '#991b1b',
-    border: '1px solid #fca5a5',
-    borderRadius: 6,
-    fontSize: 13,
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-};

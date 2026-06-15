@@ -1,49 +1,49 @@
-export default function TarjetaResumen({ titulo, valor, icono, color = '#1e3a5f' }) {
-    return (
-      <div style={{ ...estilos.tarjeta, borderTop: `4px solid ${color}` }}>
-        <div style={estilos.fila}>
-          <div>
-            <p style={estilos.titulo}>{titulo}</p>
-            <p style={{ ...estilos.valor, color }}>{valor ?? '—'}</p>
-          </div>
-          <span style={{ ...estilos.icono, background: color + '20', color }}>
-            {icono}
-          </span>
+import {
+  Award,
+  Building2,
+  ClipboardList,
+  Clock,
+  GraduationCap,
+  Link2,
+  Star,
+  Users,
+} from 'lucide-react';
+import { Card } from '@/shared/components/ui';
+
+const ICONOS = {
+  users: Users,
+  graduation: GraduationCap,
+  building: Building2,
+  clipboard: ClipboardList,
+  clock: Clock,
+  link: Link2,
+  star: Star,
+  award: Award,
+};
+
+const COLORES = {
+  primary: { border: 'border-t-primary', icon: 'bg-primary/10 text-primary', text: 'text-primary' },
+  emerald: { border: 'border-t-emerald-600', icon: 'bg-emerald-50 text-emerald-600', text: 'text-emerald-600' },
+  amber: { border: 'border-t-amber-500', icon: 'bg-amber-50 text-amber-600', text: 'text-amber-600' },
+  violet: { border: 'border-t-violet-600', icon: 'bg-violet-50 text-violet-600', text: 'text-violet-600' },
+  red: { border: 'border-t-red-600', icon: 'bg-red-50 text-red-600', text: 'text-red-600' },
+};
+
+export default function TarjetaResumen({ titulo, valor, icono = 'clipboard', color = 'primary' }) {
+  const Icon = ICONOS[icono] ?? ClipboardList;
+  const palette = COLORES[color] ?? COLORES.primary;
+
+  return (
+    <Card padding="p-5" className={`border-t-4 ${palette.border}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm text-gray-500">{titulo}</p>
+          <p className={`mt-1 text-2xl font-bold ${palette.text}`}>{valor ?? '—'}</p>
+        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${palette.icon}`}>
+          <Icon className="h-5 w-5" aria-hidden="true" />
         </div>
       </div>
-    );
-  }
-  
-  const estilos = {
-    tarjeta: {
-      background: '#fff',
-      borderRadius: 10,
-      padding: '20px 22px',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.07)',
-      fontFamily: 'Arial, sans-serif'
-    },
-    fila: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    titulo: {
-      fontSize: 13,
-      color: '#6b7280',
-      margin: '0 0 6px'
-    },
-    valor: {
-      fontSize: 28,
-      fontWeight: 700,
-      margin: 0
-    },
-    icono: {
-      width: 48,
-      height: 48,
-      borderRadius: 10,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 22
-    }
-  };
+    </Card>
+  );
+}

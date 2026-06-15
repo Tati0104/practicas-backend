@@ -38,7 +38,7 @@ export default function RecuperarForm() {
         </p>
         <Link
           to="/login"
-          className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           Volver al inicio de sesión
@@ -62,7 +62,7 @@ export default function RecuperarForm() {
           type="email"
           autoComplete="email"
           placeholder="correo@avh.edu.co"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           {...register('correo')}
         />
         {errors.correo && (
@@ -75,7 +75,7 @@ export default function RecuperarForm() {
       <button
         type="submit"
         disabled={cargando}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
         {cargando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
         {cargando ? 'Enviando...' : 'Enviar enlace'}
@@ -84,7 +84,7 @@ export default function RecuperarForm() {
       <div className="text-center">
         <Link
           to="/login"
-          className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           Volver al inicio de sesión

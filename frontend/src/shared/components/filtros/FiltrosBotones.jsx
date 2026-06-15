@@ -1,15 +1,15 @@
-import { estilosFiltros } from './estilos';
+import { Button } from '../ui';
 
 export default function FiltrosBotones({ onBuscar, onLimpiar, textoBuscar = 'Buscar', mostrarLimpiar = true }) {
   return (
     <>
-      <button type="submit" style={estilosFiltros.btnBuscar} onClick={onBuscar}>
+      <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={onBuscar}>
         {textoBuscar}
-      </button>
+      </Button>
       {mostrarLimpiar && (
-        <button type="button" style={estilosFiltros.btnLimpiar} onClick={onLimpiar}>
+        <Button type="button" variant="secondary" size="sm" onClick={onLimpiar}>
           Limpiar
-        </button>
+        </Button>
       )}
     </>
   );

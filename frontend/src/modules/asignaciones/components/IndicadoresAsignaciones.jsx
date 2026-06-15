@@ -1,86 +1,51 @@
-// src/modules/asignaciones/components/IndicadoresAsignaciones.jsx
+import { Link2, Ban, ClipboardList } from 'lucide-react';
 
-/**
- * Tarjetas de resumen estadístico del módulo Asignaciones.
- *
- * Muestra 3 indicadores:
- *   1. Total asignaciones activas (ASIGNADA + EN_VINCULACION)
- *   2. En proceso de vinculación (EN_VINCULACION)
- *   3. Canceladas este mes (CANCELADA)
- *
- * Calcula los valores a partir de la lista recibida por props (sin petición extra).
- * En desktop muestra 3 columnas, en mobile 1 columna.
- */
+const tarjetasConfig = [
+  {
+    key: 'activas',
+    titulo: 'Asignaciones activas',
+    icon: ClipboardList,
+    bg: 'bg-blue-50 border-blue-200',
+    text: 'text-blue-700',
+  },
+  {
+    key: 'vinculacion',
+    titulo: 'En vinculación',
+    icon: Link2,
+    bg: 'bg-amber-50 border-amber-200',
+    text: 'text-amber-700',
+  },
+  {
+    key: 'canceladas',
+    titulo: 'Canceladas este mes',
+    icon: Ban,
+    bg: 'bg-red-50 border-red-200',
+    text: 'text-red-700',
+  },
+];
+
 export default function IndicadoresAsignaciones({ asignaciones = [] }) {
-  // Calcula cuántas tienen cada estado
-  const activas = asignaciones.filter(
-    (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_VINCULACION'
-  ).length;
-
-  const enVinculacion = asignaciones.filter(
-    (a) => a.estado === 'EN_VINCULACION'
-  ).length;
-
-  // "Canceladas este mes": las canceladas cuya fecha de asignación sea del mes actual
   const ahora = new Date();
-  const canceladasMes = asignaciones.filter((a) => {
-    if (a.estado !== 'CANCELADA' || !a.fechaAsignacion) return false;
-    const fecha = new Date(a.fechaAsignacion);
-    return (
-      fecha.getMonth() === ahora.getMonth() &&
-      fecha.getFullYear() === ahora.getFullYear()
-    );
-  }).length;
 
-  const tarjetas = [
-    {
-      titulo: 'Asignaciones activas',
-      valor: activas,
-      color: '#2563eb',
-      fondo: '#eff6ff',
-      icono: '📋',
-    },
-    {
-      titulo: 'En vinculación',
-      valor: enVinculacion,
-      color: '#854d0e',
-      fondo: '#fef9c3',
-      icono: '🔗',
-    },
-    {
-      titulo: 'Canceladas este mes',
-      valor: canceladasMes,
-      color: '#991b1b',
-      fondo: '#fee2e2',
-      icono: '🚫',
-    },
-  ];
+  const conteos = {
+    activas: asignaciones.filter(
+      (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_VINCULACION'
+    ).length,
+    vinculacion: asignaciones.filter((a) => a.estado === 'EN_VINCULACION').length,
+    canceladas: asignaciones.filter((a) => {
+      if (a.estado !== 'CANCELADA' || !a.fechaAsignacion) return false;
+      const fecha = new Date(a.fechaAsignacion);
+      return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+    }).length,
+  };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 12,
-        marginBottom: 20,
-      }}
-    >
-      {tarjetas.map((t) => (
-        <div
-          key={t.titulo}
-          style={{
-            background: t.fondo,
-            border: `1px solid ${t.color}22`,
-            borderRadius: 10,
-            padding: '14px 18px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          <div style={{ fontSize: 20 }}>{t.icono}</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: t.color }}>{t.valor}</div>
-          <div style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>{t.titulo}</div>
+    <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {tarjetasConfig.map(({ key, titulo, icon: Icon, bg, text }) => (
+        <div key={key} className={`rounded-xl border p-4 ${bg}`}>
+          <Icon className={`mb-1 h-5 w-5 ${text}`} aria-hidden="true" />
+          <div className={`text-2xl font-extrabold ${text}`}>{conteos[key]}</div>
+          <div className="text-xs font-semibold text-gray-600">{titulo}</div>
         </div>
       ))}
     </div>

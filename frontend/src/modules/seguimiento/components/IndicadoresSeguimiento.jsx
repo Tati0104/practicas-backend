@@ -1,27 +1,27 @@
 // src/modules/seguimiento/components/IndicadoresSeguimiento.jsx
 
-/**
- * Tarjetas de resumen del tablero de seguimiento.
- * Muestra: Al día, Pendiente, En alerta — calculado desde la lista recibida.
- */
-export default function IndicadoresSeguimiento({ practicas = [] }) {
-  const alDia     = practicas.filter((p) => p.estado === 'AL_DIA').length;
-  const pendiente = practicas.filter((p) => p.estado === 'PENDIENTE').length;
-  const enAlerta  = practicas.filter((p) => p.estado === 'EN_ALERTA').length;
+import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
-  const tarjetas = [
-    { titulo: 'Al día',     valor: alDia,     color: '#15803d', fondo: '#dcfce7', icono: '✅' },
-    { titulo: 'Pendiente',  valor: pendiente, color: '#b45309', fondo: '#fef3c7', icono: '⏳' },
-    { titulo: 'En alerta',  valor: enAlerta,  color: '#b91c1c', fondo: '#fee2e2', icono: '🚨' },
-  ];
+const tarjetasConfig = [
+  { key: 'AL_DIA', titulo: 'Al día', icon: CheckCircle2, bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
+  { key: 'PENDIENTE', titulo: 'Pendiente', icon: Clock, bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
+  { key: 'EN_ALERTA', titulo: 'En alerta', icon: AlertTriangle, bg: 'bg-red-50 border-red-200', text: 'text-red-700' },
+];
+
+export default function IndicadoresSeguimiento({ practicas = [] }) {
+  const conteos = {
+    AL_DIA: practicas.filter((p) => p.estado === 'AL_DIA').length,
+    PENDIENTE: practicas.filter((p) => p.estado === 'PENDIENTE').length,
+    EN_ALERTA: practicas.filter((p) => p.estado === 'EN_ALERTA').length,
+  };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 20 }}>
-      {tarjetas.map((t) => (
-        <div key={t.titulo} style={{ background: t.fondo, border: `1px solid ${t.color}22`, borderRadius: 10, padding: '14px 18px' }}>
-          <div style={{ fontSize: 20 }}>{t.icono}</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: t.color }}>{t.valor}</div>
-          <div style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>{t.titulo}</div>
+    <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {tarjetasConfig.map(({ key, titulo, icon: Icon, bg, text }) => (
+        <div key={key} className={`rounded-xl border p-4 ${bg}`}>
+          <Icon className={`mb-1 h-5 w-5 ${text}`} aria-hidden="true" />
+          <div className={`text-2xl font-extrabold ${text}`}>{conteos[key]}</div>
+          <div className="text-xs font-semibold text-gray-600">{titulo}</div>
         </div>
       ))}
     </div>

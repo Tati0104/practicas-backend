@@ -45,7 +45,7 @@ export default function VinculacionFiltros({ filtros, setFiltros }) {
           <FiltroInput
             {...register('programaId')}
             placeholder="ID Programa"
-            style={{ maxWidth: 130, flex: 'none' }}
+            className="max-w-[130px] flex-none"
           />
           <FiltroSelect {...register('estado')} opciones={ESTADOS} />
         </>

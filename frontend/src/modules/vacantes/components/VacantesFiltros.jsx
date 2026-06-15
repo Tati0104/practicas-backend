@@ -44,10 +44,10 @@ export default function VacantesFiltros({ filtros, setFiltros }) {
     >
       {({ register }) => (
         <>
-          <FiltroInput {...register('empresaId')} placeholder="Empresa" style={{ flex: 'none', minWidth: 140 }} />
-          <FiltroInput {...register('programaId')} placeholder="Programa" style={{ flex: 'none', minWidth: 140 }} />
+          <FiltroInput {...register('empresaId')} placeholder="Empresa" className="min-w-[140px] flex-none" />
+          <FiltroInput {...register('programaId')} placeholder="Programa" className="min-w-[140px] flex-none" />
           <FiltroSelect {...register('estado')} opciones={ESTADOS} />
-          <FiltroInput {...register('busqueda')} placeholder="Buscar..." style={{ flex: 'none', minWidth: 160 }} />
+          <FiltroInput {...register('busqueda')} placeholder="Buscar..." className="min-w-[160px] flex-none" />
         </>
       )}
     </FiltrosFormulario>

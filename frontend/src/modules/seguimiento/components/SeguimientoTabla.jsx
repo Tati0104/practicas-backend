@@ -1,59 +1,59 @@
 // src/modules/seguimiento/components/SeguimientoTabla.jsx
 
-/**
- * Tabla del tablero de seguimiento (vista desktop).
- */
-import { useNavigate } from 'react-router-dom';
+import { Badge, Button } from '@/shared/components/ui';
 
 const BADGE = {
-  AL_DIA:    { label: 'Al día',    bg: '#dcfce7', color: '#15803d' },
-  PENDIENTE: { label: 'Pendiente', bg: '#fef3c7', color: '#b45309' },
-  EN_ALERTA: { label: 'En alerta', bg: '#fee2e2', color: '#b91c1c' },
+  AL_DIA: { label: 'Al día', variant: 'success' },
+  PENDIENTE: { label: 'Pendiente', variant: 'warning' },
+  EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
-export default function SeguimientoTabla({ practicas = [], onVerDetalle }) {
+export default function SeguimientoTabla({ practicas = [], onVerDetalle, etiquetaAccion = 'Ver' }) {
   return (
-    <div style={{ overflowX: 'auto', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+    <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <table className="w-full border-collapse text-sm">
         <thead>
-          <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+          <tr className="border-b border-gray-200 bg-slate-50">
             {['Estudiante', 'Empresa / Cargo', 'Docente', 'Avance', 'Estado', 'Acciones'].map((h) => (
-              <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, color: '#374151', fontSize: 13 }}>{h}</th>
+              <th
+                key={h}
+                className="px-3.5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"
+              >
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {practicas.map((p) => {
-            const badge = BADGE[p.estado] || { label: p.estado, bg: '#f3f4f6', color: '#374151' };
+            const badge = BADGE[p.estado] || { label: p.estado, variant: 'neutral' };
             return (
-              <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 600, color: '#111827' }}>{p.estudiante?.nombre}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>{p.estudiante?.codigo}</div>
+              <tr key={p.id} className="border-b border-gray-100 bg-white">
+                <td className="px-3.5 py-3">
+                  <div className="font-semibold text-gray-900">{p.estudiante?.nombre}</div>
+                  <div className="text-xs text-gray-500">{p.estudiante?.codigo}</div>
                 </td>
-                <td style={{ padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 600 }}>{p.cargo}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280' }}>{p.empresa}</div>
+                <td className="px-3.5 py-3">
+                  <div className="font-medium text-gray-800">{p.cargo}</div>
+                  <div className="text-xs text-gray-500">{p.empresa}</div>
                 </td>
-                <td style={{ padding: '12px 14px', color: '#374151' }}>{p.docente}</td>
-                <td style={{ padding: '12px 14px', minWidth: 120 }}>
-                  <div style={{ background: '#e5e7eb', borderRadius: 99, height: 6, overflow: 'hidden', marginBottom: 4 }}>
-                    <div style={{ background: '#2563eb', width: `${p.porcentajeAvance || 0}%`, height: '100%', borderRadius: 99 }} />
+                <td className="px-3.5 py-3 text-gray-700">{p.docente}</td>
+                <td className="min-w-[120px] px-3.5 py-3">
+                  <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${p.porcentajeAvance || 0}%` }}
+                    />
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{p.porcentajeAvance || 0}%</div>
+                  <div className="text-xs text-gray-500">{p.porcentajeAvance || 0}%</div>
                 </td>
-                <td style={{ padding: '12px 14px' }}>
-                  <span style={{ background: badge.bg, color: badge.color, borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
-                    {badge.label}
-                  </span>
+                <td className="px-3.5 py-3">
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
                 </td>
-                <td style={{ padding: '12px 14px' }}>
-                  <button
-                    onClick={() => onVerDetalle(p.id)}
-                    style={{ padding: '6px 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}
-                  >
-                    Ver
-                  </button>
+                <td className="px-3.5 py-3">
+                  <Button size="sm" onClick={() => onVerDetalle(p.id)}>
+                    {etiquetaAccion}
+                  </Button>
                 </td>
               </tr>
             );

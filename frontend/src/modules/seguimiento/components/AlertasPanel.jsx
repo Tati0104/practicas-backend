@@ -1,65 +1,70 @@
 // src/modules/seguimiento/components/AlertasPanel.jsx
 
-/**
- * Panel lateral de alertas.
- * Permite filtrar por no leídas y marcar alertas como leídas.
- */
+import { Bell } from 'lucide-react';
 import { useAlertas } from '../hooks/useAlertas';
+import { Badge, Button, Card } from '@/shared/components/ui';
 
 export default function AlertasPanel({ practicaId = null }) {
-  const { alertas, noLeidas, isLoading, soloNoLeidas, setSoloNoLeidas, marcarLeida, isPendingMarcar } =
-    useAlertas(practicaId);
+  const {
+    alertas,
+    noLeidas,
+    isLoading,
+    soloNoLeidas,
+    setSoloNoLeidas,
+    marcarLeida,
+    isPendingMarcar,
+  } = useAlertas(practicaId);
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, minWidth: 260 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>
-          🔔 Alertas {noLeidas > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: 99, padding: '1px 7px', fontSize: 11, marginLeft: 6 }}>{noLeidas}</span>}
+    <Card padding="p-4" className="min-w-0">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+          <Bell className="h-4 w-4" aria-hidden="true" />
+          Alertas
+          {noLeidas > 0 && <Badge variant="danger">{noLeidas}</Badge>}
         </h3>
         <button
+          type="button"
           onClick={() => setSoloNoLeidas(!soloNoLeidas)}
-          style={{ fontSize: 12, color: soloNoLeidas ? '#2563eb' : '#6b7280', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+          className={`text-xs font-semibold ${soloNoLeidas ? 'text-blue-600' : 'text-gray-500'} hover:underline`}
         >
           {soloNoLeidas ? 'Ver todas' : 'Solo no leídas'}
         </button>
       </div>
 
-      {isLoading && <div style={{ color: '#9ca3af', fontSize: 13 }}>Cargando...</div>}
+      {isLoading && <p className="text-sm text-gray-400">Cargando...</p>}
 
       {!isLoading && alertas.length === 0 && (
-        <div style={{ color: '#9ca3af', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
+        <p className="py-6 text-center text-sm text-gray-400">
           Sin alertas {soloNoLeidas ? 'pendientes' : ''}
-        </div>
+        </p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {alertas.map((alerta) => (
           <div
             key={alerta.id}
-            style={{
-              background: alerta.leida ? '#f9fafb' : '#fef3c7',
-              border: `1px solid ${alerta.leida ? '#e5e7eb' : '#fcd34d'}`,
-              borderRadius: 8,
-              padding: '10px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
+            className={[
+              'rounded-lg border p-3',
+              alerta.leida ? 'border-gray-200 bg-gray-50' : 'border-amber-300 bg-amber-50',
+            ].join(' ')}
           >
-            <div style={{ fontSize: 13, color: '#374151' }}>{alerta.mensaje}</div>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>{alerta.fecha}</div>
+            <p className="text-sm text-gray-700">{alerta.mensaje}</p>
+            <p className="mt-1 text-xs text-gray-400">{alerta.fecha}</p>
             {!alerta.leida && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 self-end text-blue-600"
                 onClick={() => marcarLeida(alerta.id)}
                 disabled={isPendingMarcar}
-                style={{ alignSelf: 'flex-end', fontSize: 11, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
               >
                 Marcar como leída
-              </button>
+              </Button>
             )}
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

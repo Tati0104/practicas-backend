@@ -1,76 +1,62 @@
 import { useResumen } from '../hooks/useDashboard';
 import TarjetaResumen from './TarjetaResumen';
-import CentroAlertas  from './CentroAlertas';
-import useAuth        from '../../../shared/hooks/useAuth';
+import CentroAlertas from './CentroAlertas';
+import useAuth from '../../../shared/hooks/useAuth';
+import { PageHeader } from '@/shared/components/ui';
 
-// Tarjetas según el rol del usuario
 function tarjetasPorRol(rol, datos) {
   const d = datos || {};
   const mapa = {
     ADMIN: [
-      { titulo: 'Usuarios activos',       valor: d.usuariosActivos,     icono: '👥', color: '#1e3a5f' },
-      { titulo: 'Estudiantes en práctica', valor: d.estudiantesEnPractica, icono: '🎓', color: '#059669' },
-      { titulo: 'Empresas vinculadas',    valor: d.empresasActivas,     icono: '🏢', color: '#d97706' },
-      { titulo: 'Vacantes activas',       valor: d.vacantesActivas,     icono: '📋', color: '#7c3aed' },
+      { titulo: 'Usuarios activos', valor: d.usuariosActivos, icono: 'users', color: 'primary' },
+      { titulo: 'Estudiantes en práctica', valor: d.estudiantesEnPractica, icono: 'graduation', color: 'emerald' },
+      { titulo: 'Empresas vinculadas', valor: d.empresasActivas, icono: 'building', color: 'amber' },
+      { titulo: 'Vacantes activas', valor: d.vacantesActivas, icono: 'clipboard', color: 'violet' },
     ],
     COORD_PRACTICA: [
-      { titulo: 'Vacantes para aprobar',  valor: d.vacantesParaAprobar, icono: '⏳', color: '#d97706' },
-      { titulo: 'Asignaciones activas',   valor: d.asignacionesActivas, icono: '🔗', color: '#1e3a5f' },
-      { titulo: 'En práctica',            valor: d.estudiantesEnPractica, icono: '🎓', color: '#059669' },
-      { titulo: 'Cierres pendientes',     valor: d.cierresPendientes,   icono: '📝', color: '#dc2626' },
+      { titulo: 'Vacantes para aprobar', valor: d.vacantesParaAprobar, icono: 'clock', color: 'amber' },
+      { titulo: 'Asignaciones activas', valor: d.asignacionesActivas, icono: 'link', color: 'primary' },
+      { titulo: 'En práctica', valor: d.estudiantesEnPractica, icono: 'graduation', color: 'emerald' },
+      { titulo: 'Cierres pendientes', valor: d.cierresPendientes, icono: 'clipboard', color: 'red' },
     ],
     COORD_ACADEMICA: [
-      { titulo: 'Sin evaluar',            valor: d.estudiantesSinEvaluar, icono: '📋', color: '#d97706' },
-      { titulo: 'Aptos sin iniciar',      valor: d.aptosSinIniciar,     icono: '✅', color: '#059669' },
+      { titulo: 'Sin evaluar', valor: d.estudiantesSinEvaluar, icono: 'clipboard', color: 'amber' },
+      { titulo: 'Aptos sin iniciar', valor: d.aptosSinIniciar, icono: 'award', color: 'emerald' },
     ],
     DOCENTE_ASESOR: [
-      { titulo: 'Mis estudiantes',        valor: d.estudiantesAsignados, icono: '🎓', color: '#1e3a5f' },
-      { titulo: 'Calificaciones pendientes', valor: d.calificacionesPendientes, icono: '⭐', color: '#d97706' },
+      { titulo: 'Mis estudiantes', valor: d.estudiantesAsignados, icono: 'graduation', color: 'primary' },
+      { titulo: 'Calificaciones pendientes', valor: d.calificacionesPendientes, icono: 'star', color: 'amber' },
     ],
     DIRECCION: [
-      { titulo: 'Practicantes activos',   valor: d.estudiantesEnPractica, icono: '🎓', color: '#059669' },
-      { titulo: 'Empresas vinculadas',    valor: d.empresasActivas,     icono: '🏢', color: '#1e3a5f' },
+      { titulo: 'Practicantes activos', valor: d.estudiantesEnPractica, icono: 'graduation', color: 'emerald' },
+      { titulo: 'Empresas vinculadas', valor: d.empresasActivas, icono: 'building', color: 'primary' },
     ],
   };
-  return mapa[rol] || mapa['ADMIN'];
+  return mapa[rol] || mapa.ADMIN;
 }
 
 export default function DashboardPage() {
-  const { usuario }                    = useAuth();
-  const { data, isLoading, isError }   = useResumen();
+  const { usuario } = useAuth();
+  const { data, isLoading, isError } = useResumen();
 
   return (
-    <div style={estilos.pagina}>
-      <h2 style={estilos.titulo}>Panel de inicio</h2>
+    <div>
+      <PageHeader titulo="Panel de inicio" />
 
-      {isLoading && <p style={estilos.msg}>Cargando indicadores...</p>}
-      {isError   && <p style={estilos.error}>No se pudo conectar con el servidor.</p>}
+      {isLoading && <p className="text-sm text-gray-500">Cargando indicadores...</p>}
+      {isError && <p className="text-sm text-red-600">No se pudo conectar con el servidor.</p>}
 
-      {/* Tarjetas de resumen */}
       {!isLoading && (
-        <div style={estilos.grid}>
-          {tarjetasPorRol(usuario?.rol, data).map((t, i) => (
-            <TarjetaResumen key={i} {...t} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {tarjetasPorRol(usuario?.rol, data).map((t) => (
+            <TarjetaResumen key={t.titulo} {...t} />
           ))}
         </div>
       )}
 
-      {/* Centro de alertas */}
-      <div style={{ marginTop: 24 }}>
+      <div className="mt-6">
         <CentroAlertas />
       </div>
     </div>
   );
 }
-
-const estilos = {
-  pagina: { fontFamily: 'Arial, sans-serif' },
-  titulo: { fontSize: 20, fontWeight: 700, color: '#1e3a5f', margin: '0 0 20px' },
-  grid:   {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: 16
-  },
-  msg:   { color: '#6b7280', fontSize: 14 },
-  error: { color: '#dc2626', fontSize: 14 }
-};

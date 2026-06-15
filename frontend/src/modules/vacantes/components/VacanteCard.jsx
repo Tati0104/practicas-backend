@@ -1,71 +1,50 @@
 // src/modules/vacantes/components/VacanteCard.jsx
 
-/**
- * Card visual para dispositivos móviles que muestra la información básica de una vacante.
- * Las acciones (aprobar, rechazar, pausar, cerrar) se habilitan según los permisos
- * recibidos en la prop `acciones`.
- *
- * NOTA: BadgeEstado del shared solo acepta `activo: boolean`.
- * Para los estados de texto de vacante usamos BadgeVacante local.
- */
-import BadgeEstado from '../../../shared/components/BadgeEstado';
-
+import BadgeVacanteEstado from './BadgeVacanteEstado';
+import { Button, Card } from '@/shared/components/ui';
 
 export default function VacanteCard({ vacante, acciones }) {
-  const {
-    aprobar,
-    rechazar,
-    pausar,
-    cerrar,
-    canApprove,
-    canReject,
-    canPause,
-    canClose,
-  } = acciones;
-
-  const handleAprobar = () => {
-    aprobar.mutate(vacante.id);
-  };
-  const handleRechazar = () => {
-    // abrir modal de rechazo (se delega a componente padre vía estado externo)
-    // aquí solo lanzamos la mutación directa si el modal no es necesario
-    rechazar.mutate({ id: vacante.id, motivo: 'Rechazado por UI' });
-  };
-  const handlePausar = () => pausar.mutate(vacante.id);
-  const handleCerrar = () => cerrar.mutate(vacante.id);
+  const { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose } = acciones;
 
   return (
-    <div className="border rounded-lg p-4 shadow-sm bg-white">
-      <h3 className="font-semibold text-lg text-gray-800">{vacante.cargo}</h3>
-      <p className="text-sm text-gray-600">{vacante.empresa}</p>
+    <Card padding="p-4">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div>
+          <h3 className="font-semibold text-gray-900">{vacante.cargo}</h3>
+          <p className="text-sm text-gray-600">{vacante.empresa}</p>
+        </div>
+        <BadgeVacanteEstado estado={vacante.estado} />
+      </div>
       <p className="text-sm text-gray-600">{vacante.modalidad}</p>
       <p className="text-sm text-gray-600">
         Cupos: {vacante.cuposDisponibles} / {vacante.cuposTotal}
       </p>
-      {/* Badge de estado: usamos activo=true solo para ACTIVA, false para el resto */}
-      <BadgeEstado activo={vacante.estado === 'ACTIVA'} />
-      <div className="mt-3 flex flex-wrap gap-2">
-        {canApprove && (
-          <button onClick={handleAprobar} className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {canApprove && vacante.estado === 'PENDIENTE_APROBACION' && (
+          <Button variant="success" size="sm" onClick={() => aprobar.mutate(vacante.id)}>
             Aprobar
-          </button>
+          </Button>
         )}
-        {canReject && (
-          <button onClick={handleRechazar} className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+        {canReject && vacante.estado === 'PENDIENTE_APROBACION' && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => rechazar.mutate({ id: vacante.id, motivo: 'Rechazado por UI' })}
+          >
             Rechazar
-          </button>
+          </Button>
         )}
-        {canPause && (
-          <button onClick={handlePausar} className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
+        {canPause && vacante.estado === 'ACTIVA' && (
+          <Button variant="warning" size="sm" onClick={() => pausar.mutate(vacante.id)}>
             Pausar
-          </button>
+          </Button>
         )}
-        {canClose && (
-          <button onClick={handleCerrar} className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
+        {canClose && vacante.estado !== 'CERRADA' && (
+          <Button variant="ghost" size="sm" onClick={() => cerrar.mutate(vacante.id)}>
             Cerrar
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

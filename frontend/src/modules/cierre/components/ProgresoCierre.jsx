@@ -20,12 +20,12 @@ export default function ProgresoCierre({
             {itemsCompletados} de {totalItems} requisitos completados
           </p>
         </div>
-        <p className="text-2xl font-bold text-blue-700">{porcentaje}%</p>
+        <p className="text-2xl font-bold text-primary">{porcentaje}%</p>
       </div>
 
       <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
         <div
-          className="h-full rounded-full bg-blue-700 transition-all duration-300"
+          className="h-full rounded-full bg-primary transition-all duration-300"
           style={{ width: `${porcentaje}%` }}
           role="progressbar"
           aria-valuenow={porcentaje}

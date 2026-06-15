@@ -1,55 +1,23 @@
 // src/modules/vinculacion/components/VinculacionTabla.jsx
 
-/**
- * Componente: VinculacionTabla
- * ─────────────────────────────
- * Tabla desktop para listar los procesos de vinculación activos.
- * Se usa en pantallas ≥ 1280px. En móvil se usa VinculacionCard en su lugar.
- *
- * Reutiliza TablaBase del shared para mantener el estilo consistente con el resto
- * de módulos (VacantesTabla, AsignacionesTabla).
- *
- * Columnas mostradas:
- *   1. Estudiante     — nombre, código y programa
- *   2. Vacante        — cargo + empresa
- *   3. Carta          — badge de estado + progreso de firmas
- *   4. Convenio       — badge de estado + progreso de firmas
- *   5. Progreso total — X/2 documentos completados
- *   6. Acciones       — botón "Gestionar" → navega a la página de detalle
- *
- * Props:
- *   vinculaciones  → array de objetos de vinculación con sus documentos
- *   isLoading      → boolean — muestra "Cargando..." en TablaBase
- *   onGestionar    → function(vinculacion) — navega al detalle
- */
-
 import { useNavigate } from 'react-router-dom';
-import TablaBase    from '../../../shared/components/TablaBase';
+import TablaBase from '../../../shared/components/TablaBase';
 import BadgeDocumento from './BadgeDocumento';
+import { Button } from '@/shared/components/ui';
 
 export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar }) {
   const navigate = useNavigate();
 
-  /**
-   * Calcula cuántos documentos de la vinculación están en estado FIRMADO.
-   * Sirve para mostrar el progreso global "X/2".
-   */
-  const contarFirmados = (docs = []) =>
-    docs.filter((d) => d.estado === 'FIRMADO').length;
+  const contarFirmados = (docs = []) => docs.filter((d) => d.estado === 'FIRMADO').length;
 
-  // ── Definición de columnas para TablaBase ─────────────────────────────────
   const columnas = [
     {
       key: 'estudiante',
       titulo: 'Estudiante',
       render: (fila) => (
         <div>
-          {/* Nombre principal */}
-          <div style={{ fontWeight: 600, fontSize: 13 }}>
-            {fila.estudiante?.nombre || '—'}
-          </div>
-          {/* Código y programa como subtexto */}
-          <div style={{ fontSize: 11, color: '#6b7280' }}>
+          <div className="text-sm font-semibold text-gray-900">{fila.estudiante?.nombre || '—'}</div>
+          <div className="text-xs text-gray-500">
             {fila.estudiante?.codigo} · {fila.estudiante?.programa}
           </div>
         </div>
@@ -60,12 +28,8 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
       titulo: 'Cargo / Empresa',
       render: (fila) => (
         <div>
-          <div style={{ fontWeight: 600, fontSize: 13 }}>
-            {fila.vacante?.cargo || '—'}
-          </div>
-          <div style={{ fontSize: 11, color: '#6b7280' }}>
-            {fila.vacante?.empresa}
-          </div>
+          <div className="text-sm font-semibold text-gray-900">{fila.vacante?.cargo || '—'}</div>
+          <div className="text-xs text-gray-500">{fila.vacante?.empresa}</div>
         </div>
       ),
     },
@@ -73,13 +37,8 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
       key: 'carta',
       titulo: 'Carta',
       render: (fila) => {
-        // Buscamos el documento de tipo CARTA en el array de documentos
         const carta = fila.documentos?.find((d) => d.tipo === 'CARTA');
-        return carta ? (
-          <BadgeDocumento estado={carta.estado} />
-        ) : (
-          <BadgeDocumento estado="PENDIENTE" />
-        );
+        return <BadgeDocumento estado={carta?.estado || 'PENDIENTE'} />;
       },
     },
     {
@@ -87,11 +46,7 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
       titulo: 'Convenio',
       render: (fila) => {
         const convenio = fila.documentos?.find((d) => d.tipo === 'CONVENIO');
-        return convenio ? (
-          <BadgeDocumento estado={convenio.estado} />
-        ) : (
-          <BadgeDocumento estado="PENDIENTE" />
-        );
+        return <BadgeDocumento estado={convenio?.estado || 'PENDIENTE'} />;
       },
     },
     {
@@ -99,9 +54,11 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
       titulo: 'Progreso',
       render: (fila) => {
         const firmados = contarFirmados(fila.documentos);
-        const total    = fila.documentos?.length || 2;
+        const total = fila.documentos?.length || 2;
         return (
-          <span style={{ fontSize: 13, fontWeight: 600, color: firmados === total ? '#059669' : '#374151' }}>
+          <span
+            className={`text-sm font-semibold ${firmados === total ? 'text-emerald-600' : 'text-gray-700'}`}
+          >
             {firmados}/{total} firmados
           </span>
         );
@@ -111,17 +68,18 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
       key: 'acciones',
       titulo: 'Acciones',
       render: (fila) => (
-        <button
+        <Button
+          size="sm"
+          className="bg-blue-600 hover:bg-blue-700"
           onClick={() =>
             onGestionar
               ? onGestionar(fila)
               : navigate(`/vinculacion/${fila.asignacionId ?? fila.practicaId}`)
           }
-          style={estilos.btnGestionar}
           aria-label={`Gestionar vinculación de ${fila.estudiante?.nombre}`}
         >
           Gestionar
-        </button>
+        </Button>
       ),
     },
   ];
@@ -135,17 +93,3 @@ export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar
     />
   );
 }
-
-// ── Estilos ───────────────────────────────────────────────────────────────────
-const estilos = {
-  btnGestionar: {
-    padding: '4px 12px',
-    fontSize: 12,
-    background: '#2563eb',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 5,
-    cursor: 'pointer',
-    fontWeight: 600,
-  },
-};

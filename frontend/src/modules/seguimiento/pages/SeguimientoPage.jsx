@@ -1,23 +1,21 @@
 // src/modules/seguimiento/pages/SeguimientoPage.jsx
 
-/**
- * Página principal del módulo Seguimiento.
- * Muestra indicadores, filtros, tabla/cards de prácticas y panel de alertas.
- */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useSeguimiento }           from '../hooks/useSeguimiento';
-import { usePermisos }              from '../../../shared/hooks/usePermisos';
-import IndicadoresSeguimiento       from '../components/IndicadoresSeguimiento';
-import SeguimientoFiltros           from '../components/SeguimientoFiltros';
-import SeguimientoTabla             from '../components/SeguimientoTabla';
-import PracticaCard                 from '../components/PracticaCard';
-import AlertasPanel                 from '../components/AlertasPanel';
-import Paginacion                   from '../../../shared/components/Paginacion';
+import { useSeguimiento } from '../hooks/useSeguimiento';
+import IndicadoresSeguimiento from '../components/IndicadoresSeguimiento';
+import SeguimientoFiltros from '../components/SeguimientoFiltros';
+import SeguimientoTabla from '../components/SeguimientoTabla';
+import PracticaCard from '../components/PracticaCard';
+import AlertasPanel from '../components/AlertasPanel';
+import Paginacion from '../../../shared/components/Paginacion';
+import { PageHeader } from '@/shared/components/ui';
 
 function useEsDesktop() {
-  const [esDesktop, setEsDesktop] = useState(() => window.matchMedia('(min-width: 1280px)').matches);
+  const [esDesktop, setEsDesktop] = useState(() =>
+    window.matchMedia('(min-width: 1280px)').matches
+  );
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1280px)');
     const handler = (e) => setEsDesktop(e.matches);
@@ -28,9 +26,10 @@ function useEsDesktop() {
 }
 
 export default function SeguimientoPage() {
-  const navigate   = useNavigate();
-  const esDesktop  = useEsDesktop();
-  const { practicas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } = useSeguimiento();
+  const navigate = useNavigate();
+  const esDesktop = useEsDesktop();
+  const { practicas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
+    useSeguimiento();
 
   useEffect(() => {
     if (isError) toast.error('Error al cargar el tablero de seguimiento');
@@ -39,27 +38,25 @@ export default function SeguimientoPage() {
   const verDetalle = (id) => navigate(`/seguimiento/${id}`);
 
   return (
-    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Seguimiento</h1>
-      <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 20, marginTop: 0 }}>
-        Tablero de seguimiento de prácticas
-      </p>
+    <div>
+      <PageHeader
+        titulo="Seguimiento"
+        descripcion="Tablero de seguimiento de prácticas"
+      />
 
       <IndicadoresSeguimiento practicas={practicas} />
 
-      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-        {/* Columna principal */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-start">
+        <div className="min-w-0 flex-1">
           <SeguimientoFiltros filtros={filtros} setFiltros={setFiltros} />
 
           {isLoading && (
-            <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Cargando prácticas...</div>
+            <p className="py-10 text-center text-sm text-gray-500">Cargando prácticas...</p>
           )}
 
           {!isLoading && practicas.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af' }}>
-              <div style={{ fontSize: 36 }}>📋</div>
-              <p>No hay prácticas que coincidan con los filtros.</p>
+            <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-400">
+              No hay prácticas que coincidan con los filtros.
             </div>
           )}
 
@@ -68,7 +65,7 @@ export default function SeguimientoPage() {
           )}
 
           {!isLoading && practicas.length > 0 && !esDesktop && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="flex flex-col gap-3">
               {practicas.map((p) => (
                 <PracticaCard key={p.id} practica={p} onVerDetalle={verDetalle} />
               ))}
@@ -82,9 +79,8 @@ export default function SeguimientoPage() {
           />
         </div>
 
-        {/* Panel de alertas (solo desktop) */}
         {esDesktop && (
-          <div style={{ width: 280, flexShrink: 0 }}>
+          <div className="w-full shrink-0 xl:w-72">
             <AlertasPanel />
           </div>
         )}

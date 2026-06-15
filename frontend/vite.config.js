@@ -9,6 +9,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [react()],
 
+  server: {
+    port: 5173,
+    // Evita cambiar a 5174/5175: el backend solo permite CORS desde 5173 por defecto.
+    strictPort: true,
+  },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -1,22 +1,32 @@
 // src/modules/asignaciones/pages/AsignacionDetallePage.jsx
 
-/**
- * Página de detalle de una asignación.
- *
- * Muestra:
- *   - Datos del estudiante
- *   - Datos de la vacante y empresa
- *   - Programa académico
- *   - Fecha de asignación
- *   - Estado actual (con Badge)
- *   - Historial de estados (timeline)
- *
- * Usa useAsignacionDetalle que llama a GET /api/asignaciones/{id}
- */
 import { useParams, useNavigate } from 'react-router-dom';
+import { Building2, ClipboardList, User } from 'lucide-react';
 import { useAsignacionDetalle } from '../hooks/useAsignacionDetalle';
 import BadgeAsignacion from '../components/BadgeAsignacion';
 import HistorialEstados from '../components/HistorialEstados';
+import { Button, Card, PageHeader } from '@/shared/components/ui';
+
+function Seccion({ titulo, icono: Icono, children }) {
+  return (
+    <Card padding="p-0" className="mb-4 overflow-hidden">
+      <h2 className="flex items-center gap-2 border-b border-gray-200 bg-slate-50 px-4 py-3 text-sm font-bold text-gray-700">
+        {Icono && <Icono className="h-4 w-4" aria-hidden="true" />}
+        {titulo}
+      </h2>
+      <div className="divide-y divide-gray-100 px-4 py-2">{children}</div>
+    </Card>
+  );
+}
+
+function Fila({ label, valor }) {
+  return (
+    <div className="flex gap-3 py-2 text-sm">
+      <span className="min-w-[100px] font-medium text-gray-500">{label}</span>
+      <span className="text-gray-900">{valor || '—'}</span>
+    </div>
+  );
+}
 
 export default function AsignacionDetallePage() {
   const { id } = useParams();
@@ -24,63 +34,54 @@ export default function AsignacionDetallePage() {
   const { asignacion, isLoading, isError } = useAsignacionDetalle(id);
 
   if (isLoading) {
-    return (
-      <div style={estilos.centrado}>
-        <p style={{ color: '#6b7280' }}>Cargando detalle de la asignación...</p>
-      </div>
-    );
+    return <p className="py-16 text-center text-sm text-gray-500">Cargando detalle de la asignación...</p>;
   }
 
   if (isError || !asignacion) {
     return (
-      <div style={estilos.centrado}>
-        <div style={estilos.errorBox}>
-          <p>No se pudo cargar la asignación. Verifica el ID o intenta más tarde.</p>
-          <button onClick={() => navigate('/asignaciones')} style={estilos.btnVolver}>
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800">
+          <p className="mb-4">No se pudo cargar la asignación. Verifica el ID o intenta más tarde.</p>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/asignaciones')}>
             ← Volver al listado
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: 24, fontFamily: 'Arial, sans-serif' }}>
-      {/* Botón volver */}
-      <button onClick={() => navigate('/asignaciones')} style={estilos.btnVolver}>
+    <div className="mx-auto max-w-2xl">
+      <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/asignaciones')}>
         ← Volver
-      </button>
+      </Button>
 
-      {/* Título + Estado */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', margin: 0 }}>
-          Detalle de Asignación
-        </h1>
-        <BadgeAsignacion estado={asignacion.estado} />
-      </div>
+      <PageHeader
+        titulo="Detalle de asignación"
+        acciones={<BadgeAsignacion estado={asignacion.estado} />}
+      />
 
-      {/* Sección: Estudiante */}
-      <Seccion titulo="👤 Estudiante">
-        <Fila label="Nombre"    valor={asignacion.estudiante?.nombre} />
-        <Fila label="Código"    valor={asignacion.estudiante?.codigo} />
-        <Fila label="Programa"  valor={asignacion.estudiante?.programa} />
+      <Seccion titulo="Estudiante" icono={User}>
+        <Fila label="Nombre" valor={asignacion.estudiante?.nombre} />
+        <Fila label="Código" valor={asignacion.estudiante?.codigo} />
+        <Fila label="Programa" valor={asignacion.estudiante?.programa} />
       </Seccion>
 
-      {/* Sección: Vacante / Empresa */}
-      <Seccion titulo="🏢 Vacante y Empresa">
-        <Fila label="Cargo"    valor={asignacion.vacante?.cargo} />
-        <Fila label="Empresa"  valor={asignacion.vacante?.empresa} />
+      <Seccion titulo="Vacante y empresa" icono={Building2}>
+        <Fila label="Cargo" valor={asignacion.vacante?.cargo} />
+        <Fila label="Empresa" valor={asignacion.vacante?.empresa} />
         <Fila label="Modalidad" valor={asignacion.vacante?.modalidad} />
       </Seccion>
 
-      {/* Sección: Asignación */}
-      <Seccion titulo="📋 Datos de la asignación">
+      <Seccion titulo="Datos de la asignación" icono={ClipboardList}>
         <Fila
           label="Fecha"
           valor={
             asignacion.fechaAsignacion
               ? new Date(asignacion.fechaAsignacion).toLocaleDateString('es-CO', {
-                  day: '2-digit', month: 'long', year: 'numeric',
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
                 })
               : '—'
           }
@@ -88,66 +89,9 @@ export default function AsignacionDetallePage() {
         <Fila label="Estado" valor={<BadgeAsignacion estado={asignacion.estado} />} />
       </Seccion>
 
-      {/* Sección: Historial */}
-      <Seccion titulo="🕓 Historial de estados">
+      <Seccion titulo="Historial de estados" icono={ClipboardList}>
         <HistorialEstados historial={asignacion.historial || []} />
       </Seccion>
     </div>
   );
 }
-
-// Componentes auxiliares de layout
-function Seccion({ titulo, children }) {
-  return (
-    <div style={estilos.seccion}>
-      <h2 style={estilos.seccionTitulo}>{titulo}</h2>
-      <div style={estilos.seccionCuerpo}>{children}</div>
-    </div>
-  );
-}
-
-function Fila({ label, valor }) {
-  return (
-    <div style={estilos.fila}>
-      <span style={estilos.label}>{label}</span>
-      <span style={estilos.valor}>{valor || '—'}</span>
-    </div>
-  );
-}
-
-const estilos = {
-  centrado: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 },
-  errorBox: {
-    background: '#fee2e2', border: '1px solid #fca5a5',
-    borderRadius: 8, padding: 20, textAlign: 'center', color: '#991b1b',
-  },
-  btnVolver: {
-    padding: '6px 14px',
-    background: '#f1f5f9',
-    border: '1px solid #d1d5db',
-    borderRadius: 6,
-    fontSize: 13,
-    cursor: 'pointer',
-    color: '#374151',
-  },
-  seccion: {
-    background: '#fff',
-    border: '1px solid #e5e7eb',
-    borderRadius: 10,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  seccionTitulo: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: '#374151',
-    background: '#f8fafc',
-    padding: '10px 16px',
-    margin: 0,
-    borderBottom: '1px solid #e5e7eb',
-  },
-  seccionCuerpo: { padding: '10px 16px' },
-  fila:  { display: 'flex', gap: 12, padding: '6px 0', fontSize: 13, borderBottom: '1px solid #f1f5f9' },
-  label: { color: '#6b7280', minWidth: 100, fontWeight: 500 },
-  valor: { color: '#111827' },
-};

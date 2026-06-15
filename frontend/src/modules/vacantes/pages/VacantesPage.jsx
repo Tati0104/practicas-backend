@@ -1,14 +1,7 @@
 // src/modules/vacantes/pages/VacantesPage.jsx
 
-/**
- * Página principal del módulo Vacantes.
- * - Muestra la barra de filtros.
- * - En desktop renderiza una tabla reutilizando TablaBase.
- * - En mobile renderiza tarjetas individuales.
- * - Utiliza los hooks useVacantes y useVacantesMutaciones.
- * - Controla permisos mediante usePermisos.
- */
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useVacantes } from '../hooks/useVacantes';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
 import VacantesFiltros from '../components/VacantesFiltros';
@@ -17,13 +10,11 @@ import VacanteCard from '../components/VacanteCard';
 import VacanteForm from '../components/VacanteForm';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import Paginacion from '../../../shared/components/Paginacion';
-import { toast } from 'react-hot-toast';
+import { Button, PageHeader } from '@/shared/components/ui';
 
-// Hook nativo para detectar breakpoint sin dependencia extra.
-// Escucha cambios en tiempo real y limpia el listener al desmontar.
 function useEsDesktop() {
-  const [esDesktop, setEsDesktop] = useState(
-    () => window.matchMedia('(min-width: 1280px)').matches
+  const [esDesktop, setEsDesktop] = useState(() =>
+    window.matchMedia('(min-width: 1280px)').matches
   );
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1280px)');
@@ -34,18 +25,21 @@ function useEsDesktop() {
   return esDesktop;
 }
 
-
 export default function VacantesPage() {
-  const { vacantes, isLoading, isError, filtros, setFiltros, totalPaginas, irAPagina, refetch } = useVacantes();
-  const { crear, editar, aprobar, rechazar, pausar, cerrar } = useVacantesMutaciones({ onSuccess: () => {
-    toast.success('Operación exitosa');
-    refetch();
-  }, onError: (err) => {
-    toast.error(err?.message || 'Error en la operación');
-  } });
+  const { vacantes, isLoading, isError, filtros, setFiltros, totalPaginas, irAPagina, refetch } =
+    useVacantes();
+  const { aprobar, rechazar, pausar, cerrar } = useVacantesMutaciones({
+    onSuccess: () => {
+      toast.success('Operación exitosa');
+      refetch();
+    },
+    onError: (err) => {
+      toast.error(err?.message || 'Error en la operación');
+    },
+  });
 
   const isDesktop = useEsDesktop();
-  const { canCreate, canEdit, canApprove, canReject, canPause, canClose } = usePermisos();
+  const { canCreate, canApprove, canReject, canPause, canClose } = usePermisos();
   const [formAbierto, setFormAbierto] = useState(false);
   const [vacanteEditando, setVacanteEditando] = useState(null);
 
@@ -53,50 +47,59 @@ export default function VacantesPage() {
     if (isError) toast.error('Error al cargar vacantes');
   }, [isError]);
 
-  const abrirCrear = () => { setVacanteEditando(null); setFormAbierto(true); };
-  const cerrarForm = () => { setFormAbierto(false); setVacanteEditando(null); refetch(); };
+  const abrirCrear = () => {
+    setVacanteEditando(null);
+    setFormAbierto(true);
+  };
+  const cerrarForm = () => {
+    setFormAbierto(false);
+    setVacanteEditando(null);
+    refetch();
+  };
+
+  const acciones = { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">Vacantes</h1>
-        {canCreate && (
-          <button
-            onClick={abrirCrear}
-            className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-semibold hover:bg-blue-800"
-          >
-            + Nueva vacante
-          </button>
-        )}
-      </div>
+    <div>
+      <PageHeader
+        titulo="Vacantes"
+        descripcion="Gestión de vacantes y postulaciones"
+        acciones={
+          canCreate ? <Button onClick={abrirCrear}>+ Nueva vacante</Button> : null
+        }
+      />
+
       <VacantesFiltros filtros={filtros} setFiltros={setFiltros} />
-      {isLoading && (<div className="flex justify-center py-8"><span className="loader"/></div>)}
-      {!isLoading && vacantes.length === 0 && (
-        <div className="text-center py-8 text-gray-500">No hay vacantes registradas.</div>
+
+      {isLoading && (
+        <p className="py-10 text-center text-sm text-gray-500">Cargando vacantes...</p>
       )}
+
+      {!isLoading && vacantes.length === 0 && (
+        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-400">
+          No hay vacantes registradas.
+        </div>
+      )}
+
       {!isLoading && vacantes.length > 0 && (
         isDesktop ? (
-          <VacantesTabla vacantes={vacantes} acciones={{ aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose }} />
+          <VacantesTabla vacantes={vacantes} acciones={acciones} />
         ) : (
-          <div className="grid gap-4">
-            {vacantes.map(v => (
-              <VacanteCard key={v.id} vacante={v} acciones={{ aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose }} />
+          <div className="grid gap-3">
+            {vacantes.map((v) => (
+              <VacanteCard key={v.id} vacante={v} acciones={acciones} />
             ))}
           </div>
         )
       )}
+
       <Paginacion
         pagina={filtros.page}
         totalPaginas={totalPaginas}
         onCambiarPagina={irAPagina}
-        className="mt-4"
       />
 
-      <VacanteForm
-        isOpen={formAbierto}
-        onClose={cerrarForm}
-        vacante={vacanteEditando}
-      />
+      <VacanteForm isOpen={formAbierto} onClose={cerrarForm} vacante={vacanteEditando} />
     </div>
   );
 }

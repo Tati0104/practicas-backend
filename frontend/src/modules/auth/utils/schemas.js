@@ -82,6 +82,10 @@ export function mensajeErrorResetear(error) {
  * @param {import('axios').AxiosError} error
  */
 export function mensajeErrorLogin(error) {
+  if (!error.response) {
+    return 'No se pudo conectar con el servidor. Verifica que el backend esté activo y que uses http://localhost:5173 (no otro puerto).';
+  }
+
   if (error.response?.status === 401) {
     return 'Correo o contraseña incorrectos';
   }

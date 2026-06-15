@@ -1,42 +1,43 @@
 // src/modules/seguimiento/components/PracticaCard.jsx
 
-/**
- * Tarjeta de una práctica en el tablero de seguimiento (vista mobile).
- */
-import { useNavigate } from 'react-router-dom';
+import { Badge, Button, Card } from '@/shared/components/ui';
 
 const BADGE = {
-  AL_DIA:    { label: 'Al día',    bg: '#dcfce7', color: '#15803d' },
-  PENDIENTE: { label: 'Pendiente', bg: '#fef3c7', color: '#b45309' },
-  EN_ALERTA: { label: 'En alerta', bg: '#fee2e2', color: '#b91c1c' },
+  AL_DIA: { label: 'Al día', variant: 'success' },
+  PENDIENTE: { label: 'Pendiente', variant: 'warning' },
+  EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
-export default function PracticaCard({ practica, onVerDetalle }) {
-  const badge = BADGE[practica.estado] || { label: practica.estado, bg: '#f3f4f6', color: '#374151' };
+export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 'Ver detalle' }) {
+  const badge = BADGE[practica.estado] || { label: practica.estado, variant: 'neutral' };
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <Card padding="p-4">
+      <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{practica.estudiante?.nombre}</div>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>{practica.estudiante?.codigo} — {practica.estudiante?.programa}</div>
+          <div className="font-bold text-gray-900">{practica.estudiante?.nombre}</div>
+          <div className="text-xs text-gray-500">
+            {practica.estudiante?.codigo} — {practica.estudiante?.programa}
+          </div>
         </div>
-        <span style={{ background: badge.bg, color: badge.color, borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>
-          {badge.label}
-        </span>
+        <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
-      <div style={{ fontSize: 13, color: '#374151' }}>
-        <span style={{ fontWeight: 600 }}>{practica.cargo}</span> · {practica.empresa}
+      <div className="text-sm text-gray-700">
+        <span className="font-semibold">{practica.cargo}</span> · {practica.empresa}
       </div>
-      <div style={{ fontSize: 12, color: '#6b7280' }}>Docente: {practica.docente}</div>
-      {/* Barra de avance */}
-      <div style={{ background: '#e5e7eb', borderRadius: 99, height: 6, overflow: 'hidden' }}>
-        <div style={{ background: '#2563eb', width: `${practica.porcentajeAvance || 0}%`, height: '100%', borderRadius: 99 }} />
+      <div className="mt-1 text-xs text-gray-500">Docente: {practica.docente}</div>
+      <div className="my-2 h-1.5 overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${practica.porcentajeAvance || 0}%` }}
+        />
       </div>
-      <div style={{ fontSize: 11, color: '#6b7280', textAlign: 'right' }}>{practica.porcentajeAvance || 0}% completado</div>
-      <button onClick={() => onVerDetalle(practica.id)} style={{ padding: '7px 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 7, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>
-        Ver detalle
-      </button>
-    </div>
+      <div className="mb-3 text-right text-xs text-gray-500">
+        {practica.porcentajeAvance || 0}% completado
+      </div>
+      <Button size="sm" className="w-full" onClick={() => onVerDetalle(practica.id)}>
+        {etiquetaAccion}
+      </Button>
+    </Card>
   );
 }

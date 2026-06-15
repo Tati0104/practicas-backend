@@ -1,5 +1,4 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import useCalificaciones from '../hooks/useCalificaciones';
 import useCalificacionesMutaciones from '../hooks/useCalificacionesMutaciones';
 import useEncuesta from '../hooks/useEncuesta';
@@ -8,35 +7,7 @@ import ResumenNotas from '../components/ResumenNotas';
 import NotaForm from '../components/NotaForm';
 import EncuestaForm from '../components/EncuestaForm';
 import { obtenerNotasReferencia } from '../utils/schemas';
-
-function Spinner({ mensaje }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 p-12 text-gray-600">
-      <Loader2 className="h-8 w-8 animate-spin text-blue-700" aria-hidden="true" />
-      <p className="text-sm">{mensaje}</p>
-    </div>
-  );
-}
-
-function ErrorEstado({ mensaje, onReintentar }) {
-  return (
-    <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-      <p className="text-sm text-red-700" role="alert">
-        {mensaje}
-      </p>
-      {onReintentar && (
-        <button
-          type="button"
-          onClick={onReintentar}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
-        >
-          <RefreshCw className="h-4 w-4" aria-hidden="true" />
-          Reintentar
-        </button>
-      )}
-    </div>
-  );
-}
+import { ErrorState, LoadingState, PageBackHeader } from '@/shared/components/ui';
 
 export default function CalificacionesPage() {
   const { practicaId } = useParams();
@@ -70,19 +41,19 @@ export default function CalificacionesPage() {
   if (!permisos.puedeVerResumen) {
     return (
       <div className="p-4 sm:p-6">
-        <ErrorEstado mensaje="No tienes permiso para acceder a las calificaciones de esta práctica." />
+        <ErrorState mensaje="No tienes permiso para acceder a las calificaciones de esta práctica." />
       </div>
     );
   }
 
   if (isLoading) {
-    return <Spinner mensaje="Cargando calificaciones..." />;
+    return <LoadingState mensaje="Cargando calificaciones..." />;
   }
 
   if (isError) {
     return (
       <div className="p-4 sm:p-6">
-        <ErrorEstado
+        <ErrorState
           mensaje={error?.response?.data?.message ?? error?.message ?? 'Error al cargar calificaciones'}
           onReintentar={refetch}
         />
@@ -106,20 +77,11 @@ export default function CalificacionesPage() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:underline"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Volver
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Calificaciones</h1>
-          <p className="text-sm text-gray-500">Práctica #{practicaId}</p>
-        </div>
-      </header>
+      <PageBackHeader
+        titulo="Calificaciones"
+        descripcion={`Práctica #${practicaId}`}
+        onVolver={() => navigate(-1)}
+      />
 
       <ResumenNotas resumen={resumen} />
 
@@ -192,9 +154,9 @@ export default function CalificacionesPage() {
             {permisos.puedeVerEncuestaTutor && (
               <>
                 {encuestaTutor.isLoading ? (
-                  <Spinner mensaje="Cargando encuesta del tutor..." />
+                  <LoadingState mensaje="Cargando encuesta del tutor..." />
                 ) : encuestaTutor.isError ? (
-                  <ErrorEstado
+                  <ErrorState
                     mensaje="No se pudo cargar la encuesta del tutor"
                     onReintentar={encuestaTutor.refetch}
                   />
@@ -229,9 +191,9 @@ export default function CalificacionesPage() {
             {permisos.puedeVerEncuestaEstudiante && (
               <>
                 {encuestaEstudiante.isLoading ? (
-                  <Spinner mensaje="Cargando encuesta del estudiante..." />
+                  <LoadingState mensaje="Cargando encuesta del estudiante..." />
                 ) : encuestaEstudiante.isError ? (
-                  <ErrorEstado
+                  <ErrorState
                     mensaje="No se pudo cargar la encuesta del estudiante"
                     onReintentar={encuestaEstudiante.refetch}
                   />

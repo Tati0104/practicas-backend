@@ -1,4 +1,5 @@
-import { FiltrosBar, FiltroInput, FiltroSelect, estilosFiltros } from '@/shared/components/filtros';
+import { FiltrosBar, FiltroInput, FiltroSelect } from '@/shared/components/filtros';
+import { Button } from '@/shared/components/ui';
 
 const ESTADOS = [
   { value: '', label: 'Todos los estados' },
@@ -33,7 +34,7 @@ export default function SeguimientoFiltros({ filtros, setFiltros }) {
         placeholder="ID Programa"
         value={filtros.programaId}
         onChange={(e) => actualizar('programaId', e.target.value)}
-        style={{ maxWidth: 130 }}
+        className="max-w-[130px]"
       />
       <FiltroSelect
         compacto
@@ -41,9 +42,9 @@ export default function SeguimientoFiltros({ filtros, setFiltros }) {
         value={filtros.estado}
         onChange={(e) => actualizar('estado', e.target.value)}
       />
-      <button type="button" onClick={limpiar} style={estilosFiltros.btnLimpiar}>
+      <Button type="button" variant="secondary" size="sm" onClick={limpiar}>
         Limpiar
-      </button>
+      </Button>
     </FiltrosBar>
   );
 }

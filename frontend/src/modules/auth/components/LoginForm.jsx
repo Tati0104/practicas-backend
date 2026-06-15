@@ -36,7 +36,7 @@ export default function LoginForm() {
           type="email"
           autoComplete="email"
           placeholder="correo@avh.edu.co"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           {...register('correo')}
         />
         {errors.correo && (
@@ -56,7 +56,7 @@ export default function LoginForm() {
             type={verPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="••••••••"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-10 text-sm text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
             {...register('password')}
           />
           <button
@@ -78,7 +78,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={cargando}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
         {cargando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
         {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
@@ -87,7 +87,7 @@ export default function LoginForm() {
       <div className="text-center">
         <Link
           to="/recuperar-password"
-          className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+          className="text-sm font-medium text-primary hover:text-primary/80 hover:underline"
         >
           ¿Olvidaste tu contraseña?
         </Link>

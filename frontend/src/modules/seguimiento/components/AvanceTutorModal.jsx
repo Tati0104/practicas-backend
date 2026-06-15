@@ -4,6 +4,7 @@
  * Modal para que TUTOR_EMPRESARIAL registre un avance con porcentaje.
  */
 import { useState } from 'react';
+import { Button, Input, Modal } from '@/shared/components/ui';
 
 export default function AvanceTutorModal({ isOpen, practicaId, onClose, onGuardar, isPending }) {
   const [descripcion, setDescripcion] = useState('');
@@ -18,47 +19,55 @@ export default function AvanceTutorModal({ isOpen, practicaId, onClose, onGuarda
     setPorcentaje('');
   };
 
+  const puedeGuardar = descripcion.trim() && porcentaje !== '';
+
   return (
-    <div style={overlay}>
-      <div style={modal}>
-        <h2 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>Registrar avance</h2>
-        <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Descripción del avance</label>
-          <textarea
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            placeholder="Describe el avance realizado..."
-            rows={4}
-            style={textareaStyle}
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Porcentaje de avance (%)</label>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={porcentaje}
-            onChange={(e) => setPorcentaje(e.target.value)}
-            placeholder="0 - 100"
-            style={inputStyle}
-          />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={btnCancelar}>Cancelar</button>
-          <button onClick={handleGuardar} disabled={isPending || !descripcion.trim() || porcentaje === ''} style={btnGuardar}>
+    <Modal
+      titulo="Registrar avance"
+      onCerrar={onClose}
+      ancho="max-w-lg"
+      acciones={
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={handleGuardar}
+            disabled={isPending || !puedeGuardar}
+          >
             {isPending ? 'Guardando...' : 'Guardar'}
-          </button>
+          </Button>
         </div>
+      }
+    >
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          Descripción del avance
+        </label>
+        <textarea
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          placeholder="Describe el avance realizado..."
+          rows={4}
+          className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
       </div>
-    </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          Porcentaje de avance (%)
+        </label>
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={porcentaje}
+          onChange={(e) => setPorcentaje(e.target.value)}
+          placeholder="0 - 100"
+        />
+      </div>
+    </Modal>
   );
 }
-
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-const modal = { background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 480, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' };
-const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 };
-const textareaStyle = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' };
-const inputStyle = { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' };
-const btnCancelar = { padding: '8px 18px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer' };
-const btnGuardar = { padding: '8px 18px', border: 'none', borderRadius: 8, background: '#15803d', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' };

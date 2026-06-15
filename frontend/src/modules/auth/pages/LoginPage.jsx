@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      titulo="Prácticas Empresariales"
+      titulo="PracTI"
       subtitulo="Universidad Alexander Von Humboldt"
     >
       <LoginForm />

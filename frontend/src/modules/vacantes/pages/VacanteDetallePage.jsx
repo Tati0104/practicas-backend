@@ -3,6 +3,7 @@
 import { useParams } from 'react-router-dom';
 import { useVacanteDetalle } from '../hooks/useVacanteDetalle';
 import HistorialEstados from '../components/HistorialEstados';
+import { Card, PageHeader } from '@/shared/components/ui';
 
 export default function VacanteDetallePage() {
   const { id } = useParams();
@@ -10,67 +11,60 @@ export default function VacanteDetallePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <span className="text-gray-600">Cargando detalle de la vacante...</span>
+      <div className="flex h-64 items-center justify-center">
+        <span className="text-sm text-gray-600">Cargando detalle de la vacante...</span>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="p-4 bg-red-100 text-red-800 rounded">
-        <p>Hubo un error al cargar la vacante.</p>
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        Hubo un error al cargar la vacante.
       </div>
     );
   }
 
   if (!vacante) {
     return (
-      <div className="p-4">
-        <p>No se encontrÃ³ la vacante.</p>
+      <div className="p-4 text-sm text-gray-600">
+        <p>No se encontró la vacante.</p>
       </div>
     );
   }
 
-  const {
-    empresa,
-    cargo,
-    modalidad,
-    cuposTotal,
-    cuposDisponibles,
-    estado,
-    // any other fields can be added here
-  } = vacante;
+  const { empresa, cargo, modalidad, cuposTotal, cuposDisponibles, estado } = vacante;
+
+  const campos = [
+    { label: 'Empresa', valor: empresa },
+    { label: 'Cargo', valor: cargo },
+    { label: 'Modalidad', valor: modalidad },
+    { label: 'Estado', valor: estado },
+    { label: 'Cupos totales', valor: cuposTotal },
+    { label: 'Cupos disponibles', valor: cuposDisponibles },
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Detalle de Vacante</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white rounded shadow p-4">
-        <div>
-          <span className="font-medium">Empresa:</span> {empresa}
-        </div>
-        <div>
-          <span className="font-medium">Cargo:</span> {cargo}
-        </div>
-        <div>
-          <span className="font-medium">Modalidad:</span> {modalidad}
-        </div>
-        <div>
-          <span className="font-medium">Estado:</span> {estado}
-        </div>
-        <div>
-          <span className="font-medium">Cupos Totales:</span> {cuposTotal}
-        </div>
-        <div>
-          <span className="font-medium">Cupos Disponibles:</span> {cuposDisponibles}
-        </div>
-      </div>
+    <div className="mx-auto max-w-4xl">
+      <PageHeader titulo="Detalle de vacante" descripcion={`Vacante #${id}`} />
 
-      {/* Historial de estados */}
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-2">Historial de Estados</h2>
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {campos.map(({ label, valor }) => (
+            <div key={label}>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                {label}
+              </p>
+              <p className="text-sm font-medium text-gray-900">{valor ?? '—'}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="mb-4 text-base font-bold text-gray-900">Historial de estados</h2>
         <HistorialEstados vacanteId={id} />
-      </div>
+      </Card>
     </div>
   );
 }

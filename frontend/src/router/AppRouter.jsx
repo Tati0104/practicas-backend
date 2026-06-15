@@ -8,10 +8,12 @@ import {
   RestablecerPasswordPage,
   CambiarPasswordPage,
 } from '@/modules/auth';
-import { CalificacionesPage } from '@/modules/calificaciones';
+import { CalificacionesPage, CalificacionesListPage } from '@/modules/calificaciones';
 import { SeguimientoPage, PracticaDetallePage } from '@/modules/seguimiento';
 import { VinculacionPage, VinculacionDetallePage } from '@/modules/vinculacion';
-import { CierrePage } from '@/modules/cierre';
+import { CierrePage, CierreListPage } from '@/modules/cierre';
+import { ReportesPage } from '@/modules/reportes';
+import { PlantillasCorreoPage } from '@/modules/correo';
 import DashboardPage from '@/modules/dashboard/components/DashboardPage';
 import UsuariosPage from '@/modules/usuario/components/UsuariosPage';
 import FacultadesPage from '@/modules/configuracion/components/FacultadesPage';
@@ -142,6 +144,23 @@ export default function AppRouter() {
           />
 
           <Route
+            path="/calificaciones"
+            element={
+              <RutaPrivada
+                roles={[
+                  'DOCENTE_ASESOR',
+                  'TUTOR_EMPRESARIAL',
+                  'COORD_PRACTICA',
+                  'ESTUDIANTE',
+                  'ADMIN',
+                ]}
+              >
+                <CalificacionesListPage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
             path="/calificaciones/:practicaId"
             element={
               <RutaPrivada
@@ -211,10 +230,37 @@ export default function AppRouter() {
           />
 
           <Route
+            path="/cierre"
+            element={
+              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+                <CierreListPage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
             path="/cierre/:practicaId"
             element={
               <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
                 <CierrePage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
+            path="/reportes"
+            element={
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'DIRECCION']}>
+                <ReportesPage />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
+            path="/admin/correo/plantillas"
+            element={
+              <RutaPrivada roles={['ADMIN']}>
+                <PlantillasCorreoPage />
               </RutaPrivada>
             }
           />

@@ -1,29 +1,21 @@
 // src/modules/asignaciones/components/AsignacionesTabla.jsx
 
-/**
- * Tabla desktop para listar asignaciones.
- * Reutiliza TablaBase del shared.
- * Muestra columnas: estudiante, programa, vacante (cargo + empresa), fecha, estado, acciones.
- * Las acciones (ver detalle, cancelar) se reciben por props para mantener la tabla sin lógica de negocio.
- */
 import { useNavigate } from 'react-router-dom';
 import TablaBase from '../../../shared/components/TablaBase';
 import BadgeAsignacion from './BadgeAsignacion';
+import { Button } from '@/shared/components/ui';
 
 export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar, canCancelar }) {
   const navigate = useNavigate();
 
-  // Definición de columnas para TablaBase
   const columnas = [
     {
       key: 'estudiante',
       titulo: 'Estudiante',
       render: (fila) => (
         <div>
-          <div style={{ fontWeight: 600, fontSize: 13 }}>
-            {fila.estudiante?.nombre || '—'}
-          </div>
-          <div style={{ fontSize: 11, color: '#6b7280' }}>
+          <div className="text-sm font-semibold text-gray-900">{fila.estudiante?.nombre || '—'}</div>
+          <div className="text-xs text-gray-500">
             {fila.estudiante?.codigo} · {fila.estudiante?.programa}
           </div>
         </div>
@@ -34,12 +26,8 @@ export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar,
       titulo: 'Cargo / Empresa',
       render: (fila) => (
         <div>
-          <div style={{ fontWeight: 600, fontSize: 13 }}>
-            {fila.vacante?.cargo || '—'}
-          </div>
-          <div style={{ fontSize: 11, color: '#6b7280' }}>
-            {fila.vacante?.empresa}
-          </div>
+          <div className="text-sm font-semibold text-gray-900">{fila.vacante?.cargo || '—'}</div>
+          <div className="text-xs text-gray-500">{fila.vacante?.empresa}</div>
         </div>
       ),
     },
@@ -60,23 +48,18 @@ export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar,
       key: 'acciones',
       titulo: 'Acciones',
       render: (fila) => (
-        <div style={{ display: 'flex', gap: 6 }}>
-          {/* Ver detalle */}
-          <button
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
             onClick={() => navigate(`/asignaciones/${fila.id}`)}
-            style={estilos.btnVer}
           >
             Ver
-          </button>
-
-          {/* Cancelar solo si el estado lo permite y el usuario tiene permiso */}
+          </Button>
           {canCancelar && fila.estado !== 'CANCELADA' && fila.estado !== 'VINCULADA' && (
-            <button
-              onClick={() => onCancelar(fila)}
-              style={estilos.btnCancelar}
-            >
+            <Button variant="danger" size="sm" onClick={() => onCancelar(fila)}>
               Cancelar
-            </button>
+            </Button>
           )}
         </div>
       ),
@@ -92,24 +75,3 @@ export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar,
     />
   );
 }
-
-const estilos = {
-  btnVer: {
-    padding: '4px 10px',
-    fontSize: 12,
-    background: '#2563eb',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 5,
-    cursor: 'pointer',
-  },
-  btnCancelar: {
-    padding: '4px 10px',
-    fontSize: 12,
-    background: '#fee2e2',
-    color: '#991b1b',
-    border: '1px solid #fca5a5',
-    borderRadius: 5,
-    cursor: 'pointer',
-  },
-};

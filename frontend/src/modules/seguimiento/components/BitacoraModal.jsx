@@ -5,6 +5,7 @@
  * Campos: actividades realizadas y aprendizajes obtenidos.
  */
 import { useState } from 'react';
+import { Button, Modal } from '@/shared/components/ui';
 
 export default function BitacoraModal({ isOpen, practicaId, onClose, onGuardar, isPending }) {
   const [actividades, setActividades] = useState('');
@@ -19,44 +20,54 @@ export default function BitacoraModal({ isOpen, practicaId, onClose, onGuardar, 
     setAprendizajes('');
   };
 
+  const puedeGuardar = actividades.trim() && aprendizajes.trim();
+
   return (
-    <div style={overlay}>
-      <div style={modal}>
-        <h2 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>Nueva entrada de bitácora</h2>
-        <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Actividades realizadas</label>
-          <textarea
-            value={actividades}
-            onChange={(e) => setActividades(e.target.value)}
-            placeholder="¿Qué hiciste esta semana?"
-            rows={4}
-            style={textareaStyle}
-          />
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Aprendizajes obtenidos</label>
-          <textarea
-            value={aprendizajes}
-            onChange={(e) => setAprendizajes(e.target.value)}
-            placeholder="¿Qué aprendiste?"
-            rows={4}
-            style={textareaStyle}
-          />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={btnCancelar}>Cancelar</button>
-          <button onClick={handleGuardar} disabled={isPending || !actividades.trim() || !aprendizajes.trim()} style={btnGuardar}>
+    <Modal
+      titulo="Nueva entrada de bitácora"
+      onCerrar={onClose}
+      ancho="max-w-lg"
+      acciones={
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            className="bg-violet-600 hover:bg-violet-700"
+            onClick={handleGuardar}
+            disabled={isPending || !puedeGuardar}
+          >
             {isPending ? 'Guardando...' : 'Guardar entrada'}
-          </button>
+          </Button>
         </div>
+      }
+    >
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          Actividades realizadas
+        </label>
+        <textarea
+          value={actividades}
+          onChange={(e) => setActividades(e.target.value)}
+          placeholder="¿Qué hiciste esta semana?"
+          rows={4}
+          className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
       </div>
-    </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+          Aprendizajes obtenidos
+        </label>
+        <textarea
+          value={aprendizajes}
+          onChange={(e) => setAprendizajes(e.target.value)}
+          placeholder="¿Qué aprendiste?"
+          rows={4}
+          className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+    </Modal>
   );
 }
-
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-const modal = { background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 500, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' };
-const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 };
-const textareaStyle = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' };
-const btnCancelar = { padding: '8px 18px', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', fontSize: 14, cursor: 'pointer' };
-const btnGuardar = { padding: '8px 18px', border: 'none', borderRadius: 8, background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' };

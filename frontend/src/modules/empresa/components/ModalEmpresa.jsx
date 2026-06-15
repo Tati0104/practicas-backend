@@ -1,61 +1,121 @@
 import { useState } from 'react';
+import { Button, Input, Modal, Select } from '@/shared/components/ui';
 
-const SECTORES = ['TECNOLOGIA','CONSTRUCCION','AGRICULTURA','SALUD',
-                  'EDUCACION','COMERCIO','INDUSTRIA','SERVICIOS'];
+const SECTORES = [
+  'TECNOLOGIA',
+  'CONSTRUCCION',
+  'AGRICULTURA',
+  'SALUD',
+  'EDUCACION',
+  'COMERCIO',
+  'INDUSTRIA',
+  'SERVICIOS',
+];
 
 export default function ModalEmpresa({ onGuardar, onCerrar }) {
-  const [form,  setForm]  = useState({
-    nit: '', razonSocial: '', sector: '',
-    direccion: '', municipio: '', telefono: ''
+  const [form, setForm] = useState({
+    nit: '',
+    razonSocial: '',
+    sector: '',
+    direccion: '',
+    municipio: '',
+    telefono: '',
   });
   const [error, setError] = useState('');
-  const campo = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const campo = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const guardar = () => {
-    if (!form.nit.trim())         { setError('El NIT es obligatorio');          return; }
-    if (!form.razonSocial.trim()) { setError('La razón social es obligatoria'); return; }
-    if (!form.sector)             { setError('El sector es obligatorio');        return; }
+    if (!form.nit.trim()) {
+      setError('El NIT es obligatorio');
+      return;
+    }
+    if (!form.razonSocial.trim()) {
+      setError('La razón social es obligatoria');
+      return;
+    }
+    if (!form.sector) {
+      setError('El sector es obligatorio');
+      return;
+    }
     setError('');
     onGuardar(form);
   };
 
-  const fld = (label, key, placeholder = '') => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
-      <input value={form[key]} onChange={e => campo(key, e.target.value)}
-        placeholder={placeholder}
-        style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 13 }} />
-    </div>
-  );
-
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-      <div style={{ background: '#fff', borderRadius: 12, padding: 28, width: 480, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1e3a5f', margin: 0 }}>Registrar empresa</h3>
-
-        {error && <p style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: '#dc2626', margin: 0 }}>⚠ {error}</p>}
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {fld('NIT',          'nit',         'Ej: 900123456-1')}
-          {fld('Razón social', 'razonSocial', 'Nombre de la empresa')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Sector</label>
-            <select value={form.sector} onChange={e => campo('sector', e.target.value)}
-              style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 13 }}>
-              <option value="">Seleccionar</option>
-              {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          {fld('Municipio',  'municipio',  'Ej: Armenia')}
-          {fld('Dirección',  'direccion',  'Ej: Calle 10 # 5-20')}
-          {fld('Teléfono',   'telefono',   'Ej: 3001234567')}
+    <Modal
+      titulo="Registrar empresa"
+      onCerrar={onCerrar}
+      ancho="max-w-lg"
+      acciones={
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={onCerrar}>
+            Cancelar
+          </Button>
+          <Button size="sm" onClick={guardar}>
+            Registrar
+          </Button>
         </div>
+      }
+    >
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <button onClick={onCerrar} style={{ padding: '9px 18px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>Cancelar</button>
-          <button onClick={guardar}  style={{ padding: '9px 18px', background: '#1e3a5f', color: '#fff',    border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Registrar</button>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">NIT</label>
+          <Input
+            value={form.nit}
+            onChange={(e) => campo('nit', e.target.value)}
+            placeholder="Ej: 900123456-1"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Razón social</label>
+          <Input
+            value={form.razonSocial}
+            onChange={(e) => campo('razonSocial', e.target.value)}
+            placeholder="Nombre de la empresa"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Sector</label>
+          <Select value={form.sector} onChange={(e) => campo('sector', e.target.value)}>
+            <option value="">Seleccionar</option>
+            {SECTORES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Municipio</label>
+          <Input
+            value={form.municipio}
+            onChange={(e) => campo('municipio', e.target.value)}
+            placeholder="Ej: Armenia"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Dirección</label>
+          <Input
+            value={form.direccion}
+            onChange={(e) => campo('direccion', e.target.value)}
+            placeholder="Ej: Calle 10 # 5-20"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-semibold text-gray-700">Teléfono</label>
+          <Input
+            value={form.telefono}
+            onChange={(e) => campo('telefono', e.target.value)}
+            placeholder="Ej: 3001234567"
+          />
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
