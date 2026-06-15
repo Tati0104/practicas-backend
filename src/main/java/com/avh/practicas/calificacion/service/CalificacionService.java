@@ -23,9 +23,9 @@ public interface CalificacionService {
     NotaTutor registrarNotaTutor(Long practicaId, Long tutorId, Integer corte, NotaRequest request);
 
     /**
-     * Registra la calificación final y aprueba/reprueba la práctica (Acción del Coordinador).
+     * Registra la calificación final (acción del Docente Asesor).
      */
-    NotaFinal registrarNotaFinal(Long practicaId, Long coordinadorId, NotaFinalRequest request);
+    NotaFinal registrarNotaFinal(Long practicaId, Long docenteAsesorId, NotaFinalRequest request);
 
     /**
      * Obtiene el resumen consolidado de calificaciones para una práctica.

@@ -6,6 +6,7 @@ import com.avh.practicas.cierre.entity.TipoEncuesta;
 import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioDispatcher;
 import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioFactory;
 import com.avh.practicas.cierre.repository.EncuestaRepository;
+import com.avh.practicas.cierre.support.EncuestaEnlaceService;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -51,11 +52,14 @@ class EncuestaServiceImplTest {
     private NotificacionRecordatorioFactory recordatorioFactory;
     @Mock
     private NotificacionRecordatorioDispatcher recordatorioDispatcher;
+    @Mock
+    private EncuestaEnlaceService encuestaEnlaceService;
 
     private EncuestaServiceImpl service;
 
     @BeforeEach
     void setUp() {
+        when(encuestaEnlaceService.buildEnlaceEncuesta(any())).thenReturn("http://localhost:5173/calificaciones/1");
         service = new EncuestaServiceImpl(
                 encuestaRepository,
                 practicaRepository,
@@ -64,7 +68,8 @@ class EncuestaServiceImplTest {
                 bitacoraService,
                 jdbcTemplate,
                 recordatorioFactory,
-                recordatorioDispatcher
+                recordatorioDispatcher,
+                encuestaEnlaceService
         );
     }
 

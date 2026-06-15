@@ -133,7 +133,7 @@ class CalificacionServiceImplTest {
     void registrarNotaFinal_ExitosoYAprobado() {
         // Arrange
         Long practicaId = 1L;
-        Long coordinadorId = 4L;
+        Long docenteAsesorId = 2L;
         NotaFinalRequest request = new NotaFinalRequest(4.0);
 
         com.avh.practicas.configuracion.entity.Programa programa = com.avh.practicas.configuracion.entity.Programa.builder().id(5L).build();
@@ -142,6 +142,7 @@ class CalificacionServiceImplTest {
 
         InstanciaPractica practica = InstanciaPractica.builder()
                 .id(practicaId)
+                .docenteAsesorId(docenteAsesorId)
                 .expediente(expediente)
                 .numCortes(3)
                 .inmutable(false)
@@ -149,21 +150,21 @@ class CalificacionServiceImplTest {
                 .build();
 
         when(practicaRepository.findById(practicaId)).thenReturn(Optional.of(practica));
+        when(notaFinalRepository.findByInstanciaPracticaId(practicaId)).thenReturn(Optional.empty());
         // Simular nota mínima de aprobación en BD como 3.5
         when(jdbcTemplate.queryForObject(any(String.class), eq(Double.class), any())).thenReturn(3.5);
         when(notaFinalRepository.save(any(NotaFinal.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(practicaRepository.save(any(InstanciaPractica.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        NotaFinal result = service.registrarNotaFinal(practicaId, coordinadorId, request);
+        NotaFinal result = service.registrarNotaFinal(practicaId, docenteAsesorId, request);
 
         // Assert
         assertNotNull(result);
         assertEquals(4.0, result.getNotaFinal());
         assertTrue(result.getAprobada());
-        assertTrue(practica.getInmutable());
-        assertEquals(EstadoPractica.COMPLETADA, practica.getEstado());
-        verify(practicaRepository).save(practica);
+        assertFalse(practica.getInmutable());
+        assertEquals(EstadoPractica.EN_CURSO, practica.getEstado());
         verify(notaFinalRepository).save(any(NotaFinal.class));
+        verify(practicaRepository, never()).save(any(InstanciaPractica.class));
     }
 }

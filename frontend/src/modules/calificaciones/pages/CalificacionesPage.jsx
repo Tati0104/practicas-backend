@@ -9,6 +9,48 @@ import EncuestaForm from '../components/EncuestaForm';
 import { obtenerNotasReferencia } from '../utils/schemas';
 import { ErrorState, LoadingState, PageBackHeader } from '@/shared/components/ui';
 
+function EncuestaPanel({ isLoading, isError, refetch, encuestaHook, titulo, soloLectura, esEstudiante, puedeEnviarRecordatorio }) {
+  if (isLoading) {
+    return <LoadingState mensaje={`Cargando ${titulo.toLowerCase()}...`} />;
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        mensaje={`No se pudo cargar ${titulo.toLowerCase()}`}
+        onReintentar={refetch}
+      />
+    );
+  }
+
+  return (
+    <EncuestaForm
+      titulo={titulo}
+      encuesta={encuestaHook.data}
+      preguntas={encuestaHook.data?.preguntas}
+      soloLectura={soloLectura}
+      esEstudiante={esEstudiante}
+      puedeEnviarRecordatorio={puedeEnviarRecordatorio}
+      isGuardando={encuestaHook.guardarBorrador.isPending}
+      isEnviando={encuestaHook.enviar.isPending}
+      isRecordatorio={encuestaHook.enviarRecordatorio.isPending}
+      onGuardarBorrador={(respuestas) =>
+        encuestaHook.guardarBorrador.mutate({
+          encuestaId: encuestaHook.data.id,
+          respuestas,
+        })
+      }
+      onEnviar={(respuestas) =>
+        encuestaHook.enviar.mutate({
+          encuestaId: encuestaHook.data.id,
+          respuestas,
+        })
+      }
+      onRecordatorio={() => encuestaHook.enviarRecordatorio.mutate()}
+    />
+  );
+}
+
 export default function CalificacionesPage() {
   const { practicaId } = useParams();
   const [searchParams] = useSearchParams();
@@ -38,23 +80,26 @@ export default function CalificacionesPage() {
     permisos.puedeVerEncuestaEstudiante
   );
 
+  const muestraEncuestas =
+    permisos.puedeVerEncuestaTutor || permisos.puedeVerEncuestaEstudiante;
+
   if (!permisos.puedeVerResumen) {
     return (
       <div className="p-4 sm:p-6">
-        <ErrorState mensaje="No tienes permiso para acceder a las calificaciones de esta práctica." />
+        <ErrorState mensaje="No tienes permiso para acceder a las evaluaciones de esta práctica." />
       </div>
     );
   }
 
   if (isLoading) {
-    return <LoadingState mensaje="Cargando calificaciones..." />;
+    return <LoadingState mensaje="Cargando evaluaciones..." />;
   }
 
   if (isError) {
     return (
       <div className="p-4 sm:p-6">
         <ErrorState
-          mensaje={error?.response?.data?.message ?? error?.message ?? 'Error al cargar calificaciones'}
+          mensaje={error?.response?.data?.message ?? error?.message ?? 'Error al cargar evaluaciones'}
           onReintentar={refetch}
         />
       </div>
@@ -65,7 +110,7 @@ export default function CalificacionesPage() {
     return (
       <div className="p-4 sm:p-6">
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600">
-          No se encontró información de calificaciones para esta práctica.
+          No se encontró información de evaluaciones para esta práctica.
         </div>
       </div>
     );
@@ -78,15 +123,61 @@ export default function CalificacionesPage() {
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <PageBackHeader
-        titulo="Calificaciones"
-        descripcion={`Práctica #${practicaId}`}
+        titulo="Evaluaciones"
+        descripcion={`Práctica #${practicaId} — notas de referencia, nota final y encuestas de cierre`}
         onVolver={() => navigate(-1)}
       />
 
       <ResumenNotas resumen={resumen} />
 
+      {muestraEncuestas && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Encuestas de cierre</h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Requisito para el cierre formal (RF-08-05, RF-08-06, RF-09-01). El tutor puede guardar
+              borrador; el estudiante debe completar la suya antes del cierre.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {permisos.puedeVerEncuestaTutor && (
+              <EncuestaPanel
+                titulo="Encuesta — Tutor empresarial"
+                encuestaHook={encuestaTutor}
+                isLoading={encuestaTutor.isLoading}
+                isError={encuestaTutor.isError}
+                refetch={encuestaTutor.refetch}
+                soloLectura={!permisos.puedeCompletarEncuestaTutor}
+                esEstudiante={false}
+                puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
+              />
+            )}
+
+            {permisos.puedeVerEncuestaEstudiante && (
+              <EncuestaPanel
+                titulo="Autoevaluación — Estudiante"
+                encuestaHook={encuestaEstudiante}
+                isLoading={encuestaEstudiante.isLoading}
+                isError={encuestaEstudiante.isError}
+                refetch={encuestaEstudiante.refetch}
+                soloLectura={!permisos.puedeCompletarEncuestaEstudiante}
+                esEstudiante
+                puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
+              />
+            )}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Registro de notas</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Registro de notas</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            El docente asesor y el tutor registran notas de referencia. El docente asesor registra
+            la nota final definitiva.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {permisos.puedeRegistrarNotaDocente && (
@@ -132,8 +223,8 @@ export default function CalificacionesPage() {
                 </div>
               ) : (
                 <NotaForm
-                  titulo="Nota final definitiva"
-                  descripcion="Nota oficial que determina la aprobación o reprobación de la práctica."
+                  titulo="Nota final definitiva — Docente asesor"
+                  descripcion="Nota oficial que determina la aprobación o reprobación. El cierre formal lo ejecuta el coordinador."
                   tipo="final"
                   notaExistente={resumen.notaFinal}
                   practicaActiva={practicaActiva}
@@ -145,88 +236,6 @@ export default function CalificacionesPage() {
           )}
         </div>
       </section>
-
-      {(permisos.puedeVerEncuestaTutor || permisos.puedeVerEncuestaEstudiante) && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">Encuestas de satisfacción</h2>
-
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {permisos.puedeVerEncuestaTutor && (
-              <>
-                {encuestaTutor.isLoading ? (
-                  <LoadingState mensaje="Cargando encuesta del tutor..." />
-                ) : encuestaTutor.isError ? (
-                  <ErrorState
-                    mensaje="No se pudo cargar la encuesta del tutor"
-                    onReintentar={encuestaTutor.refetch}
-                  />
-                ) : (
-                  <EncuestaForm
-                    titulo="Encuesta — Tutor empresarial"
-                    encuesta={encuestaTutor.data}
-                    preguntas={encuestaTutor.data?.preguntas}
-                    soloLectura={!permisos.puedeCompletarEncuestaTutor}
-                    puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
-                    isGuardando={encuestaTutor.guardarBorrador.isPending}
-                    isEnviando={encuestaTutor.enviar.isPending}
-                    isRecordatorio={encuestaTutor.enviarRecordatorio.isPending}
-                    onGuardarBorrador={(respuestas) =>
-                      encuestaTutor.guardarBorrador.mutate({
-                        encuestaId: encuestaTutor.data.id,
-                        respuestas,
-                      })
-                    }
-                    onEnviar={(respuestas) =>
-                      encuestaTutor.enviar.mutate({
-                        encuestaId: encuestaTutor.data.id,
-                        respuestas,
-                      })
-                    }
-                    onRecordatorio={() => encuestaTutor.enviarRecordatorio.mutate()}
-                  />
-                )}
-              </>
-            )}
-
-            {permisos.puedeVerEncuestaEstudiante && (
-              <>
-                {encuestaEstudiante.isLoading ? (
-                  <LoadingState mensaje="Cargando encuesta del estudiante..." />
-                ) : encuestaEstudiante.isError ? (
-                  <ErrorState
-                    mensaje="No se pudo cargar la encuesta del estudiante"
-                    onReintentar={encuestaEstudiante.refetch}
-                  />
-                ) : (
-                  <EncuestaForm
-                    titulo="Encuesta — Estudiante"
-                    encuesta={encuestaEstudiante.data}
-                    preguntas={encuestaEstudiante.data?.preguntas}
-                    soloLectura={!permisos.puedeCompletarEncuestaEstudiante}
-                    puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
-                    isGuardando={encuestaEstudiante.guardarBorrador.isPending}
-                    isEnviando={encuestaEstudiante.enviar.isPending}
-                    isRecordatorio={encuestaEstudiante.enviarRecordatorio.isPending}
-                    onGuardarBorrador={(respuestas) =>
-                      encuestaEstudiante.guardarBorrador.mutate({
-                        encuestaId: encuestaEstudiante.data.id,
-                        respuestas,
-                      })
-                    }
-                    onEnviar={(respuestas) =>
-                      encuestaEstudiante.enviar.mutate({
-                        encuestaId: encuestaEstudiante.data.id,
-                        respuestas,
-                      })
-                    }
-                    onRecordatorio={() => encuestaEstudiante.enviarRecordatorio.mutate()}
-                  />
-                )}
-              </>
-            )}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

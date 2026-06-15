@@ -60,7 +60,7 @@ export default function ResumenNotas({ resumen }) {
   return (
     <section aria-labelledby="resumen-notas-titulo">
       <h2 id="resumen-notas-titulo" className="mb-4 text-lg font-semibold text-gray-900">
-        Resumen de calificaciones
+        Resumen de evaluaciones
       </h2>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

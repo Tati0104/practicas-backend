@@ -32,6 +32,7 @@ export default function PracticasSelectorPage({
   descripcion,
   accionLabel = 'Abrir',
   construirRuta,
+  FiltrosComponent = SeguimientoFiltros,
 }) {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
@@ -48,7 +49,7 @@ export default function PracticasSelectorPage({
     <div>
       <PageHeader titulo={titulo} descripcion={descripcion} />
 
-      <SeguimientoFiltros filtros={filtros} setFiltros={setFiltros} />
+      <FiltrosComponent filtros={filtros} setFiltros={setFiltros} />
 
       {isLoading && (
         <p className="py-10 text-center text-sm text-gray-500">Cargando prácticas...</p>

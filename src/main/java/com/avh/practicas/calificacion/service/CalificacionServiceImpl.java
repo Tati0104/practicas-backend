@@ -12,7 +12,6 @@ import com.avh.practicas.calificacion.repository.NotaFinalRepository;
 import com.avh.practicas.calificacion.repository.NotaTutorRepository;
 import com.avh.practicas.estudiante.entity.DocenteAsesor;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
-import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
@@ -132,12 +131,20 @@ public class CalificacionServiceImpl implements CalificacionService {
     }
 
     @Override
-    public NotaFinal registrarNotaFinal(Long practicaId, Long coordinadorId, NotaFinalRequest request) {
+    public NotaFinal registrarNotaFinal(Long practicaId, Long docenteAsesorId, NotaFinalRequest request) {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
 
         validarPracticaActiva(practica);
         validarRangoNota(request.notaFinal());
+
+        if (practica.getDocenteAsesorId() == null || !practica.getDocenteAsesorId().equals(docenteAsesorId)) {
+            throw new IllegalArgumentException("El docente no está asignado a esta práctica.");
+        }
+
+        if (notaFinalRepository.findByInstanciaPracticaId(practicaId).isPresent()) {
+            throw new IllegalStateException("La nota final ya fue registrada y no puede modificarse.");
+        }
 
         // Consultar la nota mínima de aprobación del programa
         Double notaMinima = 3.0; // Default
@@ -158,17 +165,11 @@ public class CalificacionServiceImpl implements CalificacionService {
 
         boolean aprobada = request.notaFinal() >= notaMinima;
 
-        // Registrar la nota final
         NotaFinal notaFinal = NotaFinal.builder()
                 .instanciaPractica(practica)
                 .notaFinal(request.notaFinal())
                 .aprobada(aprobada)
                 .build();
-
-        // Marcar la práctica como completada/reprobada e inmutable (cerrada)
-        practica.setEstado(aprobada ? EstadoPractica.COMPLETADA : EstadoPractica.REPROBADA);
-        practica.setInmutable(true);
-        practicaRepository.save(practica);
 
         return notaFinalRepository.save(notaFinal);
     }

@@ -1,7 +1,5 @@
 package com.avh.practicas.calificacion.controller;
 
-import com.avh.practicas.auth.entity.Usuario;
-import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.calificacion.dto.NotaFinalRequest;
 import com.avh.practicas.calificacion.dto.NotaRequest;
 import com.avh.practicas.calificacion.dto.ResumenCalificacionesResponse;
@@ -30,7 +28,6 @@ public class CalificacionController {
     private final CalificacionService service;
     private final DocenteAsesorRepository docenteRepository;
     private final TutorEmpresarialRepository tutorRepository;
-    private final AuthUsuarioRepository usuarioRepository;
 
     /**
      * Registra o actualiza la nota de un corte dada por el Docente Asesor.
@@ -63,17 +60,17 @@ public class CalificacionController {
     }
 
     /**
-     * Registra la nota final y aprueba/reprueba la práctica (Acción del Coordinador).
+     * Registra la nota final definitiva (Docente Asesor).
      */
     @PostMapping("/{practicaId}/final")
-    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCENTE_ASESOR', 'ADMIN')")
     public NotaFinal registrarNotaFinal(
             @PathVariable Long practicaId,
             @Valid @RequestBody NotaFinalRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario usuario = usuarioRepository.findByCorreo(email)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró usuario asociado al correo: " + email));
-        return service.registrarNotaFinal(practicaId, usuario.getId(), request);
+        DocenteAsesor docente = docenteRepository.findByCorreo(email)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró docente asesor asociado al correo: " + email));
+        return service.registrarNotaFinal(practicaId, docente.getId(), request);
     }
 
     /**

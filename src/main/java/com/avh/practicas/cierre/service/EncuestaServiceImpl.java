@@ -7,6 +7,7 @@ import com.avh.practicas.cierre.notificacion.NotificacionRecordatorio;
 import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioDispatcher;
 import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioFactory;
 import com.avh.practicas.cierre.repository.EncuestaRepository;
+import com.avh.practicas.cierre.support.EncuestaEnlaceService;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -43,6 +44,7 @@ public class EncuestaServiceImpl implements EncuestaService {
     private final JdbcTemplate jdbcTemplate;
     private final NotificacionRecordatorioFactory recordatorioFactory;
     private final NotificacionRecordatorioDispatcher recordatorioDispatcher;
+    private final EncuestaEnlaceService encuestaEnlaceService;
 
     @Override
     public Encuesta crearEncuestaPendiente(Long practicaId, TipoEncuesta tipo) {
@@ -213,6 +215,7 @@ public class EncuestaServiceImpl implements EncuestaService {
         Map<String, Object> datos = new HashMap<>();
         datos.put("correo", correo);
         datos.put("nombre", nombre);
+        datos.put("enlace_encuesta", encuestaEnlaceService.buildEnlaceEncuesta(practica.getId()));
 
         EventoSistema evento = EventoSistema.crear(
                 eventoTipo,

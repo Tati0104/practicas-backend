@@ -35,8 +35,8 @@ public class CalificacionServiceProxy implements CalificacionService {
     }
 
     @Override
-    public NotaFinal registrarNotaFinal(Long practicaId, Long coordinadorId, NotaFinalRequest request) {
-        return realService.registrarNotaFinal(practicaId, coordinadorId, request);
+    public NotaFinal registrarNotaFinal(Long practicaId, Long docenteAsesorId, NotaFinalRequest request) {
+        return realService.registrarNotaFinal(practicaId, docenteAsesorId, request);
     }
 
     @Override

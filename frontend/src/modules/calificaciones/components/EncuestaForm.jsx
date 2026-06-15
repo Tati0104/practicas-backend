@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Send } from 'lucide-react';
+import { Bell, Loader2, Send } from 'lucide-react';
 import EstadoEncuestaBadge from './EstadoEncuestaBadge';
 
 const ESCALA_OPCIONES = [1, 2, 3, 4, 5];
+
+function formatearFecha(fecha) {
+  if (!fecha) return null;
+  const parsed = new Date(fecha);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleString('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 function validarRespuestas(preguntas, respuestas) {
   const errores = {};
@@ -32,6 +45,7 @@ export default function EncuestaForm({
   encuesta,
   preguntas = [],
   soloLectura = false,
+  esEstudiante = false,
   puedeEnviarRecordatorio = false,
   onGuardarBorrador,
   onEnviar,
@@ -44,6 +58,7 @@ export default function EncuestaForm({
   const [errores, setErrores] = useState({});
 
   const bloqueada = encuesta?.estado === 'COMPLETADA' || soloLectura;
+  const permiteBorrador = !esEstudiante && encuesta?.estado !== 'COMPLETADA' && !soloLectura;
 
   useEffect(() => {
     if (encuesta?.respuestas) {
@@ -52,6 +67,8 @@ export default function EncuestaForm({
   }, [encuesta?.respuestas, encuesta?.id]);
 
   const preguntasVisibles = useMemo(() => preguntas ?? [], [preguntas]);
+  const fechaInvitacion = formatearFecha(encuesta?.fechaEnvioInvitacion);
+  const fechaRecordatorio = formatearFecha(encuesta?.fechaUltimoRecordatorio);
 
   const actualizarRespuesta = (id, valor) => {
     setRespuestas((prev) => ({ ...prev, [id]: valor }));
@@ -91,10 +108,28 @@ export default function EncuestaForm({
           <h3 id={`encuesta-${encuesta.tipo}`} className="text-base font-semibold text-gray-900">
             {titulo}
           </h3>
-          <p className="text-sm text-gray-500">Tipo: {encuesta.tipo}</p>
+          {fechaInvitacion && (
+            <p className="mt-1 text-xs text-gray-500">Invitación enviada: {fechaInvitacion}</p>
+          )}
+          {fechaRecordatorio && (
+            <p className="mt-1 text-xs text-gray-400">Último recordatorio: {fechaRecordatorio}</p>
+          )}
         </div>
         <EstadoEncuestaBadge estado={encuesta.estado} />
       </div>
+
+      {esEstudiante && encuesta.estado !== 'COMPLETADA' && !soloLectura && (
+        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Debes completar esta encuesta para el cierre formal. Una vez enviada, no podrás modificar
+          las respuestas.
+        </p>
+      )}
+
+      {soloLectura && encuesta.estado !== 'COMPLETADA' && (
+        <p className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+          Solo consulta. El responsable debe completar o enviar la encuesta.
+        </p>
+      )}
 
       <div className="space-y-5">
         {preguntasVisibles.map((pregunta) => (
@@ -154,15 +189,17 @@ export default function EncuestaForm({
 
       {!bloqueada && (
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={handleBorrador}
-            disabled={isGuardando || isEnviando}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isGuardando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-            Guardar borrador
-          </button>
+          {permiteBorrador && (
+            <button
+              type="button"
+              onClick={handleBorrador}
+              disabled={isGuardando || isEnviando}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isGuardando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              Guardar borrador
+            </button>
+          )}
           <button
             type="button"
             onClick={handleEnviar}
@@ -189,10 +226,14 @@ export default function EncuestaForm({
             type="button"
             onClick={onRecordatorio}
             disabled={isRecordatorio}
-            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-700 hover:underline disabled:opacity-60"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-60"
           >
-            {isRecordatorio && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-            Enviar recordatorio manual
+            {isRecordatorio ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Bell className="h-4 w-4" aria-hidden="true" />
+            )}
+            {isRecordatorio ? 'Enviando recordatorio...' : 'Enviar recordatorio manual'}
           </button>
         )}
     </section>
