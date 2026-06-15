@@ -9,7 +9,10 @@ export const TAMANO_PAGINA_DEFAULT = 10;
  */
 export function paramsListado(filtros = {}) {
   const { page = PAGINA_INICIAL, size = TAMANO_PAGINA_DEFAULT, ...rest } = filtros;
-  return { ...rest, page, size };
+  const limpio = Object.fromEntries(
+    Object.entries(rest).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+  );
+  return { ...limpio, page, size };
 }
 
 /**

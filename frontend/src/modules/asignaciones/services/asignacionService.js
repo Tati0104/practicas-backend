@@ -5,10 +5,11 @@
  * Usa el cliente `http` (Axios) ya configurado con baseURL y token JWT.
  */
 import http from '../../../shared/services/http.js';
+import { paramsListado } from '../../../shared/utils/paginacion.js';
 
 const asignacionService = {
   /** GET /asignaciones?page=&size=&estado=&estudianteId=&vacanteId= */
-  listar: (params) => http.get('/asignaciones', { params }),
+  listar: (filtros) => http.get('/asignaciones', { params: paramsListado(filtros) }),
 
   /** POST /asignaciones */
   crear: (dto) => http.post('/asignaciones', dto),

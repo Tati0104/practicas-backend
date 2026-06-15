@@ -34,7 +34,9 @@ export default function EmpresasPage() {
     {
       key: 'sector',
       titulo: 'Sector',
-      render: (e) => <Badge variant="purple">{e.sector}</Badge>,
+      render: (e) => (
+        <Badge variant="purple">{e.sector?.nombre ?? '—'}</Badge>
+      ),
     },
     { key: 'municipio', titulo: 'Municipio' },
     { key: 'activo', titulo: 'Estado', render: (e) => <BadgeEstado activo={e.activo} /> },

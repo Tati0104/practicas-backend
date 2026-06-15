@@ -2,6 +2,10 @@ import http from '../../../shared/services/http';
 import { paramsListado } from '../../../shared/utils/paginacion';
 
 const empresaService = {
+  // Catálogo de sectores
+  listarSectores: () =>
+    http.get('/catalogos', { params: { tipo: 'SECTOR_ECONOMICO', soloActivos: true } }),
+
   // Empresas
   listar: (filtros = {}) =>
     http.get('/empresas', { params: paramsListado(filtros) }),

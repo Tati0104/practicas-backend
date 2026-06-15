@@ -1,16 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import empresaService from '../services/empresaService';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
-
-const SECTORES = [
-  'TECNOLOGIA',
-  'CONSTRUCCION',
-  'AGRICULTURA',
-  'SALUD',
-  'EDUCACION',
-  'COMERCIO',
-  'INDUSTRIA',
-  'SERVICIOS',
-];
 
 export default function ModalEmpresa({ onGuardar, onCerrar }) {
   const [form, setForm] = useState({
@@ -21,7 +11,16 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
     municipio: '',
     telefono: '',
   });
+  const [sectores, setSectores] = useState([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    empresaService
+      .listarSectores()
+      .then((res) => setSectores(res.data ?? []))
+      .catch(() => setSectores([]));
+  }, []);
+
   const campo = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const guardar = () => {
@@ -38,7 +37,8 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
       return;
     }
     setError('');
-    onGuardar(form);
+    const { sector: sectorId, ...resto } = form;
+    onGuardar({ ...resto, sector: { id: Number(sectorId) } });
   };
 
   return (
@@ -84,9 +84,9 @@ export default function ModalEmpresa({ onGuardar, onCerrar }) {
           <label className="mb-1 block text-xs font-semibold text-gray-700">Sector</label>
           <Select value={form.sector} onChange={(e) => campo('sector', e.target.value)}>
             <option value="">Seleccionar</option>
-            {SECTORES.map((s) => (
-              <option key={s} value={s}>
-                {s}
+            {sectores.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.nombre}
               </option>
             ))}
           </Select>

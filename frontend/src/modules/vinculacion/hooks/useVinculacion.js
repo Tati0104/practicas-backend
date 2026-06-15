@@ -26,11 +26,18 @@ export function useVinculacion() {
       ejecutarConsulta({
         mock: () => paginarEnCliente(MOCK_VINCULACIONES, filtros),
         api: async () => {
-          const resp = await asignacionService.listar({
-            ...filtros,
-            estado: filtros.estado || 'EN_VINCULACION',
-          });
-          return normalizarPagina(resp.data?.data ?? resp.data, []);
+          const params = { ...filtros, estado: filtros.estado || 'EN_PROCESO_VINCULACION' };
+          console.log('[useVinculacion] params enviados:', params);
+          try {
+            const resp = await asignacionService.listar(params);
+            console.log('[useVinculacion] respuesta OK:', resp.data);
+            return normalizarPagina(resp.data?.data ?? resp.data, []);
+          } catch (err) {
+            console.error('[useVinculacion] status:', err?.response?.status);
+            console.error('[useVinculacion] body:', err?.response?.data);
+            console.error('[useVinculacion] URL:', err?.config?.url, '| params:', err?.config?.params);
+            throw err;
+          }
         },
       }),
     placeholderData: placeholderDesdeMock(MOCK_VINCULACIONES),

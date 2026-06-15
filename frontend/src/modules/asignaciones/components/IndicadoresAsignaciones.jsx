@@ -29,9 +29,9 @@ export default function IndicadoresAsignaciones({ asignaciones = [] }) {
 
   const conteos = {
     activas: asignaciones.filter(
-      (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_VINCULACION'
+      (a) => a.estado === 'ASIGNADA' || a.estado === 'EN_PROCESO_VINCULACION'
     ).length,
-    vinculacion: asignaciones.filter((a) => a.estado === 'EN_VINCULACION').length,
+    vinculacion: asignaciones.filter((a) => a.estado === 'EN_PROCESO_VINCULACION').length,
     canceladas: asignaciones.filter((a) => {
       if (a.estado !== 'CANCELADA' || !a.fechaAsignacion) return false;
       const fecha = new Date(a.fechaAsignacion);

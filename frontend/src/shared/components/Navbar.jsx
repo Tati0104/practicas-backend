@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
+import NotificacionesBell from './NotificacionesBell';
 
 const nombreRol = {
   ADMIN: 'Administrador',
@@ -37,9 +38,12 @@ export default function Navbar({ onAbrirMenu }) {
         </span>
       </div>
 
-      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-        {rolMostrar}
-      </span>
+      <div className="flex items-center gap-3">
+        <NotificacionesBell />
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+          {rolMostrar}
+        </span>
+      </div>
     </header>
   );
 }

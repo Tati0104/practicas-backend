@@ -2,14 +2,14 @@ import { Badge } from '@/shared/components/ui';
 
 const VARIANTES = {
   ASIGNADA: 'info',
-  EN_VINCULACION: 'warning',
+  EN_PROCESO_VINCULACION: 'warning',
   VINCULADA: 'success',
   CANCELADA: 'danger',
 };
 
 const ETIQUETAS = {
   ASIGNADA: 'Asignada',
-  EN_VINCULACION: 'En Vinculación',
+  EN_PROCESO_VINCULACION: 'En Vinculación',
   VINCULADA: 'Vinculada',
   CANCELADA: 'Cancelada',
 };
