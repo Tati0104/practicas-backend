@@ -7,11 +7,6 @@ const APTITUDES = [
   { value: 'NO_APTO', label: 'NO_APTO' },
 ];
 
-const ACTIVO = [
-  { value: '', label: 'Activo / Inactivo' },
-  { value: 'true', label: 'Activos' },
-  { value: 'false', label: 'Inactivos' },
-];
 
 export default function FiltrosEstudiante({ filtros, onChange }) {
   const actualizar = (cambios) => onChange({ ...filtros, ...cambios, page: 0 });
@@ -27,18 +22,8 @@ export default function FiltrosEstudiante({ filtros, onChange }) {
       <FiltroSelect
         compacto
         opciones={APTITUDES}
-        value={filtros.estadoAptitud || ''}
-        onChange={(e) => actualizar({ estadoAptitud: e.target.value || undefined })}
-      />
-      <FiltroSelect
-        compacto
-        opciones={ACTIVO}
-        value={filtros.activo ?? ''}
-        onChange={(e) =>
-          actualizar({
-            activo: e.target.value === '' ? undefined : e.target.value === 'true',
-          })
-        }
+        value={filtros.aptitud || ''}
+        onChange={(e) => actualizar({ aptitud: e.target.value || undefined })}
       />
     </FiltrosBar>
   );
