@@ -4,7 +4,6 @@ import FiltrosEstudiante       from './FiltrosEstudiante';
 import ModalRegistroEstudiante from './ModalRegistroEstudiante';
 import ImportarExcel           from './ImportarExcel';
 import TablaBase               from '../../../shared/components/TablaBase';
-import BadgeEstado             from '../../../shared/components/BadgeEstado';
 import Paginacion              from '../../../shared/components/Paginacion';
 
 const colorAptitud = {
@@ -36,7 +35,6 @@ export default function EstudiantesPage() {
         );
       }
     },
-    { key: 'activo', titulo: 'Estado', render: e => <BadgeEstado activo={e.activo} /> },
     {
       key: 'acciones', titulo: 'Acciones',
       render: e => (
