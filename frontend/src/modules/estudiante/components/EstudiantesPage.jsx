@@ -39,19 +39,19 @@ export default function EstudiantesPage() {
       key: 'acciones', titulo: 'Acciones',
       render: e => (
         <div style={{ display: 'flex', gap: 6 }}>
-          {e.estadoAptitud === 'SIN_EVALUAR' && (
-            <>
-              <button
-                onClick={() => marcarApto.mutate(e.id)}
-                style={{ padding: '4px 10px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
-                ✓ Apto
-              </button>
-              <button
-                onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}
-                style={{ padding: '4px 10px', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
-                ✗ No apto
-              </button>
-            </>
+          {(e.estadoAptitud === 'SIN_EVALUAR' || e.estadoAptitud === 'NO_APTO') && (
+            <button
+              onClick={() => marcarApto.mutate(e.id)}
+              style={{ padding: '4px 10px', background: '#d1fae5', color: '#065f46', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+              ✓ Apto
+            </button>
+          )}
+          {(e.estadoAptitud === 'SIN_EVALUAR' || e.estadoAptitud === 'APTO') && (
+            <button
+              onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}
+              style={{ padding: '4px 10px', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+              ✗ No apto
+            </button>
           )}
         </div>
       )
