@@ -41,7 +41,15 @@ export default function TimelineSeguimiento({ timeline = [] }) {
                 <span style={{ background: cfg.fondo, color: cfg.color, borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>
                   {cfg.label}
                 </span>
-                <span style={{ fontSize: 12, color: '#9ca3af' }}>{evento.fecha}</span>
+                <span style={{ fontSize: 12, color: '#9ca3af' }}>
+                  {evento.fecha ? new Date(
+                    Array.isArray(evento.fecha) 
+                      ? (evento.fecha.length === 3 
+                          ? `${evento.fecha[0]}-${String(evento.fecha[1]).padStart(2, '0')}-${String(evento.fecha[2]).padStart(2, '0')}T00:00:00`
+                          : `${evento.fecha[0]}-${String(evento.fecha[1]).padStart(2, '0')}-${String(evento.fecha[2]).padStart(2, '0')}T${String(evento.fecha[3]).padStart(2, '0')}:${String(evento.fecha[4] || 0).padStart(2, '0')}:${String(evento.fecha[5] || 0).padStart(2, '0')}`) 
+                      : evento.fecha
+                  ).toLocaleString() : '—'}
+                </span>
               </div>
               <div style={{ fontSize: 14, color: '#374151', marginBottom: 4 }}>{evento.contenido}</div>
               {evento.porcentaje !== undefined && (

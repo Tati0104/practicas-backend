@@ -5,6 +5,7 @@ import {
   placeholderSimple,
   usarMocks,
 } from '@/shared/config/dataSource';
+import seguimientoService from '../services/seguimientoService';
 
 export function usePracticaSeguimiento(practicaId) {
   const { data, isLoading, isError } = useQuery({
@@ -12,9 +13,10 @@ export function usePracticaSeguimiento(practicaId) {
     queryFn: () =>
       ejecutarConsulta({
         mock: () => ({ ...MOCK_DETALLE_PRACTICA, id: Number(practicaId) || MOCK_DETALLE_PRACTICA.id }),
-        // GET /seguimiento/{practicaId} (detalle unificado) no existe aún en el backend.
-        // Usa mock como fallback hasta que el endpoint esté disponible.
-        api: () => ({ ...MOCK_DETALLE_PRACTICA, id: Number(practicaId) || MOCK_DETALLE_PRACTICA.id }),
+        api: async () => {
+          const resp = await seguimientoService.obtenerDetallePractica(practicaId);
+          return resp.data?.data ?? resp.data;
+        },
       }),
     enabled: Boolean(practicaId),
     placeholderData: placeholderSimple(MOCK_DETALLE_PRACTICA),

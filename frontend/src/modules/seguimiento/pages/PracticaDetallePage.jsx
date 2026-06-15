@@ -55,7 +55,7 @@ export default function PracticaDetallePage() {
           <h1 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#111827' }}>
             {practica.estudiante?.nombre}
           </h1>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>{practica.estudiante?.codigo} — {practica.estudiante?.programa}</div>
+          <div style={{ fontSize: 13, color: '#6b7280' }}>ID: {practica.estudiante?.identificacion}</div>
         </div>
         <span style={{ background: badge.bg, color: badge.color, borderRadius: 20, padding: '4px 14px', fontSize: 13, fontWeight: 700 }}>
           {badge.label}
@@ -78,7 +78,13 @@ export default function PracticaDetallePage() {
               ].map(({ label, valor }) => (
                 <div key={label}>
                   <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
-                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 500 }}>{valor || '—'}</div>
+                  <div style={{ fontSize: 14, color: '#111827', fontWeight: 500 }}>
+                    {valor ? (
+                      Array.isArray(valor) && valor.length >= 3
+                        ? `${valor[0]}-${String(valor[1]).padStart(2, '0')}-${String(valor[2]).padStart(2, '0')}`
+                        : valor
+                    ) : '—'}
+                  </div>
                 </div>
               ))}
             </div>

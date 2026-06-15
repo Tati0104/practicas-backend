@@ -52,6 +52,14 @@ public class SeguimientoController {
     }
 
     /**
+     * Obtiene el detalle de la práctica y su historial.
+     */
+    @GetMapping("/{practicaId}")
+    public com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetalle(@PathVariable Long practicaId) {
+        return service.obtenerDetallePractica(practicaId);
+    }
+
+    /**
      * Registra una nueva observación académica para un corte de práctica.
      * Solo permitido para el Docente Asesor asignado.
      */

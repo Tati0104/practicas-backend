@@ -57,6 +57,11 @@ public interface SeguimientoService {
     List<BitacoraEstudiante> obtenerBitacorasPorPractica(Long practicaId);
 
     /**
+     * Obtiene el detalle unificado de una práctica.
+     */
+    com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetallePractica(Long practicaId);
+
+    /**
      * Obtiene todas las alertas activas del sistema.
      */
     List<AlertaSistema> obtenerAlertasActivas();
