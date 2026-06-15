@@ -38,17 +38,10 @@ export const GRUPOS_NAVEGACION = [
     nombre: 'Gestión del sistema',
     items: [
       {
-        id: 'facultades',
-        nombre: 'Facultades',
-        ruta: '/configuracion/facultades',
+        id: 'academica',
+        nombre: 'Facultades y programas',
+        ruta: '/configuracion/academica',
         icono: 'Building2',
-        roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
-      },
-      {
-        id: 'programas',
-        nombre: 'Programas',
-        ruta: '/configuracion/programas',
-        icono: 'BookOpen',
         roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
       },
     ],

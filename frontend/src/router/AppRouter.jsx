@@ -16,10 +16,9 @@ import { ReportesPage } from '@/modules/reportes';
 import { PlantillasCorreoPage } from '@/modules/correo';
 import DashboardPage from '@/modules/dashboard/components/DashboardPage';
 import UsuariosPage from '@/modules/usuario/components/UsuariosPage';
-import FacultadesPage from '@/modules/configuracion/components/FacultadesPage';
+import FacultadesProgramasPage from '@/modules/configuracion/components/FacultadesProgramasPage';
 import EstudiantesPage from '@/modules/estudiante/components/EstudiantesPage';
 import EmpresasPage from '@/modules/empresa/components/EmpresasPage';
-import ProgramasPage from '@/modules/configuracion/components/ProgramasPage';
 import VacantesPage from '@/modules/vacantes/pages/VacantesPage';
 import VacanteDetallePage from '@/modules/vacantes/pages/VacanteDetallePage';
 import VacantesYAsignacionesPage from '@/modules/vacantes/pages/VacantesYAsignacionesPage';
@@ -73,13 +72,15 @@ export default function AppRouter() {
           />
 
           <Route
-            path="/configuracion/facultades"
+            path="/configuracion/academica"
             element={
               <RutaPrivada roles={['ADMIN', 'COORD_ACADEMICA']}>
-                <FacultadesPage />
+                <FacultadesProgramasPage />
               </RutaPrivada>
             }
           />
+          <Route path="/configuracion/facultades" element={<Navigate to="/configuracion/academica" replace />} />
+          <Route path="/configuracion/programas" element={<Navigate to="/configuracion/academica" replace />} />
 
           <Route
             path="/estudiantes"
@@ -104,15 +105,6 @@ export default function AppRouter() {
             element={
               <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'SECRETARIA']}>
                 <EmpresasPage />
-              </RutaPrivada>
-            }
-          />
-
-          <Route
-            path="/configuracion/programas"
-            element={
-              <RutaPrivada roles={['ADMIN', 'COORD_ACADEMICA']}>
-                <ProgramasPage />
               </RutaPrivada>
             }
           />

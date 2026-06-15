@@ -394,6 +394,101 @@ public class SeguimientoServiceImpl implements SeguimientoService {
 
     @Override
     @Transactional(readOnly = true)
+    public com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetallePractica(Long practicaId) {
+        InstanciaPractica p = practicaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
+
+        String nombreEmpresa = "No asignada";
+        if (p.getEmpresaId() != null) {
+            try {
+                nombreEmpresa = jdbcTemplate.queryForObject(
+                        "SELECT razon_social FROM empresas WHERE id = ?",
+                        String.class,
+                        p.getEmpresaId()
+                );
+            } catch (Exception e) {}
+        }
+
+        String nombreDocente = "No asignado";
+        if (p.getDocenteAsesorId() != null) {
+            try {
+                nombreDocente = jdbcTemplate.queryForObject(
+                        "SELECT nombre FROM docentes_asesores WHERE id = ?",
+                        String.class,
+                        p.getDocenteAsesorId()
+                );
+            } catch (Exception e) {}
+        }
+
+        String nombreTutor = "No asignado";
+        if (p.getTutorId() != null) {
+            try {
+                nombreTutor = jdbcTemplate.queryForObject(
+                        "SELECT nombre FROM tutores_empresariales WHERE id = ?",
+                        String.class,
+                        p.getTutorId()
+                );
+            } catch (Exception e) {}
+        }
+
+        // Timeline
+        List<com.avh.practicas.seguimiento.dto.TimelineEventDto> timeline = new ArrayList<>();
+
+        observacionDocenteRepository.findByInstanciaPracticaId(practicaId).forEach(obs -> {
+            timeline.add(new com.avh.practicas.seguimiento.dto.TimelineEventDto(
+                    obs.getId(), "OBSERVACION", obs.getDocente().getNombre(), obs.getFecha(), obs.getObservacion(), null
+            ));
+        });
+
+        avanceTutorRepository.findByInstanciaPracticaId(practicaId).forEach(av -> {
+            timeline.add(new com.avh.practicas.seguimiento.dto.TimelineEventDto(
+                    av.getId(), "AVANCE_TUTOR", av.getTutor().getNombre(), av.getFecha(), av.getAvance(), av.getAvance() != null ? Integer.parseInt(av.getAvance().replaceAll("[^0-9]", "")) : 0
+            ));
+        });
+
+        bitacoraEstudianteRepository.findByInstanciaPracticaId(practicaId).forEach(bit -> {
+            timeline.add(new com.avh.practicas.seguimiento.dto.TimelineEventDto(
+                    bit.getId(), "BITACORA", bit.getEstudiante().getNombre(), bit.getFecha(), bit.getDescripcion(), null
+            ));
+        });
+
+        timeline.sort(Comparator.comparing(com.avh.practicas.seguimiento.dto.TimelineEventDto::fecha).reversed());
+
+        int avancePromedio = 0;
+        List<AvanceTutor> avances = avanceTutorRepository.findByInstanciaPracticaId(practicaId);
+        if (!avances.isEmpty()) {
+             avancePromedio = avances.stream()
+                .map(a -> {
+                    try { return Integer.parseInt(a.getAvance().replaceAll("[^0-9]", "")); }
+                    catch (Exception e) { return 0; }
+                })
+                .max(Integer::compareTo).orElse(0);
+        }
+
+        com.avh.practicas.estudiante.dto.EstudianteDto estudianteDto = com.avh.practicas.estudiante.dto.EstudianteDto.builder()
+                .nombre(p.getExpediente().getEstudiante().getNombre())
+                .identificacion(p.getExpediente().getEstudiante().getIdentificacion())
+                .correo(p.getExpediente().getEstudiante().getCorreo())
+                .programaId(p.getExpediente().getEstudiante().getPrograma().getId())
+                .build();
+
+        return new com.avh.practicas.seguimiento.dto.PracticaDetalleResponse(
+                p.getId(),
+                estudianteDto,
+                nombreEmpresa,
+                "Practicante",
+                nombreDocente,
+                nombreTutor,
+                "AL_DIA",
+                p.getFechaInicio(),
+                p.getFechaFin(),
+                avancePromedio,
+                timeline
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<AlertaSistema> obtenerAlertasActivas() {
         return alertaSistemaRepository.findByLeidaFalseOrderByFechaDesc();
     }

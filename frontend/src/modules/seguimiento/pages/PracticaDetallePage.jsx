@@ -1,13 +1,3 @@
-// src/modules/seguimiento/pages/PracticaDetallePage.jsx
-
-/**
- * Página de detalle de una práctica en el módulo de Seguimiento.
- * Muestra info general, timeline de eventos y panel de alertas.
- * Según el rol, muestra el botón de acción correspondiente:
- *   - COORD_PRACTICA / DOCENTE_ASESOR → Registrar observación
- *   - TUTOR_EMPRESARIAL               → Registrar avance
- *   - ESTUDIANTE                      → Nueva bitácora
- */
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePracticaSeguimiento } from '../hooks/usePracticaSeguimiento';
@@ -19,6 +9,11 @@ import ObservacionModal from '../components/ObservacionModal';
 import AvanceTutorModal from '../components/AvanceTutorModal';
 import BitacoraModal from '../components/BitacoraModal';
 import { Badge, Button, Card, LoadingState, PageBackHeader } from '@/shared/components/ui';
+import {
+  estadoSeguimientoPractica,
+  formatearFechaSeguimiento,
+  nombreEstudiantePractica,
+} from '../utils/fechas';
 
 const BADGE = {
   AL_DIA: { label: 'Al día', variant: 'success' },
@@ -34,6 +29,15 @@ const CAMPOS_INFO = [
   { label: 'Inicio', key: 'fechaInicio' },
   { label: 'Fin', key: 'fechaFin' },
 ];
+
+function valorCampo(practica, key) {
+  const valor = practica?.[key];
+  if (!valor) return '—';
+  if (key === 'fechaInicio' || key === 'fechaFin') {
+    return formatearFechaSeguimiento(valor);
+  }
+  return valor;
+}
 
 export default function PracticaDetallePage() {
   const { id } = useParams();
@@ -67,14 +71,21 @@ export default function PracticaDetallePage() {
     );
   }
 
-  const badge = BADGE[practica.estado] || { label: practica.estado, variant: 'neutral' };
+  const estadoClave = estadoSeguimientoPractica(practica);
+  const badge = BADGE[estadoClave] || { label: estadoClave, variant: 'neutral' };
   const avance = practica.porcentajeAvance || 0;
+  const identificacion =
+    typeof practica.estudiante === 'object'
+      ? practica.estudiante?.identificacion ?? practica.estudiante?.codigo
+      : null;
+  const programa =
+    typeof practica.estudiante === 'object' ? practica.estudiante?.programa : null;
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageBackHeader
-        titulo={practica.estudiante?.nombre}
-        descripcion={`${practica.estudiante?.codigo} — ${practica.estudiante?.programa}`}
+        titulo={nombreEstudiantePractica(practica)}
+        descripcion={[identificacion, programa].filter(Boolean).join(' — ') || undefined}
         onVolver={() => navigate('/seguimiento')}
         acciones={
           <Badge variant={badge.variant} className="px-3 py-1 text-sm">
@@ -84,7 +95,6 @@ export default function PracticaDetallePage() {
       />
 
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
-        {/* Columna principal */}
         <div className="min-w-0 flex-1">
           <Card className="mb-5" padding="p-5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -93,7 +103,7 @@ export default function PracticaDetallePage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                     {label}
                   </p>
-                  <p className="text-sm font-medium text-gray-900">{practica[key] || '—'}</p>
+                  <p className="text-sm font-medium text-gray-900">{valorCampo(practica, key)}</p>
                 </div>
               ))}
             </div>
@@ -142,7 +152,6 @@ export default function PracticaDetallePage() {
           </Card>
         </div>
 
-        {/* Panel alertas */}
         <aside className="w-full shrink-0 xl:w-72">
           <AlertasPanel practicaId={Number(id)} />
         </aside>

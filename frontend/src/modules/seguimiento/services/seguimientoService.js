@@ -39,6 +39,9 @@ const seguimientoService = {
 
   /** PATCH /vinculaciones/alertas/{id}/resolver */
   marcarAlertaLeida: (id) => http.patch(`/vinculaciones/alertas/${id}/resolver`),
+
+  /** GET /seguimiento/{practicaId} */
+  obtenerDetallePractica: (id) => http.get(`/seguimiento/${id}`),
 };
 
 export default seguimientoService;

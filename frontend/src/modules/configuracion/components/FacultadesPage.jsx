@@ -8,7 +8,7 @@ import TablaBase from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 import { Button, Input, Modal, PageHeader } from '@/shared/components/ui';
 
-export default function FacultadesPage() {
+export default function FacultadesPage({ esSubComponente = false }) {
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
   const [nombre, setNombre] = useState('');
@@ -120,10 +120,16 @@ export default function FacultadesPage() {
 
   return (
     <div>
-      <PageHeader
-        titulo="Facultades"
-        acciones={<Button onClick={abrirCrear}>+ Nueva facultad</Button>}
-      />
+      {!esSubComponente ? (
+        <PageHeader
+          titulo="Facultades"
+          acciones={<Button onClick={abrirCrear}>+ Nueva facultad</Button>}
+        />
+      ) : (
+        <div className="mb-4 flex justify-end">
+          <Button onClick={abrirCrear}>+ Nueva facultad</Button>
+        </div>
+      )}
 
       <TablaBase columnas={columnas} datos={facultades} cargando={isLoading} />
 

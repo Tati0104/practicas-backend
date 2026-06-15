@@ -99,4 +99,9 @@ public class SeguimientoServiceProxy implements SeguimientoService {
     public List<AlertaSistema> obtenerAlertasActivas() {
         return realService.obtenerAlertasActivas();
     }
+
+    @Override
+    public com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetallePractica(Long practicaId) {
+        return realService.obtenerDetallePractica(practicaId);
+    }
 }

@@ -1,11 +1,5 @@
-// src/modules/seguimiento/components/TimelineSeguimiento.jsx
-
-/**
- * Timeline de eventos de una práctica.
- * Ordena del más reciente al más antiguo (el hook ya lo ordena, pero aquí se renderiza).
- * Tipos: OBSERVACION, AVANCE_TUTOR, BITACORA.
- */
 import { BookOpen, Eye, TrendingUp } from 'lucide-react';
+import { formatearFechaHoraSeguimiento } from '../utils/fechas';
 
 const TIPO_CONFIG = {
   OBSERVACION: {
@@ -68,7 +62,9 @@ export default function TimelineSeguimiento({ timeline = [] }) {
                 >
                   {cfg.label}
                 </span>
-                <span className="text-xs text-gray-400">{evento.fecha}</span>
+                <span className="text-xs text-gray-400">
+                  {formatearFechaHoraSeguimiento(evento.fecha)}
+                </span>
               </div>
               <p className="text-sm text-gray-700">{evento.contenido}</p>
               {evento.porcentaje !== undefined && (
