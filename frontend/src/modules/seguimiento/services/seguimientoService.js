@@ -22,6 +22,22 @@ const seguimientoService = {
     });
   },
 
+  /**
+   * GET /seguimiento/practicas
+   * Endpoint desacoplado: no exige programaId, resuelve el scope del usuario
+   * autenticado en el backend (ESTUDIANTE ve solo la suya, coordinadores su facultad).
+   */
+  practicas: ({ programaId, page, size, estado, busqueda } = {}) =>
+    http.get('/seguimiento/practicas', {
+      params: {
+        programaId: programaId || undefined,
+        page,
+        size,
+        busqueda: busqueda || undefined,
+        estadoSeguimiento: estado || undefined,
+      },
+    }),
+
   /** POST /seguimiento/{practicaId}/observaciones */
   registrarObservacion: (practicaId, dto) =>
     http.post(`/seguimiento/${practicaId}/observaciones`, dto),

@@ -147,6 +147,7 @@ export const GRUPOS_NAVEGACION = [
         roles: [
           ROLES.ADMIN,
           ROLES.COORD_PRACTICA,
+          ROLES.COORD_ACADEMICA,
           ROLES.DOCENTE_ASESOR,
           ROLES.TUTOR_EMPRESARIAL,
           ROLES.ESTUDIANTE,
@@ -167,6 +168,7 @@ export const GRUPOS_NAVEGACION = [
         roles: [
           ROLES.ADMIN,
           ROLES.COORD_PRACTICA,
+          ROLES.COORD_ACADEMICA,
           ROLES.DOCENTE_ASESOR,
           ROLES.TUTOR_EMPRESARIAL,
           ROLES.ESTUDIANTE,
@@ -184,7 +186,7 @@ export const GRUPOS_NAVEGACION = [
         nombre: 'Checklist de cierre',
         ruta: '/cierre',
         icono: 'CheckSquare',
-        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA],
+        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.COORD_ACADEMICA, ROLES.ESTUDIANTE],
         prefijo: true,
       },
     ],

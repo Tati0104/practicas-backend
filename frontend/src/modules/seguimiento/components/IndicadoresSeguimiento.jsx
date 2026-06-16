@@ -14,9 +14,9 @@ const tarjetasConfig = [
 
 export default function IndicadoresSeguimiento({ practicas = [] }) {
   const conteos = {
-    AL_DIA: practicas.filter((p) => p.estado === 'AL_DIA').length,
-    PENDIENTE: practicas.filter((p) => p.estado === 'PENDIENTE').length,
-    EN_ALERTA: practicas.filter((p) => p.estado === 'EN_ALERTA').length,
+    AL_DIA: practicas.filter((p) => p.estadoSeguimiento === 'AL_DIA').length,
+    PENDIENTE: practicas.filter((p) => p.estadoSeguimiento === 'PENDIENTE').length,
+    EN_ALERTA: practicas.filter((p) => p.estadoSeguimiento === 'EN_ALERTA').length,
   };
 
   const datosArea = [

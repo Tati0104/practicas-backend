@@ -163,6 +163,7 @@ export default function AppRouter() {
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}
@@ -180,6 +181,7 @@ export default function AppRouter() {
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}
@@ -195,6 +197,7 @@ export default function AppRouter() {
               <RutaPrivada
                 roles={[
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
@@ -212,6 +215,7 @@ export default function AppRouter() {
               <RutaPrivada
                 roles={[
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
@@ -244,7 +248,7 @@ export default function AppRouter() {
           <Route
             path="/cierre"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
                 <CierreListPage />
               </RutaPrivada>
             }
@@ -253,7 +257,7 @@ export default function AppRouter() {
           <Route
             path="/cierre/:practicaId"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
                 <CierrePage />
               </RutaPrivada>
             }
