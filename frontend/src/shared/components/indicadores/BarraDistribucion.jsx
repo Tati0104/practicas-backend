@@ -1,9 +1,9 @@
 const COLORES = {
-  primary: 'bg-blue-500',
-  emerald: 'bg-emerald-500',
-  amber: 'bg-amber-500',
-  violet: 'bg-violet-500',
-  red: 'bg-red-500',
+  primary: 'bg-blue-500 dark:bg-primary-accent',
+  emerald: 'bg-emerald-500 dark:bg-emerald-400',
+  amber: 'bg-amber-500 dark:bg-amber-400',
+  violet: 'bg-violet-500 dark:bg-violet-400',
+  red: 'bg-red-500 dark:bg-red-400',
 };
 
 export default function BarraDistribucion({ items = [], titulo = 'Distribución' }) {
@@ -11,18 +11,18 @@ export default function BarraDistribucion({ items = [], titulo = 'Distribución'
 
   if (total === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">{titulo}</h3>
-        <p className="text-sm text-gray-500">Sin datos para mostrar.</p>
+      <div className="ui-panel p-5">
+        <h3 className="mb-2 text-sm font-semibold ui-text-body">{titulo}</h3>
+        <p className="text-sm ui-text-muted">Sin datos para mostrar.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
-      <h3 className="mb-4 text-sm font-semibold text-gray-700">{titulo}</h3>
+    <div className="ui-panel p-5">
+      <h3 className="mb-4 text-sm font-semibold ui-text-body">{titulo}</h3>
 
-      <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-gray-100">
+      <div className="mb-4 flex h-3 overflow-hidden rounded-full bg-gray-100 dark:bg-dark-elevated">
         {items.map((item) => {
           const pct = ((Number(item.valor) || 0) / total) * 100;
           if (pct <= 0) return null;
@@ -46,9 +46,9 @@ export default function BarraDistribucion({ items = [], titulo = 'Distribución'
               <span
                 className={`h-2.5 w-2.5 shrink-0 rounded-full ${COLORES[item.color] ?? 'bg-gray-400'}`}
               />
-              <span className="flex-1 text-gray-600">{item.titulo}</span>
-              <span className="font-semibold text-gray-900">{valor}</span>
-              <span className="w-10 text-right text-xs text-gray-400">{pct}%</span>
+              <span className="flex-1 ui-text-body">{item.titulo}</span>
+              <span className="font-semibold ui-text-title">{valor}</span>
+              <span className="w-10 text-right text-xs ui-text-muted">{pct}%</span>
             </div>
           );
         })}

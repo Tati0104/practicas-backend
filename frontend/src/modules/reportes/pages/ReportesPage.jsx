@@ -3,6 +3,7 @@ import {
   GraficaArea,
   GraficaBarras,
   GraficaDonut,
+  getPaleta,
   TarjetaKpi,
   datosAreaEvolucion,
   datosBarrasComparativa,
@@ -13,9 +14,12 @@ import {
   seriesBarrasVacantesAsignaciones,
 } from '@/shared/components/indicadores';
 import { LoadingState, PageHeader } from '@/shared/components/ui';
+import useTheme from '@/shared/hooks/useTheme';
 import { useReporteResumen } from '../hooks/useReportes';
 
 export default function ReportesPage() {
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
   const { data: raw, isLoading, isError } = useReporteResumen();
   const data = normalizarReporte(raw);
 
@@ -34,7 +38,7 @@ export default function ReportesPage() {
       {isLoading && <LoadingState mensaje="Cargando indicadores..." />}
 
       {isError && (
-        <p className="text-sm text-red-600">No se pudieron cargar los reportes.</p>
+        <p className="text-sm text-red-600 dark:text-red-400">No se pudieron cargar los reportes.</p>
       )}
 
       {!isLoading && !isError && data && (
@@ -77,7 +81,7 @@ export default function ReportesPage() {
             >
               <GraficaBarras
                 datos={datosBarrasComparativa(data)}
-                series={seriesBarrasVacantesAsignaciones()}
+                series={seriesBarrasVacantesAsignaciones(paleta)}
               />
             </ContenedorGrafica>
 
@@ -86,7 +90,7 @@ export default function ReportesPage() {
               descripcion="Proporción vinculadas vs en proceso vs canceladas"
             >
               <GraficaDonut
-                datos={datosDonutAsignaciones(data)}
+                datos={datosDonutAsignaciones(data, paleta)}
                 etiquetaCentral="Vinculadas"
                 valorCentral={data.asignacionesVinculadas}
               />
@@ -102,13 +106,13 @@ export default function ReportesPage() {
             >
               <GraficaArea
                 datos={datosAreaEvolucion(data)}
-                series={seriesAreaComparativa()}
+                series={seriesAreaComparativa(paleta)}
               />
             </ContenedorGrafica>
 
             <ContenedorGrafica titulo="Estado de vacantes" descripcion="Activas, pendientes y otras">
               <GraficaDonut
-                datos={datosDonutVacantes(data)}
+                datos={datosDonutVacantes(data, paleta)}
                 etiquetaCentral="Activas"
                 valorCentral={data.vacantesActivas}
               />

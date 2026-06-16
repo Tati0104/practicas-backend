@@ -2,9 +2,10 @@ import {
   ContenedorGrafica,
   GraficaArea,
   GraficaDonut,
-  PALETA,
+  getPaleta,
   TarjetaKpi,
 } from '@/shared/components/indicadores';
+import useTheme from '@/shared/hooks/useTheme';
 
 const tarjetasConfig = [
   { key: 'AL_DIA', titulo: 'Al día', icono: 'award' },
@@ -13,6 +14,8 @@ const tarjetasConfig = [
 ];
 
 export default function IndicadoresSeguimiento({ practicas = [] }) {
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
   const conteos = {
     AL_DIA: practicas.filter((p) => p.estadoSeguimiento === 'AL_DIA').length,
     PENDIENTE: practicas.filter((p) => p.estadoSeguimiento === 'PENDIENTE').length,
@@ -26,9 +29,9 @@ export default function IndicadoresSeguimiento({ practicas = [] }) {
   ];
 
   const datosDonut = [
-    { nombre: 'Al día', valor: conteos.AL_DIA, color: PALETA.emerald },
-    { nombre: 'Pendiente', valor: conteos.PENDIENTE, color: PALETA.accent },
-    { nombre: 'En alerta', valor: conteos.EN_ALERTA, color: PALETA.red },
+    { nombre: 'Al día', valor: conteos.AL_DIA, color: paleta.emerald },
+    { nombre: 'Pendiente', valor: conteos.PENDIENTE, color: paleta.accent },
+    { nombre: 'En alerta', valor: conteos.EN_ALERTA, color: paleta.red },
   ].filter((d) => d.valor > 0);
 
   return (
@@ -51,8 +54,8 @@ export default function IndicadoresSeguimiento({ practicas = [] }) {
             <GraficaArea
               datos={datosArea}
               series={[
-                { key: 'total', nombre: 'Prácticas', color: PALETA.primary },
-                { key: 'alerta', nombre: 'En alerta', color: PALETA.red },
+                { key: 'total', nombre: 'Prácticas', color: paleta.primary },
+                { key: 'alerta', nombre: 'En alerta', color: paleta.red },
               ]}
               altura={200}
             />

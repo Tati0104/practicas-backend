@@ -1,10 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>PracTI</title>
+    <script>
+      (function () {
+        try {
+          var themeRaw = localStorage.getItem('practi-theme');
+          if (!themeRaw) return;
+          var themeData = JSON.parse(themeRaw);
+          var porUsuario = themeData.state && themeData.state.porUsuario;
+          if (!porUsuario) return;
+          var authRaw = localStorage.getItem('auth-storage');
+          var correo = null;
+          if (authRaw) {
+            var authData = JSON.parse(authRaw);
+            correo = authData.state && authData.state.correo;
+          }
+          const clave = correo ? correo.toLowerCase() : '__anon__';
+    var modo = porUsuario[clave] || 'light';
+          if (modo === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

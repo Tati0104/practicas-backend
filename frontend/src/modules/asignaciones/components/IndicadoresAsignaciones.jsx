@@ -2,9 +2,10 @@ import {
   ContenedorGrafica,
   GraficaBarras,
   GraficaDonut,
-  PALETA,
+  getPaleta,
   TarjetaKpi,
 } from '@/shared/components/indicadores';
+import useTheme from '@/shared/hooks/useTheme';
 
 const tarjetasConfig = [
   { key: 'activas', titulo: 'Asignaciones activas', icono: 'clipboard' },
@@ -13,6 +14,8 @@ const tarjetasConfig = [
 ];
 
 export default function IndicadoresAsignaciones({ asignaciones = [] }) {
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
   const ahora = new Date();
 
   const conteos = {
@@ -33,9 +36,9 @@ export default function IndicadoresAsignaciones({ asignaciones = [] }) {
   }));
 
   const datosDonut = [
-    { nombre: 'Activas', valor: conteos.activas, color: PALETA.primary },
-    { nombre: 'En vinculación', valor: conteos.vinculacion, color: PALETA.accent },
-    { nombre: 'Canceladas', valor: conteos.canceladas, color: PALETA.red },
+    { nombre: 'Activas', valor: conteos.activas, color: paleta.primary },
+    { nombre: 'En vinculación', valor: conteos.vinculacion, color: paleta.accent },
+    { nombre: 'Canceladas', valor: conteos.canceladas, color: paleta.red },
   ].filter((d) => d.valor > 0);
 
   return (
@@ -57,7 +60,7 @@ export default function IndicadoresAsignaciones({ asignaciones = [] }) {
           <ContenedorGrafica className="lg:col-span-2" titulo="Distribución de asignaciones">
             <GraficaBarras
               datos={datosBarras}
-              series={[{ key: 'cantidad', nombre: 'Cantidad', color: PALETA.primary }]}
+              series={[{ key: 'cantidad', nombre: 'Cantidad', color: paleta.primary }]}
               altura={200}
             />
           </ContenedorGrafica>

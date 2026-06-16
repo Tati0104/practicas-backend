@@ -8,17 +8,16 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { PALETA } from './paletaIndicadores';
-
-const tooltipStyle = {
-  borderRadius: '10px',
-  border: '1px solid #E2E8F0',
-  fontSize: '12px',
-};
+import useTheme from '@/shared/hooks/useTheme';
+import { getPaleta, getTooltipStyle } from './paletaIndicadores';
 
 export default function GraficaArea({ datos = [], series = [], altura = 260 }) {
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
+  const tooltipStyle = getTooltipStyle(esOscuro);
+
   if (!datos.length) {
-    return <p className="py-12 text-center text-sm text-gray-400">Sin datos para graficar</p>;
+    return <p className="py-12 text-center text-sm ui-text-muted">Sin datos para graficar</p>;
   }
 
   return (
@@ -27,20 +26,20 @@ export default function GraficaArea({ datos = [], series = [], altura = 260 }) {
         <defs>
           {series.map((s) => (
             <linearGradient key={s.key} id={`grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity={0.35} />
+              <stop offset="0%" stopColor={s.color} stopOpacity={esOscuro ? 0.45 : 0.35} />
               <stop offset="100%" stopColor={s.color} stopOpacity={0.02} />
             </linearGradient>
           ))}
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke={PALETA.grid} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={paleta.grid} vertical={false} />
         <XAxis
           dataKey="nombre"
-          tick={{ fill: PALETA.textMuted, fontSize: 11 }}
+          tick={{ fill: paleta.textMuted, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: PALETA.textMuted, fontSize: 11 }}
+          tick={{ fill: paleta.textMuted, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           allowDecimals={false}
@@ -48,7 +47,7 @@ export default function GraficaArea({ datos = [], series = [], altura = 260 }) {
         <Tooltip contentStyle={tooltipStyle} />
         {series.length > 1 && (
           <Legend
-            wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+            wrapperStyle={{ fontSize: '12px', paddingTop: '8px', color: paleta.text }}
             iconType="circle"
             iconSize={8}
           />

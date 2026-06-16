@@ -1,4 +1,4 @@
-import { PALETA } from './paletaIndicadores';
+import { PALETA, getPaleta } from './paletaIndicadores';
 
 export function normalizarReporte(data) {
   if (!data) return null;
@@ -36,11 +36,11 @@ export function datosBarrasComparativa(r) {
   ];
 }
 
-export function seriesBarrasVacantesAsignaciones() {
+export function seriesBarrasVacantesAsignaciones(paleta = PALETA) {
   return [
-    { key: 'activas', nombre: 'Activas / Vinculadas', color: PALETA.primary },
-    { key: 'pendientes', nombre: 'Pendientes / En proceso', color: PALETA.accent },
-    { key: 'otras', nombre: 'Otras / Canceladas', color: PALETA.red },
+    { key: 'activas', nombre: 'Activas / Vinculadas', color: paleta.primary },
+    { key: 'pendientes', nombre: 'Pendientes / En proceso', color: paleta.accent },
+    { key: 'otras', nombre: 'Otras / Canceladas', color: paleta.red },
   ];
 }
 
@@ -52,31 +52,33 @@ export function datosAreaEvolucion(r) {
   ];
 }
 
-export function seriesAreaComparativa() {
+export function seriesAreaComparativa(paleta = PALETA) {
   return [
-    { key: 'total', nombre: 'Total registrado', color: PALETA.primary },
-    { key: 'activas', nombre: 'Activos / vinculados', color: PALETA.emerald },
+    { key: 'total', nombre: 'Total registrado', color: paleta.primary },
+    { key: 'activas', nombre: 'Activos / vinculados', color: paleta.emerald },
   ];
 }
 
-export function datosDonutAsignaciones(r) {
+export function datosDonutAsignaciones(r, paleta = PALETA) {
   const enProceso = Math.max(
     0,
     r.totalAsignaciones - r.asignacionesVinculadas - r.asignacionesCanceladas
   );
 
   return [
-    { nombre: 'Vinculadas', valor: r.asignacionesVinculadas, color: PALETA.emerald },
-    { nombre: 'En proceso', valor: enProceso, color: PALETA.accent },
-    { nombre: 'Canceladas', valor: r.asignacionesCanceladas, color: PALETA.red },
+    { nombre: 'Vinculadas', valor: r.asignacionesVinculadas, color: paleta.emerald },
+    { nombre: 'En proceso', valor: enProceso, color: paleta.accent },
+    { nombre: 'Canceladas', valor: r.asignacionesCanceladas, color: paleta.red },
   ];
 }
 
-export function datosDonutVacantes(r) {
+export function datosDonutVacantes(r, paleta = PALETA) {
   const otras = Math.max(0, r.totalVacantes - r.vacantesActivas - r.vacantesPendientes);
   return [
-    { nombre: 'Activas', valor: r.vacantesActivas, color: PALETA.primary },
-    { nombre: 'Pendientes', valor: r.vacantesPendientes, color: PALETA.accent },
-    { nombre: 'Otras', valor: otras, color: PALETA.slate },
+    { nombre: 'Activas', valor: r.vacantesActivas, color: paleta.primary },
+    { nombre: 'Pendientes', valor: r.vacantesPendientes, color: paleta.accent },
+    { nombre: 'Otras', valor: otras, color: paleta.slate },
   ];
 }
+
+export { getPaleta };

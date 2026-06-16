@@ -6,10 +6,11 @@ import {
   ContenedorGrafica,
   GraficaBarras,
   GraficaDonut,
-  PALETA,
+  getPaleta,
   TarjetaKpi,
 } from '@/shared/components/indicadores';
 import { PageHeader } from '@/shared/components/ui';
+import useTheme from '@/shared/hooks/useTheme';
 
 function tarjetasPorRol(rol, datos) {
   const d = datos || {};
@@ -62,6 +63,8 @@ function iconoKpi(icono) {
 
 export default function DashboardPage() {
   const { usuario } = useAuth();
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
   const { data, isLoading, isError } = useResumen();
 
   const tarjetas = tarjetasPorRol(usuario?.rol, data);
@@ -75,7 +78,7 @@ export default function DashboardPage() {
   const datosDonut = tarjetas.map((t, i) => ({
     nombre: t.titulo,
     valor: Number(t.valor) || 0,
-    color: [PALETA.primary, PALETA.emerald, PALETA.accent, PALETA.violet, PALETA.red][i % 5],
+    color: [paleta.primary, paleta.emerald, paleta.accent, paleta.violet, paleta.red][i % 5],
   }));
 
   const primera = tarjetas[0];
@@ -84,8 +87,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader titulo="Panel de inicio" />
 
-      {isLoading && <p className="text-sm text-gray-500">Cargando indicadores...</p>}
-      {isError && <p className="text-sm text-red-600">No se pudo conectar con el servidor.</p>}
+      {isLoading && <p className="text-sm ui-text-muted">Cargando indicadores...</p>}
+      {isError && <p className="text-sm text-red-600 dark:text-red-400">No se pudo conectar con el servidor.</p>}
 
       {!isLoading && tarjetas.length > 0 && (
         <>
@@ -117,7 +120,7 @@ export default function DashboardPage() {
               >
                 <GraficaBarras
                   datos={datosGrafica}
-                  series={[{ key: 'valor', nombre: 'Cantidad', color: PALETA.primary }]}
+                  series={[{ key: 'valor', nombre: 'Cantidad', color: paleta.primary }]}
                   altura={240}
                 />
               </ContenedorGrafica>

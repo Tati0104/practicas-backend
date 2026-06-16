@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
 import Layout from '@/shared/components/Layout';
+import ThemeSync from '@/shared/components/ThemeSync';
 import {
   LoginPage,
   RecuperarPasswordPage,
@@ -47,6 +48,7 @@ function InicializadorSesion({ children }) {
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <ThemeSync />
       <InicializadorSesion>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
