@@ -94,7 +94,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         Estudiante estudiante = contexto.getEstudiante();
         Empresa empresa = contexto.getEmpresa();
 
-        enviarCorreoObligatorio(
+        enviarCorreoNotificacion(
                 tutor.getCorreo(),
                 "Nueva práctica vinculada — " + estudiante.getNombre(),
                 "<p>Hola " + tutor.getNombre() + ",</p><p>Se confirmó la vinculación de <b>"
@@ -111,7 +111,7 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         Estudiante estudiante = contexto.getEstudiante();
         Empresa empresa = contexto.getEmpresa();
 
-        enviarCorreoObligatorio(
+        enviarCorreoNotificacion(
                 docente.getCorreo(),
                 "Nuevo estudiante en práctica — " + estudiante.getNombre(),
                 "<p>Hola " + docente.getNombre() + ",</p><p>Quedaste asignado como asesor de <b>"
@@ -119,9 +119,14 @@ public class MediadorVinculacionImpl implements MediadorVinculacion {
         );
     }
 
-    private void enviarCorreoObligatorio(String destinatario, String asunto, String cuerpo) {
-        if (!mailService.enviar(destinatario, asunto, cuerpo)) {
-            throw new NegocioException("No se pudo enviar el correo a: " + destinatario);
+    private void enviarCorreoNotificacion(String destinatario, String asunto, String cuerpo) {
+        try {
+            boolean enviado = mailService.enviar(destinatario, asunto, cuerpo);
+            if (!enviado) {
+                log.warn("No se pudo enviar el correo de notificación a {}: el servicio de correo no lo confirmó.", destinatario);
+            }
+        } catch (Exception ex) {
+            log.warn("No se pudo enviar el correo de notificación a {}: {}", destinatario, ex.getMessage());
         }
     }
 }
