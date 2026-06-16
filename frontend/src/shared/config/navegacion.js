@@ -15,6 +15,13 @@ export const ROLES = {
   ESTUDIANTE: 'ESTUDIANTE',
 };
 
+export const ROLES_VACANTES = [
+  ROLES.ADMIN,
+  ROLES.COORD_PRACTICA,
+  ROLES.EMPRESA,
+  ROLES.TUTOR_EMPRESARIAL,
+];
+
 /** @typedef {{ id: string, nombre: string, ruta: string, icono: string, roles: string[], prefijo?: boolean }} ItemNavegacion */
 /** @typedef {{ id: string, nombre: string, items: ItemNavegacion[] }} GrupoNavegacion */
 
@@ -108,7 +115,7 @@ export const GRUPOS_NAVEGACION = [
         nombre: 'Vacantes',
         ruta: '/vacantes',
         icono: 'ClipboardList',
-        roles: [ROLES.SECRETARIA, ROLES.EMPRESA],
+        roles: ROLES_VACANTES,
       },
     ],
   },

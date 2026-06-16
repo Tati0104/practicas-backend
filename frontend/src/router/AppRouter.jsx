@@ -122,7 +122,7 @@ export default function AppRouter() {
           <Route
             path="/vacantes"
             element={
-              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'SECRETARIA', 'EMPRESA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'SECRETARIA', 'EMPRESA', 'TUTOR_EMPRESARIAL']}>
                 <VacantesPage />
               </RutaPrivada>
             }

@@ -1,5 +1,4 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { PALETA } from './paletaIndicadores';
 
 const tooltipStyle = {
   borderRadius: '10px',

@@ -4,6 +4,8 @@ import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
+import com.avh.practicas.estudiante.entity.Expediente;
+import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -161,5 +163,56 @@ class ScopeGuardTest {
 
         assertTrue(scopeGuard.verificarScope(usuario, tutor, "LEER"));
         verifyNoInteractions(estudianteRepository, bitacoraService);
+    }
+
+    @Test
+    void verificarScope_usuarioNulo_lanzaAccesoNoAutorizado() {
+        AccesoNoAutorizadoException exception = assertThrows(AccesoNoAutorizadoException.class,
+                () -> scopeGuard.verificarScope(null, new Object(), "LEER"));
+
+        assertEquals("Acceso denegado: usuario no autenticado", exception.getMessage());
+        verifyNoInteractions(estudianteRepository, programaRepository, bitacoraService);
+    }
+
+    @Test
+    void verificarScope_FacultadCoincideConPrograma_Pasa() {
+        Facultad facultad = Facultad.builder().id(1L).nombre("Ingenieria").build();
+        Usuario usuario = Usuario.builder()
+                .correo("coord@test.com")
+                .rol(Rol.COORD_PRACTICA)
+                .scope(Scope.FACULTAD)
+                .facultad(facultad)
+                .build();
+        Programa programa = Programa.builder().id(2L).nombre("Sistemas").facultad(facultad).build();
+
+        assertTrue(scopeGuard.verificarScope(usuario, programa, "LEER"));
+        verifyNoInteractions(bitacoraService);
+    }
+
+    @Test
+    void verificarScope_FacultadNoCoincideConInstanciaPractica_lanzaYRegistra() {
+        Facultad facultadUsuario = Facultad.builder().id(1L).nombre("Ingenieria").build();
+        Facultad facultadRecurso = Facultad.builder().id(2L).nombre("Salud").build();
+        Programa programa = Programa.builder().id(3L).nombre("Medicina").facultad(facultadRecurso).build();
+        Estudiante estudiante = Estudiante.builder().programa(programa).build();
+        InstanciaPractica practica = InstanciaPractica.builder()
+                .id(8L)
+                .expediente(Expediente.builder().estudiante(estudiante).build())
+                .build();
+        Usuario usuario = Usuario.builder()
+                .correo("coord@test.com")
+                .rol(Rol.COORD_PRACTICA)
+                .scope(Scope.FACULTAD)
+                .facultad(facultadUsuario)
+                .build();
+
+        assertThrows(AccesoNoAutorizadoException.class,
+                () -> scopeGuard.verificarScope(usuario, practica, "LEER"));
+        verify(bitacoraService).registrar(
+                eq("instancias_practica"),
+                eq("LEER"),
+                eq(usuario),
+                contains("Acceso denegado: recurso fuera del scope del facultad")
+        );
     }
 }

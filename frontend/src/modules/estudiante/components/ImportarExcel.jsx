@@ -21,6 +21,15 @@ export default function ImportarExcel({ onImportar, onCerrar }) {
   const importar = async () => {
     if (!archivo) return;
     setCargando(true);
+    if (onImportar) {
+      try {
+        const respuesta = await onImportar(archivo);
+        setResultado(respuesta?.data ?? respuesta);
+      } finally {
+        setCargando(false);
+      }
+      return;
+    }
     await new Promise((r) => setTimeout(r, 1200));
     setResultado({
       exitosos: 15,

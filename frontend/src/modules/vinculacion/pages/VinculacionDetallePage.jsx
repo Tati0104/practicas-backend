@@ -10,7 +10,7 @@ import { usePermisos } from '../../../shared/hooks/usePermisos';
 import PanelDocumento from '../components/PanelDocumento';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 import ActivarPracticaModal from '../components/ActivarPracticaModal';
-import { Button, PageHeader, Card } from '@/shared/components/ui';
+import { Button, PageHeader } from '@/shared/components/ui';
 import docentesAsesoresService from '../../docentes/services/docentesAsesoresService';
 
 const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
@@ -104,7 +104,6 @@ export default function VinculacionDetallePage() {
             <PanelDocumento
               key={documento.tipo}
               documento={documento}
-              asignacionId={asignacionId}
               onSubir={(archivo) => subirDocumento.mutate({ tipo: documento.tipo, archivo })}
               onDescargar={() => {}}
               onFirmar={() => {}}
@@ -214,7 +213,6 @@ export default function VinculacionDetallePage() {
           <PanelDocumento
             key={documento.tipo}
             documento={documento}
-            asignacionId={asignacionId}
             onSubir={(archivo) => subirDocumento.mutate({ tipo: documento.tipo, archivo })}
             onDescargar={() => handleDescargar(documento.id, documento.nombre)}
             onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento, tipoFirmante })}
@@ -272,7 +270,6 @@ export default function VinculacionDetallePage() {
         isOpen={modalActivarOpen && !esTutor}
         onClose={() => setModalActivarOpen(false)}
         isPending={activarPractica.isPending}
-        programaNombre={estudiante?.programa}
         onConfirmar={(payload) => {
           activarPractica.mutate({ practicaId: detalle.practicaId, payload });
         }}

@@ -59,7 +59,6 @@ class EncuestaServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        when(encuestaEnlaceService.buildEnlaceEncuesta(any())).thenReturn("http://localhost:5173/calificaciones/1");
         service = new EncuestaServiceImpl(
                 encuestaRepository,
                 practicaRepository,
@@ -87,6 +86,7 @@ class EncuestaServiceImplTest {
         when(practicaRepository.findById(practicaId)).thenReturn(Optional.of(practica));
         when(encuestaRepository.findByInstanciaPracticaIdAndTipo(practicaId, TipoEncuesta.ESTUDIANTE)).thenReturn(Optional.empty());
         when(encuestaRepository.save(any(Encuesta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(encuestaEnlaceService.buildEnlaceEncuesta(practicaId)).thenReturn("http://localhost:5173/calificaciones/1");
 
         // Act
         Encuesta result = service.crearEncuestaPendiente(practicaId, TipoEncuesta.ESTUDIANTE);
