@@ -15,6 +15,7 @@ import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -121,12 +122,11 @@ public class EstudianteServiceProxy implements EstudianteService {
                 || usuario.getScope() == Scope.GLOBAL)) {
             return realService.listar(programa, facultad, aptitud, estadoPractica, busqueda, pageable);
         }
-        if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            Estudiante estudianteAsociado = estudianteRepository.findByCorreo(usuario.getCorreo()).orElse(null);
-            if (estudianteAsociado == null || estudianteAsociado.getPrograma() == null
-                    || programa == null || !estudianteAsociado.getPrograma().getNombre().equalsIgnoreCase(programa)) {
-                throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
-            }
+        if (usuario != null && usuario.getRol() == Rol.ESTUDIANTE) {
+            Estudiante propio = estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            "Acceso denegado: perfil de estudiante no encontrado"));
+            return new PageImpl<>(List.of(propio), pageable, 1);
         }
         if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
             if (usuario.getFacultad() == null) {

@@ -43,6 +43,7 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                           AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
                     )
                   )
+              AND (:estudianteId IS NULL OR a.estudiante_id = :estudianteId)
             ORDER BY a.fecha_actualizacion DESC NULLS LAST, a.id DESC
             """,
             countQuery = """
@@ -71,6 +72,7 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                           AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
                     )
                   )
+              AND (:estudianteId IS NULL OR a.estudiante_id = :estudianteId)
             """,
             nativeQuery = true)
     Page<Asignacion> buscarVinculaciones(
@@ -79,6 +81,7 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
             @Param("empresaId") Long empresaId,
             @Param("estado") String estado,
             @Param("tutorId") Long tutorId,
+            @Param("estudianteId") Long estudianteId,
             Pageable pageable
     );
 
