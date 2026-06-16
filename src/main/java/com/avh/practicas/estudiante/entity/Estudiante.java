@@ -3,6 +3,7 @@ package com.avh.practicas.estudiante.entity;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.shared.pattern.observer.Observador;
 import com.avh.practicas.shared.pattern.observer.Sujeto;
+import com.avh.practicas.auth.entity.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,10 @@ public class Estudiante implements Sujeto {
 
     @Column(nullable = false, unique = true)
     private String correo;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", unique = true)
+    private Usuario usuario;
 
     @Column
     private String telefono;
