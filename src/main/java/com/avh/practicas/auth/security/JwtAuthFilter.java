@@ -82,6 +82,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LISTAR"));
         }
 
+        if (rol == Rol.ADMIN || rol == Rol.DIRECCION) {
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LISTAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_REGISTRAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_EDITAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_APTITUD"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_IMPORTAR"));
+        }
+
         if (rol == Rol.COORD_ACADEMICA || rol == Rol.COORD_PRACTICA) {
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_REGISTRAR"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_EDITAR"));

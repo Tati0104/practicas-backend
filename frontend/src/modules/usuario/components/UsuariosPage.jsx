@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import useUsuarios from '../hooks/useUsuarios';
 import FiltrosUsuario from './FiltrosUsuario';
 import ModalUsuario from './ModalUsuario';
@@ -20,6 +21,7 @@ export default function UsuariosPage() {
     editar,
     activar,
     inactivar,
+    eliminar,
   } = useUsuarios();
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -41,6 +43,17 @@ export default function UsuariosPage() {
       crear.mutate(form);
     }
     cerrar();
+  };
+
+  const confirmarEliminar = (usuario) => {
+    if (!window.confirm(`¿Eliminar al usuario ${usuario.nombre}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    eliminar.mutate(usuario.id, {
+      onSuccess: () => toast.success('Usuario eliminado'),
+      onError: (error) =>
+        toast.error(error.response?.data?.message || 'No se pudo eliminar el usuario'),
+    });
   };
 
   const columnas = [
@@ -66,6 +79,9 @@ export default function UsuariosPage() {
             onClick={() => (u.activo ? inactivar.mutate(u.id) : activar.mutate(u.id))}
           >
             {u.activo ? 'Inactivar' : 'Activar'}
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => confirmarEliminar(u)}>
+            Eliminar
           </Button>
         </div>
       ),

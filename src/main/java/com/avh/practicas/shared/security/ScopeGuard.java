@@ -40,6 +40,11 @@ public class ScopeGuard {
                 return true;
             }
 
+            if (usuario.getRol() == Rol.ESTUDIANTE) {
+                verificarPropiedadEstudiante(usuario, recurso, accion);
+                return true;
+            }
+
             Programa programaUsuario = obtenerProgramaDelUsuario(usuario);
             Programa programaRecurso = obtenerProgramaDelRecurso(recurso);
 
@@ -66,9 +71,46 @@ public class ScopeGuard {
         return true;
     }
 
+    private void verificarPropiedadEstudiante(Usuario usuario, Object recurso, String accion) {
+        Estudiante estudianteLogueado = estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
+                .orElseThrow(() -> new AccesoNoAutorizadoException(
+                        "Acceso denegado: perfil de estudiante no encontrado"));
+
+        if (recurso instanceof Estudiante estudiante) {
+            if (estudiante.getId() == null || !estudiante.getId().equals(estudianteLogueado.getId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "estudiante");
+                throw new AccesoNoAutorizadoException("Acceso denegado: solo puede consultar su propia información");
+            }
+            return;
+        }
+
+        if (recurso instanceof InstanciaPractica instanciaPractica) {
+            Long propietarioId = obtenerEstudianteIdDePractica(instanciaPractica);
+            if (propietarioId == null || !propietarioId.equals(estudianteLogueado.getId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "estudiante");
+                throw new AccesoNoAutorizadoException("Acceso denegado: solo puede consultar su propia práctica");
+            }
+            return;
+        }
+
+        Programa programaUsuario = estudianteLogueado.getPrograma();
+        Programa programaRecurso = obtenerProgramaDelRecurso(recurso);
+        if (programaUsuario == null || programaRecurso == null || !programaUsuario.getId().equals(programaRecurso.getId())) {
+            registrarAccesoDenegado(usuario, recurso, accion, "programa");
+            throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
+        }
+    }
+
+    private Long obtenerEstudianteIdDePractica(InstanciaPractica instanciaPractica) {
+        if (instanciaPractica.getExpediente() == null || instanciaPractica.getExpediente().getEstudiante() == null) {
+            return null;
+        }
+        return instanciaPractica.getExpediente().getEstudiante().getId();
+    }
+
     private Programa obtenerProgramaDelUsuario(Usuario usuario) {
         if (usuario.getRol() == Rol.ESTUDIANTE) {
-            return estudianteRepository.findByCorreo(usuario.getCorreo())
+            return estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
                     .map(Estudiante::getPrograma)
                     .orElse(null);
         }

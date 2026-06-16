@@ -79,8 +79,9 @@ public class VinculacionServiceImpl implements VinculacionService {
     ) {
         String estadoParam = estado != null ? estado.name() : null;
         Long tutorId = resolverTutorAutenticado().map(TutorEmpresarial::getId).orElse(null);
+        Long estudianteId = resolverEstudianteAutenticado().map(Estudiante::getId).orElse(null);
         return asignacionRepository.buscarVinculaciones(
-                        busqueda, programaId, empresaId, estadoParam, tutorId, pageable)
+                        busqueda, programaId, empresaId, estadoParam, tutorId, estudianteId, pageable)
                 .map(this::mapearListado);
     }
 
@@ -522,7 +523,7 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (usuario == null || usuario.getRol() != Rol.ESTUDIANTE) {
             return Optional.empty();
         }
-        return estudianteRepository.findByCorreo(usuario.getCorreo());
+        return estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo());
     }
 
     private Usuario obtenerUsuarioActual() {
@@ -531,7 +532,7 @@ public class VinculacionServiceImpl implements VinculacionService {
             return null;
         }
         String correo = (String) auth.getPrincipal();
-        return usuarioRepository.findByCorreo(correo).orElse(null);
+        return usuarioRepository.findByCorreoIgnoreCase(correo).orElse(null);
     }
 
     private void validarNoEsTutorSubiendo() {

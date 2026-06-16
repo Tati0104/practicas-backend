@@ -7,7 +7,8 @@ const usuarioService = {
   crear:     (dto)      => http.post('/admin/usuarios', dto),
   editar:    (id, dto)  => http.put(`/admin/usuarios/${id}`, dto),
   activar:   (id)       => http.patch(`/admin/usuarios/${id}/activar`),
-  inactivar: (id)       => http.patch(`/admin/usuarios/${id}/inactivar`)
+  inactivar: (id)       => http.patch(`/admin/usuarios/${id}/inactivar`),
+  eliminar:  (id)       => http.delete(`/admin/usuarios/${id}`),
 };
 
 export default usuarioService;

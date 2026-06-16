@@ -144,7 +144,6 @@ export default function Sidebar({ abierto, onCerrar }) {
       <aside
         className={[
           'fixed inset-y-0 left-0 z-50 flex w-[17.5rem] flex-col bg-primary transition-transform duration-200',
-          'rounded-tl-[1.75rem] lg:rounded-bl-[1.75rem]',
           abierto ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         ].join(' ')}
         aria-label="Menú principal"

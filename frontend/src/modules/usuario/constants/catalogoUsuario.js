@@ -12,6 +12,9 @@ export const ROLES = [
   'ESTUDIANTE',
 ];
 
+/** Roles que deben tener un programa asignado. */
+export const ROLES_CON_PROGRAMA = ['DOCENTE_ASESOR', 'ESTUDIANTE'];
+
 /** Roles que deben tener una facultad asignada. */
 export const ROLES_CON_FACULTAD = ['COORD_ACADEMICA', 'COORD_PRACTICA', 'SECRETARIA'];
 
@@ -55,6 +58,14 @@ export function requiereFacultad(rol) {
   return ROLES_CON_FACULTAD.includes(rol);
 }
 
+export function requierePrograma(rol) {
+  return ROLES_CON_PROGRAMA.includes(rol);
+}
+
+export function requiereIdentificacion(rol) {
+  return rol === 'ESTUDIANTE';
+}
+
 export function requiereEmpresa(rol) {
   return ROLES_CON_EMPRESA.includes(rol);
 }
@@ -64,7 +75,18 @@ export function opcionesRol(incluirTodos = false) {
   return incluirTodos ? [{ value: '', label: 'Todos los roles' }, ...opciones] : opciones;
 }
 
-export function dtoUsuario({ nombre, correo, rol, facultadId, empresaId, cargoTutor, telefonoTutor }) {
+export function dtoUsuario({
+  nombre,
+  correo,
+  rol,
+  facultadId,
+  empresaId,
+  cargoTutor,
+  telefonoTutor,
+  programaId,
+  identificacion,
+  telefono,
+}) {
   const dto = {
     nombre: nombre.trim(),
     correo: correo.trim(),
@@ -74,6 +96,18 @@ export function dtoUsuario({ nombre, correo, rol, facultadId, empresaId, cargoTu
 
   if (requiereFacultad(rol)) {
     dto.facultadId = facultadId ? Number(facultadId) : null;
+  }
+
+  if (requierePrograma(rol)) {
+    dto.programaId = programaId ? Number(programaId) : null;
+  }
+
+  if (requiereIdentificacion(rol)) {
+    dto.identificacion = identificacion?.trim() || '';
+  }
+
+  if (requierePrograma(rol) || requiereIdentificacion(rol)) {
+    dto.telefono = telefono?.trim() || null;
   }
 
   if (requiereEmpresa(rol)) {

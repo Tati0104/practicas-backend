@@ -19,6 +19,9 @@ import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.shared.pattern.observer.Observador;
 import com.avh.practicas.shared.pattern.singleton.GestorConfiguracion;
+import com.avh.practicas.usuario.service.CorreoPersonaService;
+import com.avh.practicas.usuario.service.UsuarioService;
+import com.avh.practicas.auth.entity.Usuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,6 +42,8 @@ public class EstudianteServiceImpl implements EstudianteService {
     private final InstanciaPracticaRepository instanciaPracticaRepository;
     private final ProgramaRepository programaRepository;
     private final CatalogoPracticaRepository catalogoPracticaRepository;
+    private final CorreoPersonaService correoPersonaService;
+    private final UsuarioService usuarioService;
 
     @Autowired(required = false)
     private List<Observador> observadoresDisponibles;
@@ -50,9 +55,8 @@ public class EstudianteServiceImpl implements EstudianteService {
             throw new NegocioException("Ya existe un estudiante registrado con la identificación: " + dto.getIdentificacion());
         }
 
-        if (estudianteRepository.existsByCorreo(dto.getCorreo())) {
-            throw new NegocioException("Ya existe un estudiante registrado con el correo: " + dto.getCorreo());
-        }
+        String correo = correoPersonaService.normalizar(dto.getCorreo());
+        correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 
         Programa programa = programaRepository.findById(dto.getProgramaId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el programa con id: " + dto.getProgramaId()));
@@ -61,13 +65,16 @@ public class EstudianteServiceImpl implements EstudianteService {
             throw new NegocioException("No se puede registrar un estudiante bajo un programa inactivo.");
         }
 
+        Usuario usuario = usuarioService.crearUsuarioEstudiante(dto.getNombre(), correo);
+
         Estudiante estudiante = Estudiante.builder()
                 .identificacion(dto.getIdentificacion())
                 .nombre(dto.getNombre())
-                .correo(dto.getCorreo())
+                .correo(correo)
                 .telefono(dto.getTelefono())
                 .contactoEmergencia(dto.getContactoEmergencia())
                 .programa(programa)
+                .usuario(usuario)
                 .semestre(dto.getSemestre())
                 .creditosAprobados(dto.getCreditosAprobados() != null ? dto.getCreditosAprobados() : 0)
                 .promedioAcumulado(dto.getPromedioAcumulado() != null ? dto.getPromedioAcumulado() : 0.0)
@@ -105,6 +112,10 @@ public class EstudianteServiceImpl implements EstudianteService {
         estudiante.setCreditosAprobados(dto.getCreditosAprobados() != null ? dto.getCreditosAprobados() : 0);
         estudiante.setPromedioAcumulado(dto.getPromedioAcumulado() != null ? dto.getPromedioAcumulado() : 0.0);
         estudiante.setPrograma(programa);
+
+        if (estudiante.getUsuario() != null) {
+            usuarioService.sincronizarPerfil(estudiante.getUsuario(), dto.getNombre(), estudiante.getCorreo());
+        }
 
         return estudianteRepository.save(estudiante);
     }

@@ -4,6 +4,7 @@ import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.shared.domain.BaseEntity;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,6 +35,7 @@ public class Usuario extends BaseEntity {
     @Column(nullable = false, unique = true, length = 150)
     private String correo;
 
+    @JsonIgnore
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
@@ -57,9 +59,11 @@ public class Usuario extends BaseEntity {
     @Builder.Default
     private Boolean primeraVez = true;
 
+    @JsonIgnore
     @Column(name = "token_recuperacion")
     private String tokenRecuperacion;
 
+    @JsonIgnore
     @Column(name = "token_expiracion")
     private LocalDateTime tokenExpiracion;
 }

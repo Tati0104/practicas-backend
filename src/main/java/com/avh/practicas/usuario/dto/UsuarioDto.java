@@ -20,4 +20,6 @@ public class UsuarioDto {
     private Long   empresaId;
     private String cargoTutor;
     private String telefonoTutor;
+    private String identificacion;
+    private String telefono;
 }

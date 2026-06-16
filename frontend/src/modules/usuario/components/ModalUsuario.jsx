@@ -5,13 +5,16 @@ import empresaService from '../../empresa/services/empresaService';
 import { MOCK_FACULTADES } from '@/shared/mocks/datos';
 import { ejecutarConsulta, usarMocks } from '@/shared/config/dataSource';
 import { Button, Input, Modal, Select } from '@/shared/components/ui';
-import { dtoUsuario, opcionesRol, requiereEmpresa, requiereFacultad } from '../constants/catalogoUsuario';
+import { dtoUsuario, opcionesRol, requiereEmpresa, requiereFacultad, requiereIdentificacion, requierePrograma } from '../constants/catalogoUsuario';
 
 const FORM_VACIO = {
   nombre: '',
   correo: '',
   rol: '',
   facultadId: '',
+  programaId: '',
+  identificacion: '',
+  telefono: '',
   empresaId: '',
   cargoTutor: '',
   telefonoTutor: '',
@@ -28,6 +31,9 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
         correo: usuario.correo,
         rol: usuario.rol,
         facultadId: usuario.facultadId ? String(usuario.facultadId) : '',
+        programaId: usuario.programaId ? String(usuario.programaId) : '',
+        identificacion: usuario.identificacion ?? '',
+        telefono: usuario.telefono ?? '',
         empresaId: usuario.empresaId ? String(usuario.empresaId) : '',
         cargoTutor: usuario.cargoTutor ?? '',
         telefonoTutor: usuario.telefonoTutor ?? '',
@@ -52,6 +58,12 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       empresaService.listar({ page: 0, size: 500, activo: true }).then((r) => r.data?.content ?? []),
   });
 
+  const { data: programas = [] } = useQuery({
+    queryKey: ['programas-select-usuario'],
+    queryFn: () =>
+      configuracionService.listarProgramas().then((r) => r.data?.data ?? r.data ?? []),
+  });
+
   const campo = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const cambiarRol = (rol) => {
@@ -59,6 +71,9 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
       ...f,
       rol,
       facultadId: requiereFacultad(rol) ? f.facultadId : '',
+      programaId: requierePrograma(rol) ? f.programaId : '',
+      identificacion: requiereIdentificacion(rol) ? f.identificacion : '',
+      telefono: requierePrograma(rol) || requiereIdentificacion(rol) ? f.telefono : '',
       empresaId: requiereEmpresa(rol) ? f.empresaId : '',
       cargoTutor: requiereEmpresa(rol) ? f.cargoTutor : '',
       telefonoTutor: requiereEmpresa(rol) ? f.telefonoTutor : '',
@@ -92,12 +107,22 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
         return;
       }
     }
+    if (requierePrograma(form.rol) && !form.programaId) {
+      setError('Debe seleccionar el programa para este rol');
+      return;
+    }
+    if (requiereIdentificacion(form.rol) && !usuario && !form.identificacion.trim()) {
+      setError('La identificación es obligatoria para el estudiante');
+      return;
+    }
     setError('');
     onGuardar(dtoUsuario(form));
   };
 
   const mostrarFacultad = requiereFacultad(form.rol);
   const mostrarEmpresa = requiereEmpresa(form.rol);
+  const mostrarPrograma = requierePrograma(form.rol);
+  const mostrarIdentificacion = requiereIdentificacion(form.rol) && !usuario;
 
   return (
     <Modal
@@ -152,6 +177,42 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
             ))}
           </Select>
         </div>
+        {mostrarPrograma && (
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-700">Programa</label>
+            <Select
+              value={form.programaId}
+              onChange={(e) => campo('programaId', e.target.value)}
+            >
+              <option value="">Seleccionar programa</option>
+              {programas.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+        {mostrarIdentificacion && (
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-700">Identificación</label>
+            <Input
+              value={form.identificacion}
+              onChange={(e) => campo('identificacion', e.target.value)}
+              placeholder="Documento del estudiante"
+            />
+          </div>
+        )}
+        {(mostrarPrograma || mostrarIdentificacion) && (
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-700">Teléfono</label>
+            <Input
+              value={form.telefono}
+              onChange={(e) => campo('telefono', e.target.value)}
+              placeholder="Opcional"
+            />
+          </div>
+        )}
         {mostrarFacultad && (
           <div>
             <label className="mb-1 block text-xs font-semibold text-gray-700">Facultad</label>
