@@ -110,6 +110,15 @@ export const GRUPOS_NAVEGACION = [
         icono: 'ClipboardList',
         roles: [ROLES.SECRETARIA, ROLES.EMPRESA],
       },
+      {
+        // Entrada propia para Coordinacion Academica: solo necesita ver la lista de
+        // asignaciones para asignar/cambiar el docente asesor, no la gestion de vacantes.
+        id: 'asignaciones-academica',
+        nombre: 'Asignaciones',
+        ruta: '/asignaciones',
+        icono: 'ClipboardList',
+        roles: [ROLES.COORD_ACADEMICA],
+      },
     ],
   },
   {
@@ -121,7 +130,7 @@ export const GRUPOS_NAVEGACION = [
         nombre: 'Documentos',
         ruta: '/vinculacion',
         icono: 'FileText',
-        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.TUTOR_EMPRESARIAL, ROLES.ESTUDIANTE],
+        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.COORD_ACADEMICA, ROLES.TUTOR_EMPRESARIAL, ROLES.ESTUDIANTE],
         prefijo: true,
       },
     ],

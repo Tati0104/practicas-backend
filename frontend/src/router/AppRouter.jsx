@@ -140,7 +140,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones"
             element={
-              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'COORD_ACADEMICA']}>
                 <AsignacionesPage />
               </RutaPrivada>
             }
@@ -149,7 +149,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones/:id"
             element={
-              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'COORD_ACADEMICA']}>
                 <AsignacionDetallePage />
               </RutaPrivada>
             }
@@ -226,7 +226,7 @@ export default function AppRouter() {
           <Route
             path="/vinculacion"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
                 <VinculacionPage />
               </RutaPrivada>
             }
@@ -235,7 +235,7 @@ export default function AppRouter() {
           <Route
             path="/vinculacion/:asignacionId"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
                 <VinculacionDetallePage />
               </RutaPrivada>
             }
