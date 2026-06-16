@@ -44,7 +44,7 @@ export const RUTAS_POR_ROL = {
   COORD_ACADEMICA: '/dashboard',
   COORD_PRACTICA: '/dashboard',
   DOCENTE_ASESOR: '/seguimiento',
-  ESTUDIANTE: '/seguimiento',
+  ESTUDIANTE: '/vinculacion',
   EMPRESA: '/vacantes',
   TUTOR_EMPRESARIAL: '/seguimiento',
   COMITE_PRACTICAS: '/dashboard',

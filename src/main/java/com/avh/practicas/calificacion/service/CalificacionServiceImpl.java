@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Implementación del servicio de calificaciones de prácticas.
@@ -187,6 +189,16 @@ public class CalificacionServiceImpl implements CalificacionService {
     public ResumenCalificacionesResponse obtenerResumen(Long practicaId) {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"))) {
+            String correo = auth.getName();
+            if (practica.getExpediente() == null || 
+                practica.getExpediente().getEstudiante() == null || 
+                !correo.equals(practica.getExpediente().getEstudiante().getCorreo())) {
+                throw new com.avh.practicas.shared.exception.NegocioException("No tiene permisos para ver las calificaciones de otro estudiante.");
+            }
+        }
 
         List<NotaDocente> docenteNotes = notaDocenteRepository.findByInstanciaPracticaId(practicaId);
         List<NotaTutor> tutorNotes = notaTutorRepository.findByInstanciaPracticaId(practicaId);

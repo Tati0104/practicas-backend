@@ -29,9 +29,15 @@ public class AsignacionCorreoDispatcher {
         NotificacionAsignacion notificacion = notificacionFactory.crear(tipoEvento, datos);
 
         for (String destinatario : notificacion.destinatarios()) {
-            boolean enviado = mailService.enviar(destinatario, notificacion.asunto(), notificacion.mensajeHtml());
-            if (!enviado) {
-                throw new NegocioException("No se pudo enviar el correo de asignación a: " + destinatario);
+            try {
+                boolean enviado = mailService.enviar(destinatario, notificacion.asunto(), notificacion.mensajeHtml());
+                if (!enviado) {
+                    log.error("Fallo al enviar correo. Evento: {}, Destinatario: {}, Estudiante: {}, Vacante: {}. No se abortará la transacción principal.", 
+                              tipoEvento, destinatario, datos.get("estudianteId"), datos.get("vacanteId"));
+                }
+            } catch (Exception e) {
+                log.error("Excepción al enviar correo. Evento: {}, Destinatario: {}, Estudiante: {}, Vacante: {}. Causa: {}", 
+                          tipoEvento, destinatario, datos.get("estudianteId"), datos.get("vacanteId"), e.getMessage(), e);
             }
         }
 

@@ -29,7 +29,7 @@ export const GRUPOS_NAVEGACION = [
         nombre: 'Panel de inicio',
         ruta: '/dashboard',
         icono: 'LayoutDashboard',
-        roles: Object.values(ROLES),
+        roles: Object.values(ROLES).filter(r => r !== ROLES.ESTUDIANTE),
       },
     ],
   },

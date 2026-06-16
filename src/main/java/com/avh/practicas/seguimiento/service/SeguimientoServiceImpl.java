@@ -22,6 +22,8 @@ import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
 import com.avh.practicas.seguimiento.repository.ObservacionDocenteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -232,13 +234,26 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Override
     @Transactional(readOnly = true)
     public List<TableroResponse> obtenerTableroSeguimiento(Long programaId, String filtroEmpresa, String filtroDocente, Integer filtroCorte, String filtroEstadoSeguimiento) {
+        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long estudianteId = null;
+        if (auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"))) {
+            String correo = auth.getName();
+            Estudiante estLogueado = estudianteRepository.findByCorreo(correo).orElse(null);
+            if (estLogueado != null) {
+                estudianteId = estLogueado.getId();
+            }
+        }
+        final Long estudianteLogueadoId = estudianteId;
+
         // Buscar todas las prácticas en curso que correspondan al programa
         List<InstanciaPractica> practicas = practicaRepository.findAll().stream()
                 .filter(p -> p.getExpediente() != null
                         && p.getExpediente().getEstudiante() != null
                         && p.getExpediente().getEstudiante().getPrograma() != null
                         && p.getExpediente().getEstudiante().getPrograma().getId().equals(programaId)
-                        && p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO)
+                        && p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO
+                        && (estudianteLogueadoId == null || p.getExpediente().getEstudiante().getId().equals(estudianteLogueadoId)))
                 .collect(Collectors.toList());
 
         List<TableroResponse> tablero = new ArrayList<>();
