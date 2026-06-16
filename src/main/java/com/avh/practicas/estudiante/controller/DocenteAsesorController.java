@@ -25,7 +25,10 @@ public class DocenteAsesorController {
     private final DocenteAsesorService service;
 
     @GetMapping
-    public List<DocenteAsesorResponse> listarPorPrograma(@RequestParam Long programaId) {
+    public List<DocenteAsesorResponse> listarPorPrograma(@RequestParam(required = false) Long programaId) {
+        if (programaId == null) {
+            return service.listarTodos();
+        }
         return service.listarPorPrograma(programaId);
     }
 

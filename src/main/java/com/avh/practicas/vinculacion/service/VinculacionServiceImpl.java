@@ -95,6 +95,7 @@ public class VinculacionServiceImpl implements VinculacionService {
                 convenio.map(Convenio::getId).orElse(null),
                 contexto.estudiante(),
                 contexto.vacante(),
+                contexto.tutorEmpresarial(),
                 paneles
         );
     }
@@ -207,6 +208,11 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (request.fechaFin().isBefore(request.fechaInicio())) {
             throw new NegocioException("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
+
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+        practica.setDocenteAsesorId(request.docenteAsesorId());
+        practicaRepository.save(practica);
 
         mediadorVinculacion.confirmarVinculacion(practicaId, request.fechaInicio(), request.fechaFin());
         marcarAsignacionVinculada(convenio.getAsignacionId());
@@ -335,10 +341,15 @@ public class VinculacionServiceImpl implements VinculacionService {
                 empresa != null ? empresa.getRazonSocial() : null
         );
 
-        return new ContextoVinculacion(estudianteDto, vacanteDto);
+        String nombreTutor = tutorRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
+                .findFirst()
+                .map(com.avh.practicas.empresa.entity.TutorEmpresarial::getNombre)
+                .orElse("Tutor no asignado");
+
+        return new ContextoVinculacion(estudianteDto, vacanteDto, nombreTutor);
     }
 
-    private record ContextoVinculacion(EstudianteVinculacionDto estudiante, VacanteVinculacionDto vacante) {
+    private record ContextoVinculacion(EstudianteVinculacionDto estudiante, VacanteVinculacionDto vacante, String tutorEmpresarial) {
     }
 
     private Convenio crearConvenioBase(Asignacion asignacion, Long practicaId, Long empresaId) {

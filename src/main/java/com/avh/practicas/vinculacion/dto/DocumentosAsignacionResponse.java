@@ -8,6 +8,7 @@ public record DocumentosAsignacionResponse(
         Long convenioId,
         EstudianteVinculacionDto estudiante,
         VacanteVinculacionDto vacante,
+        String tutorEmpresarial,
         List<DocumentoVinculacionDto> documentos
 ) {
 }

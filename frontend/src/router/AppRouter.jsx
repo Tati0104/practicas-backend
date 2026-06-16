@@ -17,6 +17,7 @@ import { PlantillasCorreoPage } from '@/modules/correo';
 import DashboardPage from '@/modules/dashboard/components/DashboardPage';
 import UsuariosPage from '@/modules/usuario/components/UsuariosPage';
 import FacultadesProgramasPage from '@/modules/configuracion/components/FacultadesProgramasPage';
+import DocentesAsesoresPage from '@/modules/docentes/pages/DocentesAsesoresPage';
 import EstudiantesPage from '@/modules/estudiante/components/EstudiantesPage';
 import EmpresasPage from '@/modules/empresa/components/EmpresasPage';
 import VacantesPage from '@/modules/vacantes/pages/VacantesPage';
@@ -81,6 +82,15 @@ export default function AppRouter() {
           />
           <Route path="/configuracion/facultades" element={<Navigate to="/configuracion/academica" replace />} />
           <Route path="/configuracion/programas" element={<Navigate to="/configuracion/academica" replace />} />
+
+          <Route
+            path="/docentes-asesores"
+            element={
+              <RutaPrivada roles={['ADMIN', 'COORD_ACADEMICA']}>
+                <DocentesAsesoresPage />
+              </RutaPrivada>
+            }
+          />
 
           <Route
             path="/estudiantes"
