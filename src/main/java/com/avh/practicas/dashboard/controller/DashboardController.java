@@ -35,8 +35,8 @@ public class DashboardController {
     }
 
     @GetMapping
-    public DashboardDto getDashboard() {
-        return dashboardService.getDashboard();
+    public ResponseEntity<ApiResponse<DashboardDto>> getDashboard() {
+        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getDashboard()));
     }
 
     @GetMapping("/alertas")

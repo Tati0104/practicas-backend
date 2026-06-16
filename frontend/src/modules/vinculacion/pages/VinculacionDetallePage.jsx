@@ -41,6 +41,7 @@ export default function VinculacionDetallePage() {
   });
   const { canCreate } = usePermisos();
   const rol = useAuthStore((state) => state.rol);
+  const esTutor = rol === 'TUTOR_EMPRESARIAL';
   const tipoFirmanteRol = ROL_A_FIRMANTE[rol] ?? null;
 
   const documentosOrdenados = ORDEN_TIPOS.map(
@@ -83,7 +84,8 @@ export default function VinculacionDetallePage() {
           ← Volver
         </Button>
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          No se pudieron cargar los documentos guardados. Aun así puedes subir archivos nuevos.
+          No se pudieron cargar los documentos guardados.
+          {!esTutor && ' Aun así puedes subir archivos nuevos.'}
           <Button variant="ghost" size="sm" className="ml-2" onClick={refetch}>
             Reintentar
           </Button>
@@ -113,11 +115,13 @@ export default function VinculacionDetallePage() {
       </Button>
 
       <PageHeader
-        titulo="Gestión de documentos"
+        titulo={esTutor ? 'Documentos y firma de convenio' : 'Gestión de documentos'}
         descripcion={
           estudiante
             ? `${estudiante.nombre} · ${vacante?.cargo ?? 'Práctica'} · ${vacante?.empresa ?? ''} · Tutor: ${detalle?.tutorEmpresarial || 'Pendiente'}`
-            : `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
+            : esTutor
+              ? `Asignación #${asignacionId} — Revisa los documentos y firma el convenio cuando esté listo.`
+              : `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
         }
       />
 
@@ -157,20 +161,30 @@ export default function VinculacionDetallePage() {
       </div>
 
       <div className="border-t border-gray-200 pt-5">
-        {!puedeActivar && (
-          <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Para activar la práctica se requieren los cuatro documentos y las firmas del convenio.
-          </div>
+        {!esTutor && (
+          <>
+            {!puedeActivar && (
+              <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                Para activar la práctica se requieren los cuatro documentos y las firmas del convenio.
+              </div>
+            )}
+            <Button
+              variant="success"
+              disabled={!puedeActivar}
+              onClick={() => setModalActivarOpen(true)}
+            >
+              <Rocket className="h-4 w-4" aria-hidden="true" />
+              Activar práctica
+            </Button>
+          </>
         )}
-        <Button
-          variant="success"
-          disabled={!puedeActivar}
-          onClick={() => setModalActivarOpen(true)}
-        >
-          <Rocket className="h-4 w-4" aria-hidden="true" />
-          Activar práctica
-        </Button>
+        {esTutor && (
+          <p className="text-sm text-gray-600">
+            Como tutor empresarial puedes revisar los documentos y registrar tu firma en el convenio.
+            La activación de la práctica la realiza el coordinador.
+          </p>
+        )}
       </div>
 
       <ConfirmarFirmaModal
@@ -189,7 +203,7 @@ export default function VinculacionDetallePage() {
       />
 
       <ActivarPracticaModal
-        isOpen={modalActivarOpen}
+        isOpen={modalActivarOpen && !esTutor}
         onClose={() => setModalActivarOpen(false)}
         isPending={activarPractica.isPending}
         programaNombre={estudiante?.programa}

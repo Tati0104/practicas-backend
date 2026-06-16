@@ -15,4 +15,17 @@ public class DashboardDto {
     private Long totalEstudiantes;
     private Long totalEmpresas;
     private Long totalVacantes;
+
+    private Long usuariosActivos;
+    private Long estudiantesEnPractica;
+    private Long empresasActivas;
+    private Long vacantesActivas;
+    private Long vacantesParaAprobar;
+    private Long asignacionesActivas;
+    private Long cierresPendientes;
+    private Long estudiantesSinEvaluar;
+    private Long aptosSinIniciar;
+    private Long estudiantesAsignados;
+    private Long calificacionesPendientes;
+    private Long firmasPendientes;
 }

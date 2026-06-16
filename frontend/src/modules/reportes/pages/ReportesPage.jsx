@@ -28,7 +28,7 @@ export default function ReportesPage() {
     <div className="space-y-6">
       <PageHeader
         titulo="Indicadores"
-        descripcion="Panorama visual del sistema de prácticas profesionales."
+        descripcion="Panorama visual del sistema de prácticas empresariales."
       />
 
       {isLoading && <LoadingState mensaje="Cargando indicadores..." />}

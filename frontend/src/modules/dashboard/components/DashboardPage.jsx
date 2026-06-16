@@ -34,12 +34,16 @@ function tarjetasPorRol(rol, datos) {
       { titulo: 'Mis estudiantes', valor: d.estudiantesAsignados, icono: 'graduation', color: 'primary' },
       { titulo: 'Calificaciones pendientes', valor: d.calificacionesPendientes, icono: 'star', color: 'amber' },
     ],
+    TUTOR_EMPRESARIAL: [
+      { titulo: 'Mis practicantes', valor: d.estudiantesAsignados, icono: 'graduation', color: 'primary' },
+      { titulo: 'Firmas pendientes', valor: d.firmasPendientes, icono: 'clipboard', color: 'amber' },
+    ],
     DIRECCION: [
       { titulo: 'Practicantes activos', valor: d.estudiantesEnPractica, icono: 'graduation', color: 'emerald' },
       { titulo: 'Empresas vinculadas', valor: d.empresasActivas, icono: 'building', color: 'primary' },
     ],
   };
-  return mapa[rol] || mapa.ADMIN;
+  return mapa[rol] || mapa.COORD_PRACTICA;
 }
 
 function iconoKpi(icono) {

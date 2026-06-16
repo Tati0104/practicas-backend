@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bell, Loader2, Send } from 'lucide-react';
+import { Bell, Loader2, Mail, Send } from 'lucide-react';
 import EstadoEncuestaBadge from './EstadoEncuestaBadge';
 
 const ESCALA_OPCIONES = [1, 2, 3, 4, 5];
@@ -47,12 +47,15 @@ export default function EncuestaForm({
   soloLectura = false,
   esEstudiante = false,
   puedeEnviarRecordatorio = false,
+  puedeEnviarInvitacion = false,
   onGuardarBorrador,
   onEnviar,
   onRecordatorio,
+  onInvitacion,
   isGuardando = false,
   isEnviando = false,
   isRecordatorio = false,
+  isInvitacion = false,
 }) {
   const [respuestas, setRespuestas] = useState({});
   const [errores, setErrores] = useState({});
@@ -218,6 +221,22 @@ export default function EncuestaForm({
 
       {bloqueada && encuesta.estado === 'COMPLETADA' && (
         <p className="mt-4 text-sm text-green-700">Encuesta completada. Solo lectura.</p>
+      )}
+
+      {puedeEnviarInvitacion && encuesta.estado !== 'COMPLETADA' && (
+        <button
+          type="button"
+          onClick={onInvitacion}
+          disabled={isInvitacion}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
+        >
+          {isInvitacion ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Mail className="h-4 w-4" aria-hidden="true" />
+          )}
+          {isInvitacion ? 'Enviando invitación...' : 'Enviar invitación por correo'}
+        </button>
       )}
 
       {puedeEnviarRecordatorio &&

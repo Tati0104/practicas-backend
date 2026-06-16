@@ -18,4 +18,6 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long>, JpaSpec
 
     @Query("SELECT DISTINCT e FROM Empresa e, Vacante v WHERE v.empresaId = e.id AND v.programaId = :programaId")
     List<Empresa> findByProgramaId(@Param("programaId") Long programaId);
+
+    long countByActivoTrue();
 }

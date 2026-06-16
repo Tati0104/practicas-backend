@@ -29,4 +29,16 @@ public interface PracticaVinculacionRepository extends JpaRepository<InstanciaPr
     );
 
     List<InstanciaPractica> findByEstado(EstadoPractica estado);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(ip) > 0 THEN true ELSE false END
+            FROM InstanciaPractica ip
+            JOIN ip.expediente e
+            WHERE e.estudiante.id = :estudianteId
+              AND ip.tutorId = :tutorId
+            """)
+    boolean existsByExpedienteEstudianteIdAndTutorId(
+            @Param("estudianteId") Long estudianteId,
+            @Param("tutorId") Long tutorId
+    );
 }

@@ -49,4 +49,9 @@ public interface EncuestaService {
      * Obtiene la encuesta asociada a una práctica y tipo específico.
      */
     Optional<Encuesta> obtenerPorPracticaYTipo(Long practicaId, TipoEncuesta tipo);
+
+    /**
+     * Crea la encuesta si no existe y envía (o reenvía) la invitación por correo al destinatario.
+     */
+    Encuesta enviarInvitacion(Long practicaId, TipoEncuesta tipo);
 }

@@ -12,7 +12,11 @@ const ESTADOS_SEGUIMIENTO = [
 export default function CalificacionesFiltros({ filtros, setFiltros }) {
   const { data: programas = [] } = useQuery({
     queryKey: ['programas-filtro-calificaciones'],
-    queryFn: () => http.get('/programas').then((r) => r.data ?? []),
+    queryFn: async () => {
+      const resp = await http.get('/programas');
+      const lista = resp.data?.data ?? resp.data ?? [];
+      return Array.isArray(lista) ? lista : [];
+    },
     staleTime: 60_000,
   });
 

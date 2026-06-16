@@ -19,4 +19,6 @@ public interface AuthUsuarioRepository extends JpaRepository<Usuario, Long>, Jpa
     boolean existsByCorreo(String correo);
 
     long countByRolAndActivo(Rol rol, Boolean activo);
+
+    long countByActivoTrue();
 }

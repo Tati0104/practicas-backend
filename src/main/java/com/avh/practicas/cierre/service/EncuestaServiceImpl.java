@@ -174,6 +174,25 @@ public class EncuestaServiceImpl implements EncuestaService {
         return encuestaRepository.findByInstanciaPracticaIdAndTipo(practicaId, tipo);
     }
 
+    @Override
+    public Encuesta enviarInvitacion(Long practicaId, TipoEncuesta tipo) {
+        Optional<Encuesta> existente = encuestaRepository.findByInstanciaPracticaIdAndTipo(practicaId, tipo);
+        if (existente.isPresent()) {
+            Encuesta encuesta = existente.get();
+            if (encuesta.getEstado() == EstadoEncuesta.COMPLETADA) {
+                return encuesta;
+            }
+            despacharNotificacionEncuesta(
+                    TipoEventoSistema.ENCUESTA_DISPONIBLE,
+                    encuesta.getInstanciaPractica(),
+                    tipo
+            );
+            encuesta.setFechaEnvioInvitacion(LocalDateTime.now());
+            return encuestaRepository.save(encuesta);
+        }
+        return crearEncuestaPendiente(practicaId, tipo);
+    }
+
     /**
      * Helper para preparar la información y despachar el evento del sistema para notificar por correo.
      */

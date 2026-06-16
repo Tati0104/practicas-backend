@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import useNavegacion from '../hooks/useNavegacion';
+import AppLogo from './AppLogo';
 import { esRutaActiva } from '../config/navegacion';
 
 const ICONOS = {
@@ -149,11 +150,14 @@ export default function Sidebar({ abierto, onCerrar }) {
         aria-label="Menú principal"
       >
         <div className="flex shrink-0 items-center justify-between px-6 pb-4 pt-7">
-          <div className="min-w-0">
-            <span className="block text-2xl font-bold tracking-tight text-white">PracTI</span>
-            <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.2em] text-white/60">
-              Prácticas profesionales
-            </span>
+          <div className="flex min-w-0 items-center gap-3">
+            <AppLogo variant="light" className="h-11 w-11 shrink-0" />
+            <div className="min-w-0">
+              <span className="block text-2xl font-bold tracking-tight text-white">PracTI</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[9px] font-medium uppercase tracking-[0.12em] text-white/60">
+                Prácticas empresariales
+              </span>
+            </div>
           </div>
           <button
             type="button"

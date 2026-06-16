@@ -8,7 +8,10 @@ const http = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  const token = obtenerTokenAlmacenado() || localStorage.getItem('token');
+  const token =
+    obtenerTokenAlmacenado()
+    || localStorage.getItem('token')
+    || useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

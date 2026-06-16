@@ -10,6 +10,7 @@ import VinculacionTabla from '../components/VinculacionTabla';
 import VinculacionCard from '../components/VinculacionCard';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
+import useAuthStore from '@/store/authStore';
 
 function useEsDesktop() {
   const [esDesktop, setEsDesktop] = useState(() =>
@@ -27,6 +28,7 @@ function useEsDesktop() {
 export default function VinculacionPage() {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
+  const esTutor = useAuthStore((state) => state.rol) === 'TUTOR_EMPRESARIAL';
   const {
     vinculaciones,
     totalPaginas,
@@ -53,10 +55,12 @@ export default function VinculacionPage() {
   return (
     <div>
       <PageHeader
-        titulo="Vinculación y documentos"
+        titulo={esTutor ? 'Documentos de mis practicantes' : 'Vinculación y documentos'}
         descripcion={
           subtitulo ||
-          'Gestión de hoja de vida, carta, proyecto y convenio de práctica'
+          (esTutor
+            ? 'Revisa los documentos y firma el convenio de tus estudiantes asignados'
+            : 'Gestión de hoja de vida, carta, proyecto y convenio de práctica')
         }
       />
 
@@ -64,8 +68,17 @@ export default function VinculacionPage() {
 
       {!isLoading && !isError && vinculaciones.length > 0 && (
         <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          Para subir hoja de vida, carta, proyecto o convenio, haz clic en{' '}
-          <strong>Gestionar</strong> en el estudiante correspondiente.
+          {esTutor ? (
+            <>
+              Para revisar documentos y firmar el convenio, haz clic en{' '}
+              <strong>Gestionar</strong> en el estudiante correspondiente.
+            </>
+          ) : (
+            <>
+              Para subir hoja de vida, carta, proyecto o convenio, haz clic en{' '}
+              <strong>Gestionar</strong> en el estudiante correspondiente.
+            </>
+          )}
         </div>
       )}
 
@@ -84,7 +97,9 @@ export default function VinculacionPage() {
           <FolderOpen className="mx-auto mb-2 h-8 w-8 opacity-50" aria-hidden="true" />
           <p>No hay procesos de vinculación que coincidan con los filtros aplicados.</p>
           <p className="mt-2 text-xs text-gray-500">
-            Si aún no hay asignaciones, créalas en Vacantes y Postulaciones.
+            {esTutor
+              ? 'Cuando te asignen practicantes, aparecerán aquí para que puedas firmar el convenio.'
+              : 'Si aún no hay asignaciones, créalas en Vacantes y Postulaciones.'}
           </p>
         </div>
       )}

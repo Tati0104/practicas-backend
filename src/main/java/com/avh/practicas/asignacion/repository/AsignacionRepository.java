@@ -34,6 +34,15 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                     OR LOWER(v.cargo) LIKE LOWER(CONCAT('%', :busqueda, '%'))
                     OR LOWER(COALESCE(emp.razon_social, '')) LIKE LOWER(CONCAT('%', :busqueda, '%'))
                   )
+              AND (
+                    :tutorId IS NULL
+                    OR EXISTS (
+                        SELECT 1 FROM instancias_practica ip
+                        JOIN expedientes exp ON exp.id = ip.expediente_id
+                        WHERE ip.tutor_id = :tutorId
+                          AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
+                    )
+                  )
             ORDER BY a.fecha_actualizacion DESC NULLS LAST, a.id DESC
             """,
             countQuery = """
@@ -53,6 +62,15 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                     OR LOWER(v.cargo) LIKE LOWER(CONCAT('%', :busqueda, '%'))
                     OR LOWER(COALESCE(emp.razon_social, '')) LIKE LOWER(CONCAT('%', :busqueda, '%'))
                   )
+              AND (
+                    :tutorId IS NULL
+                    OR EXISTS (
+                        SELECT 1 FROM instancias_practica ip
+                        JOIN expedientes exp ON exp.id = ip.expediente_id
+                        WHERE ip.tutor_id = :tutorId
+                          AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
+                    )
+                  )
             """,
             nativeQuery = true)
     Page<Asignacion> buscarVinculaciones(
@@ -60,6 +78,9 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
             @Param("programaId") Long programaId,
             @Param("empresaId") Long empresaId,
             @Param("estado") String estado,
+            @Param("tutorId") Long tutorId,
             Pageable pageable
     );
+
+    long countByEstadoNot(EstadoAsignacion estado);
 }

@@ -58,4 +58,15 @@ public class EncuestaController {
             @PathVariable TipoEncuesta tipo) {
         service.enviarRecordatorio(practicaId, tipo);
     }
+
+    /**
+     * Envía la invitación inicial (o la reenvía) al correo del estudiante o tutor.
+     */
+    @PostMapping("/{practicaId}/{tipo}/invitar")
+    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'ADMIN')")
+    public Encuesta enviarInvitacion(
+            @PathVariable Long practicaId,
+            @PathVariable TipoEncuesta tipo) {
+        return service.enviarInvitacion(practicaId, tipo);
+    }
 }

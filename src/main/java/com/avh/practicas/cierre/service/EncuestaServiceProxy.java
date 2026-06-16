@@ -61,4 +61,9 @@ public class EncuestaServiceProxy implements EncuestaService {
     public Optional<Encuesta> obtenerPorPracticaYTipo(Long practicaId, TipoEncuesta tipo) {
         return realService.obtenerPorPracticaYTipo(practicaId, tipo);
     }
+
+    @Override
+    public Encuesta enviarInvitacion(Long practicaId, TipoEncuesta tipo) {
+        return realService.enviarInvitacion(practicaId, tipo);
+    }
 }

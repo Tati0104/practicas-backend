@@ -75,10 +75,22 @@ export default function useEncuesta(practicaId, tipo, habilitada = true) {
     },
   });
 
+  const enviarInvitacion = useMutation({
+    mutationFn: () => http.post(`/encuestas/${practicaId}/${tipo}/invitar`),
+    onSuccess: () => {
+      toast.success('Invitación enviada al correo del destinatario');
+      invalidar();
+    },
+    onError: (error) => {
+      toast.error(extraerMensajeError(error, 'No se pudo enviar la invitación'));
+    },
+  });
+
   return {
     ...query,
     guardarBorrador,
     enviar,
     enviarRecordatorio,
+    enviarInvitacion,
   };
 }

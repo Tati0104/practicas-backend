@@ -36,8 +36,17 @@ export default function PracticasSelectorPage({
 }) {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
-  const { practicas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
-    useSeguimiento();
+  const {
+    practicas,
+    totalPaginas,
+    isLoading,
+    isError,
+    filtros,
+    setFiltros,
+    irAPagina,
+    requierePrograma,
+    programasDisponibles,
+  } = useSeguimiento();
 
   useEffect(() => {
     if (isError) toast.error('Error al cargar las prácticas');
@@ -55,9 +64,20 @@ export default function PracticasSelectorPage({
         <p className="py-10 text-center text-sm text-gray-500">Cargando prácticas...</p>
       )}
 
-      {!isLoading && practicas.length === 0 && (
-        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-400">
-          No hay prácticas que coincidan con los filtros.
+      {!isLoading && requierePrograma && (
+        <div className="rounded-lg border border-dashed border-amber-300 bg-amber-50 py-12 text-center text-amber-800">
+          {programasDisponibles === 0
+            ? 'No hay programas académicos configurados. Crea uno en Configuración → Programas.'
+            : 'Selecciona un programa en «Agregar filtros…» para ver las prácticas en curso.'}
+        </div>
+      )}
+
+      {!isLoading && !requierePrograma && practicas.length === 0 && (
+        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-500">
+          <p>No hay prácticas en curso que coincidan con los filtros.</p>
+          <p className="mt-2 text-sm text-gray-400">
+            Las evaluaciones aplican a prácticas activas (estado EN CURSO) con estudiante vinculado.
+          </p>
         </div>
       )}
 

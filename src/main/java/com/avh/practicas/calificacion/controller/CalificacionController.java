@@ -10,10 +10,14 @@ import com.avh.practicas.calificacion.service.CalificacionService;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.DocenteAsesor;
+import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,56 +32,96 @@ public class CalificacionController {
     private final CalificacionService service;
     private final DocenteAsesorRepository docenteRepository;
     private final TutorEmpresarialRepository tutorRepository;
+    private final InstanciaPracticaRepository practicaRepository;
 
-    /**
-     * Registra o actualiza la nota de un corte dada por el Docente Asesor.
-     */
     @PostMapping("/{practicaId}/docente")
-    @PreAuthorize("hasAnyRole('DOCENTE_ASESOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCENTE_ASESOR', 'ADMIN', 'COORD_PRACTICA')")
     public NotaDocente registrarNotaDocente(
             @PathVariable Long practicaId,
             @RequestParam Integer corte,
             @Valid @RequestBody NotaRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        DocenteAsesor docente = docenteRepository.findByCorreo(email)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró docente asesor asociado al correo: " + email));
-        return service.registrarNotaDocente(practicaId, docente.getId(), corte, request);
+        Long docenteId = resolverDocenteId(practicaId);
+        return service.registrarNotaDocente(practicaId, docenteId, corte, request);
     }
 
-    /**
-     * Registra o actualiza la nota de un corte dada por el Tutor Empresarial.
-     */
     @PostMapping("/{practicaId}/tutor")
-    @PreAuthorize("hasAnyRole('TUTOR_EMPRESARIAL', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TUTOR_EMPRESARIAL', 'ADMIN', 'COORD_PRACTICA')")
     public NotaTutor registrarNotaTutor(
             @PathVariable Long practicaId,
             @RequestParam Integer corte,
             @Valid @RequestBody NotaRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        TutorEmpresarial tutor = tutorRepository.findByCorreo(email)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró tutor asociado al correo: " + email));
-        return service.registrarNotaTutor(practicaId, tutor.getId(), corte, request);
+        Long tutorId = resolverTutorId(practicaId);
+        return service.registrarNotaTutor(practicaId, tutorId, corte, request);
     }
 
-    /**
-     * Registra la nota final definitiva (Docente Asesor).
-     */
     @PostMapping("/{practicaId}/final")
-    @PreAuthorize("hasAnyRole('DOCENTE_ASESOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCENTE_ASESOR', 'ADMIN', 'COORD_PRACTICA')")
     public NotaFinal registrarNotaFinal(
             @PathVariable Long practicaId,
             @Valid @RequestBody NotaFinalRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        DocenteAsesor docente = docenteRepository.findByCorreo(email)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró docente asesor asociado al correo: " + email));
-        return service.registrarNotaFinal(practicaId, docente.getId(), request);
+        Long docenteId = resolverDocenteId(practicaId);
+        return service.registrarNotaFinal(practicaId, docenteId, request);
     }
 
-    /**
-     * Obtiene el resumen de todas las calificaciones de la práctica.
-     */
     @GetMapping("/{practicaId}/resumen")
     public ResumenCalificacionesResponse obtenerResumen(@PathVariable Long practicaId) {
         return service.obtenerResumen(practicaId);
+    }
+
+    private Long resolverDocenteId(Long practicaId) {
+        if (tieneRol("DOCENTE_ASESOR") && !puedeActuarComoCoordinador()) {
+            String email = obtenerCorreoAutenticado();
+            DocenteAsesor docente = docenteRepository.findByCorreo(email)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No se encontró docente asesor asociado al correo: " + email));
+            return docente.getId();
+        }
+
+        InstanciaPractica practica = practicaRepository.findById(practicaId)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
+        if (practica.getDocenteAsesorId() == null) {
+            throw new IllegalArgumentException("La práctica no tiene docente asesor asignado.");
+        }
+        return practica.getDocenteAsesorId();
+    }
+
+    private Long resolverTutorId(Long practicaId) {
+        if (tieneRol("TUTOR_EMPRESARIAL") && !puedeActuarComoCoordinador()) {
+            String email = obtenerCorreoAutenticado();
+            TutorEmpresarial tutor = tutorRepository.findByCorreo(email)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No se encontró tutor asociado al correo: " + email));
+            return tutor.getId();
+        }
+
+        InstanciaPractica practica = practicaRepository.findById(practicaId)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
+        if (practica.getTutorId() == null) {
+            throw new IllegalArgumentException("La práctica no tiene tutor empresarial asignado.");
+        }
+        return practica.getTutorId();
+    }
+
+    private boolean puedeActuarComoCoordinador() {
+        return tieneRol("ADMIN") || tieneRol("COORD_PRACTICA");
+    }
+
+    private boolean tieneRol(String rol) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            return false;
+        }
+        for (GrantedAuthority authority : auth.getAuthorities()) {
+            String name = authority.getAuthority();
+            if (rol.equals(name) || ("ROLE_" + rol).equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String obtenerCorreoAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "";
     }
 }

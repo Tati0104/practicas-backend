@@ -23,4 +23,31 @@ public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPrac
     Optional<InstanciaPractica> findByIdWithExpedienteAndEstudiante(@Param("id") Long id);
     boolean existsByExpedienteEstudianteProgramaIdAndEstadoIn(Long programaId, List<EstadoPractica> estados);
     boolean existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(Long programaId, Integer numeroPractica, List<EstadoPractica> estados);
+
+    long countByEstado(EstadoPractica estado);
+
+    long countByDocenteAsesorIdAndEstado(Long docenteAsesorId, EstadoPractica estado);
+
+    long countByTutorIdAndEstado(Long tutorId, EstadoPractica estado);
+
+    @Query("""
+            SELECT COUNT(ip)
+            FROM InstanciaPractica ip
+            WHERE ip.estado = com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO
+              AND NOT EXISTS (
+                    SELECT nf.id FROM NotaFinal nf WHERE nf.instanciaPractica = ip
+              )
+            """)
+    long countPracticasEnCursoSinNotaFinal();
+
+    @Query("""
+            SELECT COUNT(ip)
+            FROM InstanciaPractica ip
+            WHERE ip.estado = com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO
+              AND ip.docenteAsesorId = :docenteAsesorId
+              AND NOT EXISTS (
+                    SELECT nf.id FROM NotaFinal nf WHERE nf.instanciaPractica = ip
+              )
+            """)
+    long countPracticasEnCursoSinNotaFinalPorDocente(@Param("docenteAsesorId") Long docenteAsesorId);
 }

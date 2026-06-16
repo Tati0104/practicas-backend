@@ -1,7 +1,7 @@
 import { Menu } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import NotificacionesBell from './NotificacionesBell';
-
+import AppLogo from './AppLogo';
 const nombreRol = {
   ADMIN: 'Administrador',
   DIRECCION: 'Dirección',
@@ -30,6 +30,15 @@ export default function Navbar({ onAbrirMenu }) {
         >
           <Menu className="h-5 w-5" />
         </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <AppLogo variant="dark" className="h-8 w-8" />
+          <div className="min-w-0 leading-tight">
+            <span className="block text-sm font-bold text-primary">PracTI</span>
+            <span className="block whitespace-nowrap text-[9px] font-medium uppercase tracking-wider text-gray-500">
+              Prácticas empresariales
+            </span>
+          </div>
+        </div>
         <span className="hidden text-sm text-gray-600 sm:inline">
           Bienvenido/a, <strong className="font-semibold text-gray-900">{nombreMostrar}</strong>
         </span>

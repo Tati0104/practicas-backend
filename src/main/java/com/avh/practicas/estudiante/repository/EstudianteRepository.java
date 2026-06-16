@@ -3,6 +3,7 @@ package com.avh.practicas.estudiante.repository;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -14,4 +15,21 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long>, J
     boolean existsByCorreo(String correo);
     Optional<Estudiante> findByIdentificacion(String identificacion);
     Optional<Estudiante> findByCorreo(String correo);
+
+    @Query("""
+            SELECT COUNT(e)
+            FROM Estudiante e
+            WHERE e.estadoAptitud = com.avh.practicas.estudiante.entity.EstadoAptitud.APTO
+              AND NOT EXISTS (
+                    SELECT ip.id
+                    FROM InstanciaPractica ip
+                    JOIN ip.expediente exp
+                    WHERE exp.estudiante = e
+                      AND ip.estado IN (
+                            com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO,
+                            com.avh.practicas.estudiante.entity.EstadoPractica.ASIGNADA_PENDIENTE_INICIO
+                      )
+              )
+            """)
+    long countAptosSinPracticaActiva();
 }

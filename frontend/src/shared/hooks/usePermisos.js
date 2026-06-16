@@ -1,19 +1,48 @@
-// src/shared/hooks/usePermisos.js
+import useAuthStore from '@/store/authStore';
 
-/**
- * Stub de hook de permisos.
- * En un proyecto real este hook consultaría el backend o el contexto de auth
- * para saber qué acciones permite el usuario actual.
- * Aquí devolvemos `true` para todas las operaciones para que la UI funcione
- * sin necesidad de implementar la lógica completa.
- */
-export function usePermisos() {
-  return {
-    canCreate: true,
+const PERMISOS_COMPLETOS = {
+  canCreate: true,
+  canEdit: true,
+  canApprove: true,
+  canReject: true,
+  canPause: true,
+  canClose: true,
+};
+
+const PERMISOS_POR_ROL = {
+  TUTOR_EMPRESARIAL: {
+    canCreate: false,
+    canEdit: false,
+    canApprove: false,
+    canReject: false,
+    canPause: false,
+    canClose: false,
+  },
+  ESTUDIANTE: {
+    canCreate: false,
+    canEdit: false,
+    canApprove: false,
+    canReject: false,
+    canPause: false,
+    canClose: false,
+  },
+  DOCENTE_ASESOR: {
+    canCreate: false,
     canEdit: true,
-    canApprove: true,
-    canReject: true,
-    canPause: true,
-    canClose: true,
+    canApprove: false,
+    canReject: false,
+    canPause: false,
+    canClose: false,
+  },
+};
+
+export function usePermisos() {
+  const rol = useAuthStore((state) => state.rol);
+  const usuario = useAuthStore((state) => state.usuario);
+
+  return {
+    ...(PERMISOS_POR_ROL[rol] ?? PERMISOS_COMPLETOS),
+    rol,
+    usuario,
   };
 }

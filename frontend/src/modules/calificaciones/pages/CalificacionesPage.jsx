@@ -9,7 +9,17 @@ import EncuestaForm from '../components/EncuestaForm';
 import { obtenerNotasReferencia } from '../utils/schemas';
 import { ErrorState, LoadingState, PageBackHeader } from '@/shared/components/ui';
 
-function EncuestaPanel({ isLoading, isError, refetch, encuestaHook, titulo, soloLectura, esEstudiante, puedeEnviarRecordatorio }) {
+function EncuestaPanel({
+  isLoading,
+  isError,
+  refetch,
+  encuestaHook,
+  titulo,
+  soloLectura,
+  esEstudiante,
+  puedeEnviarRecordatorio,
+  puedeEnviarInvitacion,
+}) {
   if (isLoading) {
     return <LoadingState mensaje={`Cargando ${titulo.toLowerCase()}...`} />;
   }
@@ -31,9 +41,11 @@ function EncuestaPanel({ isLoading, isError, refetch, encuestaHook, titulo, solo
       soloLectura={soloLectura}
       esEstudiante={esEstudiante}
       puedeEnviarRecordatorio={puedeEnviarRecordatorio}
+      puedeEnviarInvitacion={puedeEnviarInvitacion}
       isGuardando={encuestaHook.guardarBorrador.isPending}
       isEnviando={encuestaHook.enviar.isPending}
       isRecordatorio={encuestaHook.enviarRecordatorio.isPending}
+      isInvitacion={encuestaHook.enviarInvitacion.isPending}
       onGuardarBorrador={(respuestas) =>
         encuestaHook.guardarBorrador.mutate({
           encuestaId: encuestaHook.data.id,
@@ -47,6 +59,7 @@ function EncuestaPanel({ isLoading, isError, refetch, encuestaHook, titulo, solo
         })
       }
       onRecordatorio={() => encuestaHook.enviarRecordatorio.mutate()}
+      onInvitacion={() => encuestaHook.enviarInvitacion.mutate()}
     />
   );
 }
@@ -151,6 +164,7 @@ export default function CalificacionesPage() {
                 soloLectura={!permisos.puedeCompletarEncuestaTutor}
                 esEstudiante={false}
                 puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
+                puedeEnviarInvitacion={permisos.puedeEnviarInvitacion}
               />
             )}
 
@@ -164,6 +178,7 @@ export default function CalificacionesPage() {
                 soloLectura={!permisos.puedeCompletarEncuestaEstudiante}
                 esEstudiante
                 puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
+                puedeEnviarInvitacion={permisos.puedeEnviarInvitacion}
               />
             )}
           </div>
