@@ -52,6 +52,19 @@ public class SeguimientoController {
     }
 
     /**
+     * Endpoint desacoplado del tablero anterior: no exige programaId, resuelve el scope
+     * del usuario autenticado (ESTUDIANTE ve solo la suya, coordinadores ven su facultad).
+     */
+    @GetMapping("/practicas")
+    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'COORD_ACADEMICA', 'SECRETARIA', 'ADMIN', 'ESTUDIANTE')")
+    public List<TableroResponse> obtenerPracticasVisibles(
+            @RequestParam(required = false) String busqueda,
+            @RequestParam(required = false) Long programaId,
+            @RequestParam(required = false) String estadoSeguimiento) {
+        return service.obtenerPracticasSeguimiento(busqueda, programaId, estadoSeguimiento);
+    }
+
+    /**
      * Obtiene el detalle de la práctica y su historial.
      */
     @GetMapping("/{practicaId}")

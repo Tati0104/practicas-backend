@@ -42,6 +42,14 @@ public interface SeguimientoService {
     List<TableroResponse> obtenerTableroSeguimiento(Long programaId, String empresa, String docente, Integer corte, String estadoSeguimiento);
 
     /**
+     * Retorna las prácticas EN_CURSO visibles para el usuario autenticado según su scope
+     * (ESTUDIANTE ve solo la suya, COORD_PRACTICA/COORD_ACADEMICA ven su facultad, ADMIN/
+     * SECRETARIA ven todas), sin exigir programaId. Los filtros son opcionales y acotan
+     * el resultado ya cargado.
+     */
+    List<TableroResponse> obtenerPracticasSeguimiento(String busqueda, Long programaId, String estadoSeguimiento);
+
+    /**
      * Obtiene todas las observaciones asociadas a una práctica.
      */
     List<ObservacionDocente> obtenerObservacionesPorPractica(Long practicaId);

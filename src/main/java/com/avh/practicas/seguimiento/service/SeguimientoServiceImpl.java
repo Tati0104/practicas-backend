@@ -21,6 +21,8 @@ import com.avh.practicas.seguimiento.repository.AvanceTutorRepository;
 import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
 import com.avh.practicas.seguimiento.repository.ObservacionDocenteRepository;
 import com.avh.practicas.notificacion.service.NotificacionService;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
+import com.avh.practicas.shared.scope.ScopePracticas;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -56,6 +58,7 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     private final AlertaSistemaRepository alertaSistemaRepository;
     private final NotificacionService notificacionService;
     private final JdbcTemplate jdbcTemplate;
+    private final ScopePracticaResolver scopeResolver;
 
     /**
      * Valida si un corte específico de una práctica está cerrado.
@@ -389,6 +392,156 @@ public class SeguimientoServiceImpl implements SeguimientoService {
         }
 
         return tablero;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TableroResponse> obtenerPracticasSeguimiento(String busqueda, Long programaId, String estadoSeguimiento) {
+        ScopePracticas scope = scopeResolver.resolver();
+
+        List<InstanciaPractica> practicas = practicaRepository.findAll().stream()
+                .filter(p -> p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO)
+                .filter(scope::esVisible)
+                .filter(p -> programaId == null
+                        || (p.getExpediente() != null
+                            && p.getExpediente().getEstudiante() != null
+                            && p.getExpediente().getEstudiante().getPrograma() != null
+                            && programaId.equals(p.getExpediente().getEstudiante().getPrograma().getId())))
+                .collect(Collectors.toList());
+
+        List<TableroResponse> resultado = new ArrayList<>();
+        for (InstanciaPractica p : practicas) {
+            TableroResponse response = construirTableroResponseScoped(p);
+
+            boolean cumpleBusqueda = busqueda == null || busqueda.isBlank()
+                    || response.estudiante().toLowerCase().contains(busqueda.toLowerCase())
+                    || response.empresa().toLowerCase().contains(busqueda.toLowerCase());
+            boolean cumpleEstado = estadoSeguimiento == null || estadoSeguimiento.isBlank()
+                    || response.estadoSeguimiento().equalsIgnoreCase(estadoSeguimiento);
+
+            if (cumpleBusqueda && cumpleEstado) {
+                resultado.add(response);
+            }
+        }
+        return resultado;
+    }
+
+    /**
+     * Copia deliberada de la lógica de categorización de obtenerTableroSeguimiento (no se
+     * extrae como helper común a propósito, para no modificar el método existente ya
+     * verificado). Calcula el umbral de inactividad por el programa de CADA práctica, ya
+     * que aquí el scope puede abarcar varios programas a la vez.
+     */
+    private TableroResponse construirTableroResponseScoped(InstanciaPractica p) {
+        String nombreEstudiante = p.getExpediente().getEstudiante().getNombre();
+
+        String nombreEmpresa = "No asignada";
+        if (p.getEmpresaId() != null) {
+            try {
+                nombreEmpresa = jdbcTemplate.queryForObject(
+                        "SELECT razon_social FROM empresas WHERE id = ?",
+                        String.class,
+                        p.getEmpresaId()
+                );
+            } catch (Exception e) {
+                // Ignorar
+            }
+        }
+
+        String nombreDocente = "No asignado";
+        if (p.getDocenteAsesorId() != null) {
+            try {
+                nombreDocente = jdbcTemplate.queryForObject(
+                        "SELECT nombre FROM docentes_asesores WHERE id = ?",
+                        String.class,
+                        p.getDocenteAsesorId()
+                );
+            } catch (Exception e) {
+                // Ignorar
+            }
+        }
+
+        LocalDateTime fechaUltimaActividad = p.getFechaInicio() != null
+                ? p.getFechaInicio().atStartOfDay()
+                : LocalDateTime.now();
+
+        Optional<BitacoraEstudiante> ultimaBitacora = bitacoraEstudianteRepository.findFirstByInstanciaPracticaIdOrderByFechaDesc(p.getId());
+        if (ultimaBitacora.isPresent() && ultimaBitacora.get().getFecha().isAfter(fechaUltimaActividad)) {
+            fechaUltimaActividad = ultimaBitacora.get().getFecha();
+        }
+
+        List<ObservacionDocente> observaciones = observacionDocenteRepository.findByInstanciaPracticaId(p.getId());
+        if (!observaciones.isEmpty()) {
+            LocalDateTime maxFechaObs = observaciones.stream()
+                    .map(ObservacionDocente::getFecha)
+                    .max(Comparator.naturalOrder())
+                    .orElse(fechaUltimaActividad);
+            if (maxFechaObs.isAfter(fechaUltimaActividad)) {
+                fechaUltimaActividad = maxFechaObs;
+            }
+        }
+
+        List<AvanceTutor> avances = avanceTutorRepository.findByInstanciaPracticaId(p.getId());
+        if (!avances.isEmpty()) {
+            LocalDateTime maxFechaAvance = avances.stream()
+                    .map(AvanceTutor::getFecha)
+                    .max(Comparator.naturalOrder())
+                    .orElse(fechaUltimaActividad);
+            if (maxFechaAvance.isAfter(fechaUltimaActividad)) {
+                fechaUltimaActividad = maxFechaAvance;
+            }
+        }
+
+        int corteActivo = 1;
+        if (p.getFechaInicio() != null && p.getFechaFin() != null && p.getNumCortes() != null && p.getDuracionSemanas() != null) {
+            long semanasTranscurridas = ChronoUnit.WEEKS.between(p.getFechaInicio(), LocalDate.now());
+            int semanasPorCorte = p.getDuracionSemanas() / p.getNumCortes();
+            if (semanasPorCorte > 0) {
+                corteActivo = (int) (semanasTranscurridas / semanasPorCorte) + 1;
+                corteActivo = Math.max(1, Math.min(corteActivo, p.getNumCortes()));
+            }
+        }
+
+        Long programaIdPractica = p.getExpediente().getEstudiante().getPrograma() != null
+                ? p.getExpediente().getEstudiante().getPrograma().getId()
+                : null;
+
+        Integer umbralInactividad = 15;
+        if (programaIdPractica != null) {
+            try {
+                Integer umbral = jdbcTemplate.queryForObject(
+                        "SELECT umbral_inactividad_dias FROM config_programas WHERE programa_id = ?",
+                        Integer.class,
+                        programaIdPractica
+                );
+                if (umbral != null) {
+                    umbralInactividad = umbral;
+                }
+            } catch (Exception e) {
+                // Ignorar y usar default
+            }
+        }
+
+        String estadoSeguimiento = "AL_DIA";
+        long diasInactividad = ChronoUnit.DAYS.between(fechaUltimaActividad, LocalDateTime.now());
+        if (diasInactividad > umbralInactividad) {
+            estadoSeguimiento = "EN_ALERTA";
+        } else {
+            List<BitacoraEstudiante> bitacorasCorte = bitacoraEstudianteRepository.findByInstanciaPracticaIdAndCorte(p.getId(), corteActivo);
+            if (bitacorasCorte.isEmpty()) {
+                estadoSeguimiento = "PENDIENTE";
+            }
+        }
+
+        return new TableroResponse(
+                p.getId(),
+                nombreEstudiante,
+                nombreEmpresa,
+                nombreDocente,
+                corteActivo,
+                estadoSeguimiento,
+                fechaUltimaActividad
+        );
     }
 
     @Override
