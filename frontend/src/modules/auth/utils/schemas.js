@@ -23,7 +23,20 @@ export const nuevaPasswordSchema = z
     path: ['confirmarPassword'],
   });
 
-export const resetearSchema = nuevaPasswordSchema;
+export const resetearSchema = z
+  .object({
+    token: z.string().min(1, 'El token es requerido'),
+    nuevaPassword: z
+      .string()
+      .min(8, 'Mínimo 8 caracteres')
+      .regex(/[A-Z]/, 'Debe tener al menos una mayúscula')
+      .regex(/[0-9]/, 'Debe tener al menos un número'),
+    confirmarPassword: z.string(),
+  })
+  .refine((data) => data.nuevaPassword === data.confirmarPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmarPassword'],
+  });
 
 export const RUTAS_POR_ROL = {
   ADMIN: '/dashboard',

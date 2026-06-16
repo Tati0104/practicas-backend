@@ -129,4 +129,14 @@ public class VinculacionController {
                 "documentos", docs
         )));
     }
+
+    @PatchMapping("/vinculaciones/asignaciones/{asignacionId}/docente-asesor")
+    public ResponseEntity<ApiResponse<Void>> asignarDocenteAsesor(
+            @PathVariable Long asignacionId,
+            @RequestBody java.util.Map<String, Long> body
+    ) {
+        Long docenteAsesorId = body.get("docenteAsesorId");
+        vinculacionService.asignarDocenteAsesor(asignacionId, docenteAsesorId);
+        return ResponseEntity.ok(ApiResponse.ok("Docente Asesor asignado correctamente"));
+    }
 }

@@ -44,6 +44,9 @@ const vinculacionService = {
   confirmarFirma: (convenioId, rol) =>
     http.post(`/vinculaciones/convenios/${convenioId}/firmas/${rol}`),
 
+  asignarDocenteAsesor: (asignacionId, docenteAsesorId) =>
+    http.patch(`/vinculaciones/asignaciones/${asignacionId}/docente-asesor`, { docenteAsesorId }),
+
   activarPractica: (practicaId, payload) =>
     http.post(`/vinculaciones/practicas/${practicaId}/confirmar`, payload),
 

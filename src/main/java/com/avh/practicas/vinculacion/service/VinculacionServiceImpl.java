@@ -89,6 +89,23 @@ public class VinculacionServiceImpl implements VinculacionService {
         Optional<Convenio> convenio = convenioRepository.findByAsignacionId(asignacionId);
         List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
 
+        Long docenteAsesorId = null;
+        LocalDate fechaInicio = null;
+        LocalDate fechaFin = null;
+
+        if (practicaId != null) {
+            practicaRepository.findById(practicaId).ifPresent(p -> {
+                // p is InstanciaPractica, which is mutable inside lambdas if we map it or just we can't assign to local variables directly inside lambda, so:
+            });
+        }
+        
+        Optional<InstanciaPractica> practicaOpt = practicaId != null ? practicaRepository.findById(practicaId) : Optional.empty();
+        if (practicaOpt.isPresent()) {
+            docenteAsesorId = practicaOpt.get().getDocenteAsesorId();
+            fechaInicio = practicaOpt.get().getFechaInicio();
+            fechaFin = practicaOpt.get().getFechaFin();
+        }
+
         return new DocumentosAsignacionResponse(
                 asignacionId,
                 practicaId,
@@ -96,6 +113,10 @@ public class VinculacionServiceImpl implements VinculacionService {
                 contexto.estudiante(),
                 contexto.vacante(),
                 contexto.tutorEmpresarial(),
+                docenteAsesorId,
+                fechaInicio,
+                fechaFin,
+                asignacion.getEstado(),
                 paneles
         );
     }
@@ -441,5 +462,18 @@ public class VinculacionServiceImpl implements VinculacionService {
     private Vacante obtenerVacante(Long vacanteId) {
         return vacanteRepository.findById(vacanteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Vacante no encontrada: " + vacanteId));
+    }
+
+    @Override
+    @Transactional
+    public void asignarDocenteAsesor(Long asignacionId, Long docenteAsesorId) {
+        Asignacion asignacion = obtenerAsignacion(asignacionId);
+        Long practicaId = resolverPracticaId(asignacion);
+        
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+                
+        practica.setDocenteAsesorId(docenteAsesorId);
+        practicaRepository.save(practica);
     }
 }

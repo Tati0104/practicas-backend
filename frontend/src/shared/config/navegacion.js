@@ -132,7 +132,7 @@ export const GRUPOS_NAVEGACION = [
     items: [
       {
         id: 'seguimiento',
-        nombre: 'Tablero',
+        nombre: 'Seguimiento',
         ruta: '/seguimiento',
         icono: 'Activity',
         roles: [

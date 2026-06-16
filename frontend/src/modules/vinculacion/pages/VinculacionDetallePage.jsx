@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Lock, Rocket } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
@@ -9,7 +10,8 @@ import { usePermisos } from '../../../shared/hooks/usePermisos';
 import PanelDocumento from '../components/PanelDocumento';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 import ActivarPracticaModal from '../components/ActivarPracticaModal';
-import { Button, PageHeader } from '@/shared/components/ui';
+import { Button, PageHeader, Card } from '@/shared/components/ui';
+import docentesAsesoresService from '../../docentes/services/docentesAsesoresService';
 
 const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
 
@@ -32,7 +34,7 @@ export default function VinculacionDetallePage() {
 
   const { documentos, convenioId, detalle, isLoading, isError, refetch } =
     useVinculacionDocumentos(asignacionId);
-  const { subirDocumento, confirmarFirma, activarPractica } = useVinculacionMutaciones({
+  const { subirDocumento, confirmarFirma, activarPractica, asignarDocenteAsesor } = useVinculacionMutaciones({
     asignacionId,
     onSuccess: () => {
       setFirmaSeleccionada(null);
@@ -41,6 +43,13 @@ export default function VinculacionDetallePage() {
   });
   const { canCreate } = usePermisos();
   const rol = useAuthStore((state) => state.rol);
+  const isCoordinadorAcademico = rol === 'COORD_PRACTICA' || rol === 'ADMINISTRADOR' || rol === 'ADMIN';
+  
+  const { data: docentes = [] } = useQuery({
+    queryKey: ['docentes-asesores-activos'],
+    queryFn: () => docentesAsesoresService.listarPorPrograma().then((res) => res.filter((d) => d.activo)),
+    enabled: !!isCoordinadorAcademico
+  });
   const tipoFirmanteRol = ROL_A_FIRMANTE[rol] ?? null;
 
   const documentosOrdenados = ORDEN_TIPOS.map(
@@ -116,10 +125,67 @@ export default function VinculacionDetallePage() {
         titulo="Gestión de documentos"
         descripcion={
           estudiante
-            ? `${estudiante.nombre} · ${vacante?.cargo ?? 'Práctica'} · ${vacante?.empresa ?? ''} · Tutor: ${detalle?.tutorEmpresarial || 'Pendiente'}`
+            ? `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
             : `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
         }
       />
+
+      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">Detalles de la Asignación</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Estudiante</p>
+            <p className="text-sm font-semibold text-gray-900">{estudiante?.nombre || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Empresa / Vacante</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {vacante?.empresa || '-'} / {vacante?.cargo || '-'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Tutor Empresarial</p>
+            <p className="text-sm font-semibold text-gray-900">{detalle?.tutorEmpresarial || '-'}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Fechas</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {detalle?.fechaInicio || 'Pendiente'} al {detalle?.fechaFin || 'Pendiente'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Estado de Vinculación</p>
+            <p className="text-sm font-semibold text-gray-900">{detalle?.estadoVinculacion || 'ASIGNADA'}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500 mb-1">Docente Asesor</p>
+            {isCoordinadorAcademico ? (
+              <select
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-1.5 border"
+                value={detalle?.docenteAsesorId || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) asignarDocenteAsesor.mutate({ asignacionId, docenteAsesorId: Number(val) });
+                }}
+                disabled={asignarDocenteAsesor.isPending}
+              >
+                <option value="">Seleccione un docente...</option>
+                {docentes.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nombreCompleto || d.nombre}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm font-semibold text-gray-900">
+                {detalle?.docenteAsesorId
+                  ? docentes.find((d) => d.id === detalle.docenteAsesorId)?.nombre || `Docente #${detalle.docenteAsesorId}`
+                  : 'Pendiente'}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div
         className={[
