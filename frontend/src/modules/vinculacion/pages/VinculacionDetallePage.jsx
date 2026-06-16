@@ -8,6 +8,7 @@ import { useVinculacionMutaciones } from '../hooks/useVinculacionMutaciones';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import PanelDocumento from '../components/PanelDocumento';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
+import ActivarPracticaModal from '../components/ActivarPracticaModal';
 import { Button, PageHeader } from '@/shared/components/ui';
 
 const ORDEN_TIPOS = ['HOJA_VIDA', 'CARTA', 'PROYECTO', 'CONVENIO'];
@@ -27,13 +28,15 @@ export default function VinculacionDetallePage() {
   const { asignacionId } = useParams();
   const navigate = useNavigate();
   const [firmaSeleccionada, setFirmaSeleccionada] = useState(null);
+  const [modalActivarOpen, setModalActivarOpen] = useState(false);
 
   const { documentos, convenioId, detalle, isLoading, isError, refetch } =
     useVinculacionDocumentos(asignacionId);
-  const { subirDocumento, confirmarFirma } = useVinculacionMutaciones({
+  const { subirDocumento, confirmarFirma, activarPractica } = useVinculacionMutaciones({
     asignacionId,
     onSuccess: () => {
       setFirmaSeleccionada(null);
+      setModalActivarOpen(false);
     },
   });
   const { canCreate } = usePermisos();
@@ -113,7 +116,7 @@ export default function VinculacionDetallePage() {
         titulo="Gestión de documentos"
         descripcion={
           estudiante
-            ? `${estudiante.nombre} · ${vacante?.cargo ?? 'Práctica'} · ${vacante?.empresa ?? ''}`
+            ? `${estudiante.nombre} · ${vacante?.cargo ?? 'Práctica'} · ${vacante?.empresa ?? ''} · Tutor: ${detalle?.tutorEmpresarial || 'Pendiente'}`
             : `Asignación #${asignacionId} — Sube los documentos requeridos para activar la práctica.`
         }
       />
@@ -163,7 +166,7 @@ export default function VinculacionDetallePage() {
         <Button
           variant="success"
           disabled={!puedeActivar}
-          onClick={() => toast.success('Práctica activada exitosamente')}
+          onClick={() => setModalActivarOpen(true)}
         >
           <Rocket className="h-4 w-4" aria-hidden="true" />
           Activar práctica
@@ -183,6 +186,16 @@ export default function VinculacionDetallePage() {
           });
         }}
         isPending={confirmarFirma.isPending}
+      />
+
+      <ActivarPracticaModal
+        isOpen={modalActivarOpen}
+        onClose={() => setModalActivarOpen(false)}
+        isPending={activarPractica.isPending}
+        programaNombre={estudiante?.programa}
+        onConfirmar={(payload) => {
+          activarPractica.mutate({ practicaId: detalle.practicaId, payload });
+        }}
       />
     </div>
   );

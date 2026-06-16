@@ -101,5 +101,12 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
     onError: alError,
   });
 
-  return { subirDocumento, confirmarFirma };
+  const activarPractica = useMutation({
+    mutationFn: ({ practicaId, payload }) =>
+      vinculacionService.activarPractica(practicaId, payload),
+    onSuccess: alExito('Práctica activada exitosamente'),
+    onError: alError,
+  });
+
+  return { subirDocumento, confirmarFirma, activarPractica };
 }

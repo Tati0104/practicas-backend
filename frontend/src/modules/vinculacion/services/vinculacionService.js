@@ -44,6 +44,9 @@ const vinculacionService = {
   confirmarFirma: (convenioId, rol) =>
     http.post(`/vinculaciones/convenios/${convenioId}/firmas/${rol}`),
 
+  activarPractica: (practicaId, payload) =>
+    http.post(`/vinculaciones/practicas/${practicaId}/confirmar`, payload),
+
   descargarDocumento: (documentoId) =>
     http.get(`/vinculaciones/documentos/${documentoId}/descargar`, {
       responseType: 'blob',

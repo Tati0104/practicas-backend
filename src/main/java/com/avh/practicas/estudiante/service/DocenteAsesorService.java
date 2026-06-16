@@ -124,6 +124,14 @@ public class DocenteAsesorService {
     }
 
     @Transactional(readOnly = true)
+    public List<DocenteAsesorResponse> listarTodos() {
+        return repository.findAll()
+                .stream()
+                .map(DocenteAsesorResponse::desdeEntidad)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public DocenteAsesorResponse obtener(Long id) {
         return DocenteAsesorResponse.desdeEntidad(obtenerEntidad(id));
     }

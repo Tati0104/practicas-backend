@@ -44,6 +44,13 @@ export const GRUPOS_NAVEGACION = [
         icono: 'Building2',
         roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
       },
+      {
+        id: 'docentes-asesores',
+        nombre: 'Docentes Asesores',
+        ruta: '/docentes-asesores',
+        icono: 'BookOpen',
+        roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
+      },
     ],
   },
   {

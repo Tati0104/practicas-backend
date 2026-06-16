@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 public record ConfirmarVinculacionRequest(
         @NotNull LocalDate fechaInicio,
-        @NotNull LocalDate fechaFin
+        @NotNull LocalDate fechaFin,
+        @NotNull Long docenteAsesorId
 ) {
 }
