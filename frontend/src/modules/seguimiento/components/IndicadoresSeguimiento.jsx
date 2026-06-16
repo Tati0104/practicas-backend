@@ -1,31 +1,15 @@
-import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
-import { AnilloProgreso } from '@/shared/components/indicadores';
+import {
+  ContenedorGrafica,
+  GraficaArea,
+  GraficaDonut,
+  PALETA,
+  TarjetaKpi,
+} from '@/shared/components/indicadores';
 
 const tarjetasConfig = [
-  {
-    key: 'AL_DIA',
-    titulo: 'Al día',
-    icon: CheckCircle2,
-    color: 'emerald',
-    bg: 'bg-emerald-50/60 border-emerald-100',
-    text: 'text-emerald-700',
-  },
-  {
-    key: 'PENDIENTE',
-    titulo: 'Pendiente',
-    icon: Clock,
-    color: 'amber',
-    bg: 'bg-amber-50/60 border-amber-100',
-    text: 'text-amber-700',
-  },
-  {
-    key: 'EN_ALERTA',
-    titulo: 'En alerta',
-    icon: AlertTriangle,
-    color: 'red',
-    bg: 'bg-red-50/60 border-red-100',
-    text: 'text-red-700',
-  },
+  { key: 'AL_DIA', titulo: 'Al día', icono: 'award' },
+  { key: 'PENDIENTE', titulo: 'Pendiente', icono: 'clock' },
+  { key: 'EN_ALERTA', titulo: 'En alerta', icono: 'clipboard' },
 ];
 
 export default function IndicadoresSeguimiento({ practicas = [] }) {
@@ -35,23 +19,54 @@ export default function IndicadoresSeguimiento({ practicas = [] }) {
     EN_ALERTA: practicas.filter((p) => p.estado === 'EN_ALERTA').length,
   };
 
-  const total = practicas.length || 1;
+  const datosArea = [
+    { nombre: 'Al día', total: conteos.AL_DIA, alerta: conteos.EN_ALERTA },
+    { nombre: 'Pendiente', total: conteos.PENDIENTE, alerta: 0 },
+    { nombre: 'En alerta', total: conteos.EN_ALERTA, alerta: conteos.EN_ALERTA },
+  ];
+
+  const datosDonut = [
+    { nombre: 'Al día', valor: conteos.AL_DIA, color: PALETA.emerald },
+    { nombre: 'Pendiente', valor: conteos.PENDIENTE, color: PALETA.accent },
+    { nombre: 'En alerta', valor: conteos.EN_ALERTA, color: PALETA.red },
+  ].filter((d) => d.valor > 0);
 
   return (
-    <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {tarjetasConfig.map(({ key, titulo, icon: Icon, color, bg, text }) => (
-        <div
-          key={key}
-          className={`flex items-center gap-4 rounded-xl border p-4 transition-shadow hover:shadow-sm ${bg}`}
-        >
-          <AnilloProgreso valor={conteos[key]} total={total} color={color} size={68} />
-          <div className="min-w-0 flex-1">
-            <div className={`text-2xl font-extrabold tabular-nums ${text}`}>{conteos[key]}</div>
-            <div className="text-xs font-semibold text-gray-600">{titulo}</div>
-          </div>
-          <Icon className={`h-5 w-5 shrink-0 opacity-40 ${text}`} aria-hidden="true" />
+    <div className="mb-5 space-y-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {tarjetasConfig.map(({ key, titulo, icono }, i) => (
+          <TarjetaKpi
+            key={key}
+            titulo={titulo}
+            valor={conteos[key]}
+            icono={icono}
+            destacada={i === 0}
+          />
+        ))}
+      </div>
+
+      {practicas.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <ContenedorGrafica className="lg:col-span-2" titulo="Estado del seguimiento">
+            <GraficaArea
+              datos={datosArea}
+              series={[
+                { key: 'total', nombre: 'Prácticas', color: PALETA.primary },
+                { key: 'alerta', nombre: 'En alerta', color: PALETA.red },
+              ]}
+              altura={200}
+            />
+          </ContenedorGrafica>
+          <ContenedorGrafica titulo="Distribución">
+            <GraficaDonut
+              datos={datosDonut}
+              etiquetaCentral="Al día"
+              valorCentral={conteos.AL_DIA}
+              altura={180}
+            />
+          </ContenedorGrafica>
         </div>
-      ))}
+      )}
     </div>
   );
 }

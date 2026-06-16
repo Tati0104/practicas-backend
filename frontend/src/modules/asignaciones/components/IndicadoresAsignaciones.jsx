@@ -1,31 +1,15 @@
-import { Link2, Ban, ClipboardList } from 'lucide-react';
-import { AnilloProgreso } from '@/shared/components/indicadores';
+import {
+  ContenedorGrafica,
+  GraficaBarras,
+  GraficaDonut,
+  PALETA,
+  TarjetaKpi,
+} from '@/shared/components/indicadores';
 
 const tarjetasConfig = [
-  {
-    key: 'activas',
-    titulo: 'Asignaciones activas',
-    icon: ClipboardList,
-    color: 'primary',
-    bg: 'bg-blue-50/60 border-blue-100',
-    text: 'text-blue-700',
-  },
-  {
-    key: 'vinculacion',
-    titulo: 'En vinculación',
-    icon: Link2,
-    color: 'amber',
-    bg: 'bg-amber-50/60 border-amber-100',
-    text: 'text-amber-700',
-  },
-  {
-    key: 'canceladas',
-    titulo: 'Canceladas este mes',
-    icon: Ban,
-    color: 'red',
-    bg: 'bg-red-50/60 border-red-100',
-    text: 'text-red-700',
-  },
+  { key: 'activas', titulo: 'Asignaciones activas', icono: 'clipboard' },
+  { key: 'vinculacion', titulo: 'En vinculación', icono: 'link' },
+  { key: 'canceladas', titulo: 'Canceladas este mes', icono: 'clock' },
 ];
 
 export default function IndicadoresAsignaciones({ asignaciones = [] }) {
@@ -43,23 +27,45 @@ export default function IndicadoresAsignaciones({ asignaciones = [] }) {
     }).length,
   };
 
-  const total = asignaciones.length || 1;
+  const datosBarras = tarjetasConfig.map(({ key, titulo }) => ({
+    nombre: titulo.split(' ').slice(-1)[0],
+    cantidad: conteos[key],
+  }));
+
+  const datosDonut = [
+    { nombre: 'Activas', valor: conteos.activas, color: PALETA.primary },
+    { nombre: 'En vinculación', valor: conteos.vinculacion, color: PALETA.accent },
+    { nombre: 'Canceladas', valor: conteos.canceladas, color: PALETA.red },
+  ].filter((d) => d.valor > 0);
 
   return (
-    <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {tarjetasConfig.map(({ key, titulo, icon: Icon, color, bg, text }) => (
-        <div
-          key={key}
-          className={`flex items-center gap-4 rounded-xl border p-4 transition-shadow hover:shadow-sm ${bg}`}
-        >
-          <AnilloProgreso valor={conteos[key]} total={total} color={color} size={68} />
-          <div className="min-w-0 flex-1">
-            <div className={`text-2xl font-extrabold tabular-nums ${text}`}>{conteos[key]}</div>
-            <div className="text-xs font-semibold text-gray-600">{titulo}</div>
-          </div>
-          <Icon className={`h-5 w-5 shrink-0 opacity-40 ${text}`} aria-hidden="true" />
+    <div className="mb-5 space-y-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {tarjetasConfig.map(({ key, titulo, icono }, i) => (
+          <TarjetaKpi
+            key={key}
+            titulo={titulo}
+            valor={conteos[key]}
+            icono={icono}
+            destacada={i === 0}
+          />
+        ))}
+      </div>
+
+      {asignaciones.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <ContenedorGrafica className="lg:col-span-2" titulo="Distribución de asignaciones">
+            <GraficaBarras
+              datos={datosBarras}
+              series={[{ key: 'cantidad', nombre: 'Cantidad', color: PALETA.primary }]}
+              altura={200}
+            />
+          </ContenedorGrafica>
+          <ContenedorGrafica titulo="Proporción">
+            <GraficaDonut datos={datosDonut} altura={180} />
+          </ContenedorGrafica>
         </div>
-      ))}
+      )}
     </div>
   );
 }

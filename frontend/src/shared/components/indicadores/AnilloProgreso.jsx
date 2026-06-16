@@ -1,9 +1,9 @@
 const COLORES = {
-  primary: '#2563eb',
+  primary: '#19426B',
   emerald: '#059669',
-  amber: '#d97706',
-  violet: '#7c3aed',
-  red: '#dc2626',
+  amber: '#D97706',
+  violet: '#7C3AED',
+  red: '#DC2626',
 };
 
 export default function AnilloProgreso({
