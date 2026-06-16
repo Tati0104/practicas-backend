@@ -33,16 +33,24 @@ export default function RecuperarForm() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-600">
           <MailCheck className="h-6 w-6" aria-hidden="true" />
         </div>
-        <p className="text-sm text-gray-600">
-          Si el correo está registrado, recibirás instrucciones para recuperar tu contraseña.
+        <p className="text-sm text-gray-600 mb-2">
+          Si el correo está registrado, recibirás un token para recuperar tu contraseña.
         </p>
         <Link
-          to="/login"
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          to="/restablecer-password"
+          className="mb-4 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Volver al inicio de sesión
+          Ingresar token de recuperación
         </Link>
+        <div className="pt-2">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio de sesión
+          </Link>
+        </div>
       </div>
     );
   }
@@ -50,7 +58,7 @@ export default function RecuperarForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <p className="text-sm text-gray-600">
-        Ingresa tu correo institucional y te enviaremos un enlace para restablecer tu contraseña.
+        Ingresa tu correo institucional y te enviaremos un token para restablecer tu contraseña.
       </p>
 
       <div>
@@ -78,7 +86,7 @@ export default function RecuperarForm() {
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-gray-400"
       >
         {cargando && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-        {cargando ? 'Enviando...' : 'Enviar enlace'}
+        {cargando ? 'Enviando...' : 'Enviar token'}
       </button>
 
       <div className="text-center">
