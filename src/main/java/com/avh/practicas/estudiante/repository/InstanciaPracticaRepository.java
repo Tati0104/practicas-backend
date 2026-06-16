@@ -21,6 +21,12 @@ public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPrac
             WHERE ip.id = :id
             """)
     Optional<InstanciaPractica> findByIdWithExpedienteAndEstudiante(@Param("id") Long id);
+
+    Optional<InstanciaPractica> findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
+            Long estudianteId,
+            EstadoPractica estado
+    );
+
     boolean existsByExpedienteEstudianteProgramaIdAndEstadoIn(Long programaId, List<EstadoPractica> estados);
     boolean existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(Long programaId, Integer numeroPractica, List<EstadoPractica> estados);
 

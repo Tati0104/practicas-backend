@@ -2,6 +2,7 @@ package com.avh.practicas.vinculacion.controller;
 
 import com.avh.practicas.asignacion.entity.EstadoAsignacion;
 import com.avh.practicas.shared.api.ApiResponse;
+import com.avh.practicas.shared.pattern.proxy.ScopeGuard;
 import com.avh.practicas.vinculacion.dto.ConfirmarVinculacionRequest;
 import com.avh.practicas.vinculacion.dto.DocumentoCargadoResponse;
 import com.avh.practicas.vinculacion.dto.DocumentosAsignacionResponse;
@@ -130,6 +131,7 @@ public class VinculacionController {
         )));
     }
 
+    @ScopeGuard("DOCENTE_ASESOR_ASIGNAR")
     @PatchMapping("/vinculaciones/asignaciones/{asignacionId}/docente-asesor")
     public ResponseEntity<ApiResponse<Void>> asignarDocenteAsesor(
             @PathVariable Long asignacionId,

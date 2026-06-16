@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import BadgeAsignacion from './BadgeAsignacion';
 import { Button, Card } from '@/shared/components/ui';
 
-export default function AsignacionCard({ asignacion, onCancelar, canCancelar }) {
+export default function AsignacionCard({
+  asignacion,
+  onCancelar,
+  canCancelar,
+  onAsignarDocente,
+  canAsignarDocente,
+}) {
   const navigate = useNavigate();
 
   return (
@@ -53,6 +59,11 @@ export default function AsignacionCard({ asignacion, onCancelar, canCancelar }) 
               Cancelar
             </Button>
           )}
+        {canAsignarDocente && asignacion.estado !== 'CANCELADA' && (
+          <Button variant="info" size="sm" className="flex-1" onClick={() => onAsignarDocente(asignacion)}>
+            Asignar Docente
+          </Button>
+        )}
       </div>
     </Card>
   );

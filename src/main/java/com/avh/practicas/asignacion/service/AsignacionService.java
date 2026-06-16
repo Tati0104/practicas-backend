@@ -13,11 +13,13 @@ import com.avh.practicas.asignacion.repository.HistorialAsignacionRepository;
 import com.avh.practicas.asignacion.state.AsignacionContext;
 import com.avh.practicas.bitacora.entity.TipoAccion;
 import com.avh.practicas.bitacora.service.BitacoraService;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
@@ -71,6 +73,8 @@ public class AsignacionService {
     private final AsignacionResponseMapper asignacionResponseMapper;
     private final BitacoraService bitacoraService;
     private final NotificadorEventos notificadorEventos;
+    private final InstanciaPracticaRepository instanciaPracticaRepository;
+    private final TutorEmpresarialRepository tutorEmpresarialRepository;
 
     @Transactional
     public AsignacionResponse asignar(AsignacionRequest request) {
@@ -98,6 +102,9 @@ public class AsignacionService {
                 .build();
 
         Asignacion guardada = asignacionRepository.save(asignacion);
+        // Fix de raiz: la InstanciaPractica pendiente del estudiante hereda empresa/tutor
+        // de la vacante asignada, para que la vinculacion no dependa de que antes se suba un documento.
+        vincularInstanciaPractica(guardada, vacante);
         // Trazabilidad PE-31: cada cambio queda en historial para auditoria y seguimiento.
         registrarHistorial(guardada, null, EstadoAsignacion.ASIGNADA, request.coordinadorId(), "Asignación/postulación creada por Coordinación de Prácticas");
         // Bitacora: deja evidencia de la accion realizada sobre el recurso.
@@ -235,6 +242,29 @@ public class AsignacionService {
         if (tienePracticaActiva(estudiante)) {
             throw new NegocioException("El estudiante ya tiene una práctica activa en curso.");
         }
+    }
+
+    /**
+     * Propaga empresa_id/tutor_id desde la vacante hacia la InstanciaPractica pendiente
+     * del estudiante y enlaza la asignacion con ella. Antes este enlace solo ocurria de
+     * forma perezosa al cargar el primer documento de vinculacion, lo que dejaba la
+     * practica sin empresa/tutor configurados si la vinculacion avanzaba sin documentos.
+     */
+    private void vincularInstanciaPractica(Asignacion asignacion, Vacante vacante) {
+        InstanciaPractica practica = instanciaPracticaRepository
+                .findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
+                        asignacion.getEstudianteId(), EstadoPractica.ASIGNADA_PENDIENTE_INICIO)
+                .orElseThrow(() -> new NegocioException(
+                        "El estudiante no tiene una práctica pendiente de inicio para asignar."));
+
+        practica.setEmpresaId(vacante.getEmpresaId());
+        tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
+                .findFirst()
+                .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
+        instanciaPracticaRepository.save(practica);
+
+        asignacion.setInstanciaPracticaId(practica.getId());
+        asignacionRepository.save(asignacion);
     }
 
     private boolean tieneAsignacionActiva(Long estudianteId) {

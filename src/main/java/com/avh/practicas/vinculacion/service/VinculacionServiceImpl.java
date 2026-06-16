@@ -246,6 +246,14 @@ public class VinculacionServiceImpl implements VinculacionService {
             throw new NegocioException("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
 
+        // Red de seguridad: reintenta la propagacion de empresa/tutor desde la vacante
+        // por si la practica quedo sin esos datos (ej. asignaciones creadas antes de este fix,
+        // o un tutor activado despues de la carga de documentos).
+        Long vacanteId = resolverVacanteId(convenio);
+        if (vacanteId != null) {
+            enriquecerPracticaDesdeVacante(practicaId, vacanteId);
+        }
+
         InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
         practica.setDocenteAsesorId(request.docenteAsesorId());
@@ -434,6 +442,13 @@ public class VinculacionServiceImpl implements VinculacionService {
                     .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
         }
         practicaRepository.save(practica);
+    }
+
+    private Long resolverVacanteId(Convenio convenio) {
+        if (convenio.getAsignacionId() == null) {
+            return null;
+        }
+        return obtenerAsignacion(convenio.getAsignacionId()).getVacanteId();
     }
 
     private Long resolverPracticaId(Asignacion asignacion) {
