@@ -41,7 +41,7 @@ export default function VinculacionDetallePage() {
       setModalActivarOpen(false);
     },
   });
-  const { canCreate } = usePermisos();
+  const { canUploadDocumentos } = usePermisos();
   const rol = useAuthStore((state) => state.rol);
   const esTutor = rol === 'TUTOR_EMPRESARIAL';
   const isCoordinadorAcademico = rol === 'COORD_PRACTICA' || rol === 'ADMIN';
@@ -109,7 +109,7 @@ export default function VinculacionDetallePage() {
               onDescargar={() => {}}
               onFirmar={() => {}}
               isPendingSubir={subirDocumento.isPending}
-              puedeSubir={canCreate}
+              puedeSubir={canUploadDocumentos}
             />
           ))}
         </div>
@@ -220,7 +220,7 @@ export default function VinculacionDetallePage() {
             onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento, tipoFirmante })}
             isPendingSubir={subirDocumento.isPending}
             isPendingFirma={confirmarFirma.isPending}
-            puedeSubir={canCreate}
+            puedeSubir={canUploadDocumentos}
             tipoFirmanteRol={tipoFirmanteRol}
           />
         ))}

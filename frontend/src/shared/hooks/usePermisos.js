@@ -7,6 +7,7 @@ const PERMISOS_COMPLETOS = {
   canReject: true,
   canPause: true,
   canClose: true,
+  canUploadDocumentos: true,
 };
 
 const PERMISOS_POR_ROL = {
@@ -17,6 +18,7 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: false,
   },
   ESTUDIANTE: {
     canCreate: false,
@@ -25,6 +27,7 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: true,
   },
   DOCENTE_ASESOR: {
     canCreate: false,
@@ -33,6 +36,7 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: false,
   },
 };
 

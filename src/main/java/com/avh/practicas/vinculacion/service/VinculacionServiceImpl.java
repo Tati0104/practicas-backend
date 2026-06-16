@@ -136,6 +136,7 @@ public class VinculacionServiceImpl implements VinculacionService {
     @Transactional
     public DocumentoCargadoResponse cargarDocumento(Long asignacionId, CategoriaDocumento categoria, MultipartFile archivo) {
         validarNoEsTutorSubiendo();
+        validarAccesoAsignacion(obtenerAsignacion(asignacionId));
         DocumentoVinculacionSupport.AlmacenCategoria almacen = DocumentoVinculacionSupport.almacenPara(categoria);
         DocumentoCargadoResponse respuesta = registrarDocumento(
                 asignacionId, archivo, categoria, almacen.toPort());
@@ -226,11 +227,6 @@ public class VinculacionServiceImpl implements VinculacionService {
                 throw new NegocioException("El convenio no tiene práctica asociada para completar la vinculación.");
             }
             validarPracticaPendienteDeVinculacion(practicaId);
-            mediadorVinculacion.confirmarVinculacion(
-                    practicaId,
-                    convenio.getFechaInicio(),
-                    convenio.getFechaFin()
-            );
             marcarAsignacionVinculada(convenio.getAsignacionId());
         }
     }
@@ -506,6 +502,14 @@ public class VinculacionServiceImpl implements VinculacionService {
         return tutorRepository.findByCorreo(usuario.getCorreo());
     }
 
+    private Optional<Estudiante> resolverEstudianteAutenticado() {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() != Rol.ESTUDIANTE) {
+            return Optional.empty();
+        }
+        return estudianteRepository.findByCorreo(usuario.getCorreo());
+    }
+
     private Usuario obtenerUsuarioActual() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
@@ -527,41 +531,54 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (tutor.isPresent() && rol != RolFirmaConvenio.TUTOR_EMPRESARIAL) {
             throw new AccesoNoAutorizadoException("Como tutor empresarial solo puede registrar su propia firma.");
         }
+
+        Optional<Estudiante> estudiante = resolverEstudianteAutenticado();
+        if (estudiante.isPresent() && rol != RolFirmaConvenio.ESTUDIANTE) {
+            throw new AccesoNoAutorizadoException("Como estudiante solo puede registrar su propia firma.");
+        }
     }
 
     private void validarAccesoAsignacion(Asignacion asignacion) {
         Optional<TutorEmpresarial> tutor = resolverTutorAutenticado();
-        if (tutor.isEmpty()) {
+        if (tutor.isPresent()) {
+            if (!tieneAccesoTutorAsignacion(asignacion, tutor.get().getId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a la vinculación de este estudiante.");
+            }
             return;
         }
 
-        if (!tieneAccesoTutorAsignacion(asignacion, tutor.get().getId())) {
+        Optional<Estudiante> estudiante = resolverEstudianteAutenticado();
+        if (estudiante.isPresent() && !estudiante.get().getId().equals(asignacion.getEstudianteId())) {
             throw new AccesoNoAutorizadoException("No tiene acceso a la vinculación de este estudiante.");
         }
     }
 
     private void validarAccesoConvenio(Convenio convenio) {
         Optional<TutorEmpresarial> tutor = resolverTutorAutenticado();
-        if (tutor.isEmpty()) {
-            return;
-        }
+        if (tutor.isPresent()) {
+            Long tutorId = tutor.get().getId();
+            if (convenio.getInstanciaPracticaId() != null) {
+                boolean esSuPractica = practicaRepository.findById(convenio.getInstanciaPracticaId())
+                        .map(practica -> tutorId.equals(practica.getTutorId()))
+                        .orElse(false);
+                if (!esSuPractica) {
+                    throw new AccesoNoAutorizadoException("No puede firmar el convenio de este estudiante.");
+                }
+                return;
+            }
 
-        Long tutorId = tutor.get().getId();
-        if (convenio.getInstanciaPracticaId() != null) {
-            boolean esSuPractica = practicaRepository.findById(convenio.getInstanciaPracticaId())
-                    .map(practica -> tutorId.equals(practica.getTutorId()))
-                    .orElse(false);
-            if (!esSuPractica) {
-                throw new AccesoNoAutorizadoException("No puede firmar el convenio de este estudiante.");
+            if (convenio.getAsignacionId() != null) {
+                Asignacion asignacion = obtenerAsignacion(convenio.getAsignacionId());
+                if (!tieneAccesoTutorAsignacion(asignacion, tutorId)) {
+                    throw new AccesoNoAutorizadoException("No puede firmar el convenio de este estudiante.");
+                }
             }
             return;
         }
 
-        if (convenio.getAsignacionId() != null) {
-            Asignacion asignacion = obtenerAsignacion(convenio.getAsignacionId());
-            if (!tieneAccesoTutorAsignacion(asignacion, tutorId)) {
-                throw new AccesoNoAutorizadoException("No puede firmar el convenio de este estudiante.");
-            }
+        Optional<Estudiante> estudiante = resolverEstudianteAutenticado();
+        if (estudiante.isPresent() && !tieneAccesoEstudianteConvenio(convenio, estudiante.get().getId())) {
+            throw new AccesoNoAutorizadoException("No puede firmar el convenio de este estudiante.");
         }
     }
 
@@ -572,6 +589,18 @@ public class VinculacionServiceImpl implements VinculacionService {
                     .orElse(false);
         }
         return practicaRepository.existsByExpedienteEstudianteIdAndTutorId(asignacion.getEstudianteId(), tutorId);
+    }
+
+    private boolean tieneAccesoEstudianteConvenio(Convenio convenio, Long estudianteId) {
+        if (convenio.getAsignacionId() != null) {
+            return obtenerAsignacion(convenio.getAsignacionId()).getEstudianteId().equals(estudianteId);
+        }
+        if (convenio.getInstanciaPracticaId() != null) {
+            return practicaRepository.findByIdConExpediente(convenio.getInstanciaPracticaId())
+                    .map(practica -> estudianteId.equals(practica.getExpediente().getEstudiante().getId()))
+                    .orElse(false);
+        }
+        return false;
     }
 
     @Override
