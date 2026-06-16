@@ -1,25 +1,29 @@
 import { Link2, Ban, ClipboardList } from 'lucide-react';
+import { AnilloProgreso } from '@/shared/components/indicadores';
 
 const tarjetasConfig = [
   {
     key: 'activas',
     titulo: 'Asignaciones activas',
     icon: ClipboardList,
-    bg: 'bg-blue-50 border-blue-200',
+    color: 'primary',
+    bg: 'bg-blue-50/60 border-blue-100',
     text: 'text-blue-700',
   },
   {
     key: 'vinculacion',
     titulo: 'En vinculación',
     icon: Link2,
-    bg: 'bg-amber-50 border-amber-200',
+    color: 'amber',
+    bg: 'bg-amber-50/60 border-amber-100',
     text: 'text-amber-700',
   },
   {
     key: 'canceladas',
     titulo: 'Canceladas este mes',
     icon: Ban,
-    bg: 'bg-red-50 border-red-200',
+    color: 'red',
+    bg: 'bg-red-50/60 border-red-100',
     text: 'text-red-700',
   },
 ];
@@ -39,13 +43,21 @@ export default function IndicadoresAsignaciones({ asignaciones = [] }) {
     }).length,
   };
 
+  const total = asignaciones.length || 1;
+
   return (
     <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {tarjetasConfig.map(({ key, titulo, icon: Icon, bg, text }) => (
-        <div key={key} className={`rounded-xl border p-4 ${bg}`}>
-          <Icon className={`mb-1 h-5 w-5 ${text}`} aria-hidden="true" />
-          <div className={`text-2xl font-extrabold ${text}`}>{conteos[key]}</div>
-          <div className="text-xs font-semibold text-gray-600">{titulo}</div>
+      {tarjetasConfig.map(({ key, titulo, icon: Icon, color, bg, text }) => (
+        <div
+          key={key}
+          className={`flex items-center gap-4 rounded-xl border p-4 transition-shadow hover:shadow-sm ${bg}`}
+        >
+          <AnilloProgreso valor={conteos[key]} total={total} color={color} size={68} />
+          <div className="min-w-0 flex-1">
+            <div className={`text-2xl font-extrabold tabular-nums ${text}`}>{conteos[key]}</div>
+            <div className="text-xs font-semibold text-gray-600">{titulo}</div>
+          </div>
+          <Icon className={`h-5 w-5 shrink-0 opacity-40 ${text}`} aria-hidden="true" />
         </div>
       ))}
     </div>

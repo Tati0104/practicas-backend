@@ -1,4 +1,5 @@
 import TarjetaResumen from '@/modules/dashboard/components/TarjetaResumen';
+import { BarraDistribucion } from '@/shared/components/indicadores';
 import { LoadingState, PageHeader } from '@/shared/components/ui';
 import { useReporteResumen } from '../hooks/useReportes';
 
@@ -15,6 +16,18 @@ const INDICADORES = [
 export default function ReportesPage() {
   const { data, isLoading, isError } = useReporteResumen();
 
+  const maxValor = INDICADORES.reduce(
+    (max, { key }) => Math.max(max, Number(data?.[key]) || 0),
+    0
+  );
+
+  const itemsDistribucion = INDICADORES.map(({ key, titulo, color }) => ({
+    key,
+    titulo,
+    color,
+    valor: Number(data?.[key]) || 0,
+  }));
+
   return (
     <div>
       <PageHeader
@@ -29,17 +42,25 @@ export default function ReportesPage() {
       )}
 
       {!isLoading && !isError && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {INDICADORES.map(({ key, titulo, icono, color }) => (
-            <TarjetaResumen
-              key={key}
-              titulo={titulo}
-              valor={data?.[key]}
-              icono={icono}
-              color={color}
-            />
-          ))}
-        </div>
+        <>
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {INDICADORES.map(({ key, titulo, icono, color }) => (
+              <TarjetaResumen
+                key={key}
+                titulo={titulo}
+                valor={data?.[key]}
+                total={maxValor || undefined}
+                icono={icono}
+                color={color}
+              />
+            ))}
+          </div>
+
+          <BarraDistribucion
+            titulo="Distribución general de indicadores"
+            items={itemsDistribucion}
+          />
+        </>
       )}
     </div>
   );

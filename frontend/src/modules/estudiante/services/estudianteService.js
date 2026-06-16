@@ -2,8 +2,14 @@ import http from '../../../shared/services/http';
 import { paramsListado } from '../../../shared/utils/paginacion';
 
 const estudianteService = {
-  listar: (filtros = {}) =>
-    http.get('/estudiantes', { params: paramsListado(filtros) }),
+  listar: (filtros = {}) => {
+    const { estadoAptitud, ...rest } = filtros;
+    const params = paramsListado({
+      ...rest,
+      aptitud: estadoAptitud ?? rest.aptitud,
+    });
+    return http.get('/estudiantes', { params });
+  },
   obtenerPorId:    (id)       => http.get(`/estudiantes/${id}`),
   registrar:       (dto)      => http.post('/estudiantes', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editar:          (id, dto)  => http.put(`/estudiantes/${id}`, dto),

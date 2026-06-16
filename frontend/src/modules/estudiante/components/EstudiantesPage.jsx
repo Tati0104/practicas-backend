@@ -30,6 +30,7 @@ export default function EstudiantesPage() {
   const {
     estudiantes,
     isLoading,
+    isError,
     filtros,
     setFiltros,
     totalPaginas,
@@ -130,6 +131,12 @@ export default function EstudiantesPage() {
       />
 
       <FiltrosEstudiante filtros={filtros} onChange={setFiltros} />
+      {isError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          No se pudieron cargar los estudiantes. Verifica tu sesión y que tu usuario tenga facultad
+          asignada.
+        </div>
+      )}
       <TablaBase columnas={columnas} datos={estudiantes} cargando={isLoading} />
       <Paginacion pagina={filtros.page} totalPaginas={totalPaginas} onCambiarPagina={irAPagina} />
 

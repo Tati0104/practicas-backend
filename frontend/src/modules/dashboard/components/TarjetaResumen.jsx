@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Card } from '@/shared/components/ui';
+import { AnilloProgreso } from '@/shared/components/indicadores';
 
 const ICONOS = {
   users: Users,
@@ -29,18 +30,35 @@ const COLORES = {
   red: { border: 'border-t-red-600', icon: 'bg-red-50 text-red-600', text: 'text-red-600' },
 };
 
-export default function TarjetaResumen({ titulo, valor, icono = 'clipboard', color = 'primary' }) {
+export default function TarjetaResumen({
+  titulo,
+  valor,
+  total,
+  icono = 'clipboard',
+  color = 'primary',
+}) {
   const Icon = ICONOS[icono] ?? ClipboardList;
   const palette = COLORES[color] ?? COLORES.primary;
+  const numero = Number(valor) || 0;
+  const referencia = total ?? numero;
 
   return (
-    <Card padding="p-5" className={`border-t-4 ${palette.border}`}>
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-gray-500">{titulo}</p>
-          <p className={`mt-1 text-2xl font-bold ${palette.text}`}>{valor ?? '—'}</p>
+    <Card
+      padding="p-5"
+      className={`border-t-4 ${palette.border} transition-shadow hover:shadow-md`}
+    >
+      <div className="flex items-center gap-4">
+        <AnilloProgreso valor={numero} total={referencia} color={color} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm text-gray-500">{titulo}</p>
+          <p className={`mt-0.5 text-2xl font-bold tabular-nums ${palette.text}`}>
+            {valor ?? '—'}
+          </p>
+          {total > 0 && total !== numero && (
+            <p className="mt-0.5 text-xs text-gray-400">de {total} total</p>
+          )}
         </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${palette.icon}`}>
+        <div className={`hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:flex ${palette.icon}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </div>
       </div>

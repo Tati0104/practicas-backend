@@ -39,6 +39,9 @@ export default function DashboardPage() {
   const { usuario } = useAuth();
   const { data, isLoading, isError } = useResumen();
 
+  const tarjetas = tarjetasPorRol(usuario?.rol, data);
+  const maxValor = tarjetas.reduce((max, t) => Math.max(max, Number(t.valor) || 0), 0);
+
   return (
     <div>
       <PageHeader titulo="Panel de inicio" />
@@ -48,8 +51,8 @@ export default function DashboardPage() {
 
       {!isLoading && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {tarjetasPorRol(usuario?.rol, data).map((t) => (
-            <TarjetaResumen key={t.titulo} {...t} />
+          {tarjetas.map((t) => (
+            <TarjetaResumen key={t.titulo} {...t} total={maxValor || undefined} />
           ))}
         </div>
       )}
