@@ -6,6 +6,7 @@ import ImportarExcel from './ImportarExcel';
 import TablaBase from '../../../shared/components/TablaBase';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Badge, Button, PageHeader } from '@/shared/components/ui';
+import { Check, X } from 'lucide-react';
 
 const variantAptitud = {
   APTO: 'success',
@@ -68,7 +69,7 @@ export default function EstudiantesPage() {
     { key: 'semestre', titulo: 'Semestre' },
     {
       key: 'estadoAptitud',
-      titulo: 'Aptitud',
+      titulo: 'Apto',
       render: (e) => (
         <Badge variant={variantAptitud[e.estadoAptitud] ?? 'warning'}>
           {e.estadoAptitud}
@@ -98,17 +99,18 @@ export default function EstudiantesPage() {
             Editar
           </Button>
           {e.estadoAptitud !== 'APTO' && (
-            <Button variant="success" size="sm" onClick={() => marcarApto.mutate(e.id)}>
-              Apto
+            <Button variant="success" size="sm" title="Marcar como Apto" onClick={() => marcarApto.mutate(e.id)}>
+              <Check size={16} />
             </Button>
           )}
           {e.estadoAptitud !== 'NO_APTO' && (
             <Button
               variant="danger"
               size="sm"
+              title="Marcar como No Apto"
               onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}
             >
-              No apto
+              <X size={16} />
             </Button>
           )}
         </div>

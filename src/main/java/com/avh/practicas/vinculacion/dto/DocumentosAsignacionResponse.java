@@ -1,5 +1,7 @@
 package com.avh.practicas.vinculacion.dto;
 
+import com.avh.practicas.asignacion.entity.EstadoAsignacion;
+import java.time.LocalDate;
 import java.util.List;
 
 public record DocumentosAsignacionResponse(
@@ -9,6 +11,10 @@ public record DocumentosAsignacionResponse(
         EstudianteVinculacionDto estudiante,
         VacanteVinculacionDto vacante,
         String tutorEmpresarial,
+        Long docenteAsesorId,
+        LocalDate fechaInicio,
+        LocalDate fechaFin,
+        EstadoAsignacion estadoVinculacion,
         List<DocumentoVinculacionDto> documentos
 ) {
 }

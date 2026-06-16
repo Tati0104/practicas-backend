@@ -34,6 +34,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -168,6 +170,16 @@ public class AsignacionService {
                                            Long coordinadorId,
                                            EstadoAsignacion estado,
                                            Pageable pageable) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"))) {
+            String correo = auth.getName();
+            Estudiante estudianteLogueado = estudianteRepository.findByCorreo(correo).orElse(null);
+            if (estudianteLogueado != null) {
+                estudianteId = estudianteLogueado.getId();
+            }
+        }
+
         return asignacionRepository.findAll(conFiltros(estudianteId, vacanteId, coordinadorId, estado), pageable)
                 .map(asignacionResponseMapper::toResponse);
     }
@@ -280,16 +292,29 @@ public class AsignacionService {
     }
 
     private void notificar(TipoEventoSistema tipo, Asignacion asignacion, Long usuarioId) {
+        Estudiante est = estudianteRepository.findById(asignacion.getEstudianteId()).orElse(null);
+        Vacante vac = vacanteRepository.findById(asignacion.getVacanteId()).orElse(null);
+
+        Map<String, Object> datos = new java.util.HashMap<>();
+        datos.put("estudianteId", asignacion.getEstudianteId());
+        datos.put("vacanteId", asignacion.getVacanteId());
+        datos.put("estado", asignacion.getEstado().name());
+        
+        if (est != null) {
+            datos.put("correo_estudiante", est.getCorreo());
+            datos.put("nombre_estudiante", est.getNombre());
+        }
+        if (vac != null) {
+            String emp = vacanteResponseMapper.toResponse(vac).empresaNombre();
+            datos.put("empresa", emp != null ? emp : "la empresa");
+        }
+
         notificadorEventos.notificar(EventoSistema.crear(
                 tipo,
                 usuarioId,
                 "ASIGNACIONES",
                 asignacion.getId(),
-                Map.of(
-                        "estudianteId", asignacion.getEstudianteId(),
-                        "vacanteId", asignacion.getVacanteId(),
-                        "estado", asignacion.getEstado().name()
-                )
+                datos
         ));
     }
 

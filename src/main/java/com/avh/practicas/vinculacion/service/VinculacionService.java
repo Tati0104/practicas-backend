@@ -42,4 +42,5 @@ public interface VinculacionService {
     DocumentosPorCategoriaResponse listarDocumentosPorPractica(Long practicaId);
 
     com.avh.practicas.estudiante.entity.Estudiante obtenerEstudiantePorPractica(Long practicaId);
+    void asignarDocenteAsesor(Long asignacionId, Long docenteAsesorId);
 }

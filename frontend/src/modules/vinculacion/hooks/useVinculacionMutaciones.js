@@ -102,11 +102,17 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
   });
 
   const activarPractica = useMutation({
-    mutationFn: ({ practicaId, payload }) =>
-      vinculacionService.activarPractica(practicaId, payload),
-    onSuccess: alExito('Práctica activada exitosamente'),
+    mutationFn: ({ practicaId, payload }) => vinculacionService.activarPractica(practicaId, payload),
+    onSuccess: alExito('Práctica activada y vinculada exitosamente'),
     onError: alError,
   });
 
-  return { subirDocumento, confirmarFirma, activarPractica };
+  const asignarDocenteAsesor = useMutation({
+    mutationFn: ({ asignacionId, docenteAsesorId }) =>
+      vinculacionService.asignarDocenteAsesor(asignacionId, docenteAsesorId),
+    onSuccess: alExito('Docente Asesor asignado correctamente'),
+    onError: alError,
+  });
+
+  return { subirDocumento, confirmarFirma, activarPractica, asignarDocenteAsesor };
 }

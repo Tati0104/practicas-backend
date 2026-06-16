@@ -23,7 +23,7 @@ export default function FiltrosEstudiante({ filtros, onChange }) {
       },
       {
         key: 'estadoAptitud',
-        label: 'Aptitud',
+        label: 'Apto',
         type: 'select',
         opciones: APTITUDES,
       },

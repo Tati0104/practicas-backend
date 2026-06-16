@@ -17,29 +17,10 @@ export default function RestablecerForm({ token }) {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(resetearSchema),
-    defaultValues: { nuevaPassword: '', confirmarPassword: '' },
+    defaultValues: { token: token || '', nuevaPassword: '', confirmarPassword: '' },
   });
 
-  if (!token) {
-    return (
-      <div className="space-y-4 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-          <AlertCircle className="h-6 w-6" aria-hidden="true" />
-        </div>
-        <p className="text-sm text-red-600" role="alert">
-          El enlace no es válido. Solicita uno nuevo.
-        </p>
-        <Link
-          to="/recuperar-password"
-          className="text-sm font-medium text-primary hover:underline"
-        >
-          Solicitar nuevo enlace
-        </Link>
-      </div>
-    );
-  }
-
-  const onSubmit = ({ nuevaPassword }) => {
+  const onSubmit = ({ token, nuevaPassword }) => {
     resetear.mutate({ token, nuevaPassword });
   };
 
@@ -48,8 +29,26 @@ export default function RestablecerForm({ token }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <p className="text-sm text-gray-600">
-        Elige una contraseña segura con al menos 8 caracteres, una mayúscula y un número.
+        Ingresa el token que recibiste en tu correo y elige una nueva contraseña segura.
       </p>
+
+      <div>
+        <label htmlFor="token" className="mb-1 block text-sm font-medium text-gray-700">
+          Token de recuperación
+        </label>
+        <input
+          id="token"
+          type="text"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+          placeholder="Ej: a8e1-4bcd..."
+          {...register('token')}
+        />
+        {errors.token && (
+          <p className="mt-1 text-sm text-red-600" role="alert">
+            {errors.token.message}
+          </p>
+        )}
+      </div>
 
       <div>
         <label htmlFor="nueva-password" className="mb-1 block text-sm font-medium text-gray-700">
