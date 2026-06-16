@@ -20,6 +20,7 @@ import com.avh.practicas.seguimiento.repository.AlertaSistemaRepository;
 import com.avh.practicas.seguimiento.repository.AvanceTutorRepository;
 import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
 import com.avh.practicas.seguimiento.repository.ObservacionDocenteRepository;
+import com.avh.practicas.notificacion.service.NotificacionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     private final AvanceTutorRepository avanceTutorRepository;
     private final BitacoraEstudianteRepository bitacoraEstudianteRepository;
     private final AlertaSistemaRepository alertaSistemaRepository;
+    private final NotificacionService notificacionService;
     private final JdbcTemplate jdbcTemplate;
 
     /**
@@ -490,6 +492,6 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Override
     @Transactional(readOnly = true)
     public List<AlertaSistema> obtenerAlertasActivas() {
-        return alertaSistemaRepository.findByLeidaFalseOrderByFechaDesc();
+        return notificacionService.listarParaUsuarioActual(null);
     }
 }

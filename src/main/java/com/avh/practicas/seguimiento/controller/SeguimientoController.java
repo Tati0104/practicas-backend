@@ -146,7 +146,6 @@ public class SeguimientoController {
      * Obtiene las alertas de sistema activas.
      */
     @GetMapping("/alertas")
-    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'DOCENTE_ASESOR', 'ADMIN')")
     public List<AlertaSistema> obtenerAlertas() {
         return service.obtenerAlertasActivas();
     }

@@ -59,4 +59,8 @@ public class AlertaSistema {
 
     @Column(name = "instancia_practica_id")
     private Long instanciaPracticaId;
+
+    /** Correo del usuario destinatario (alertas personales). Null = visible por scope de práctica. */
+    @Column(name = "destinatario_correo")
+    private String destinatarioCorreo;
 }

@@ -29,4 +29,28 @@ public interface AlertaSistemaRepository extends JpaRepository<AlertaSistema, Lo
             Long instanciaPracticaId,
             TipoAlerta tipo
     );
+
+    List<AlertaSistema> findByLeidaFalseAndResueltaFalseOrderByPrioritariaDescFechaDesc();
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT a FROM AlertaSistema a
+            WHERE a.leida = false AND a.resuelta = false
+            AND a.destinatarioCorreo = :correo
+            ORDER BY a.prioritaria DESC, a.fecha DESC
+            """)
+    List<AlertaSistema> findPendientesPersonales(@org.springframework.data.repository.query.Param("correo") String correo);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT a FROM AlertaSistema a
+            WHERE a.leida = false AND a.resuelta = false
+            AND (
+                a.destinatarioCorreo = :correo
+                OR (a.destinatarioCorreo IS NULL AND a.instanciaPracticaId IN :practicaIds)
+            )
+            ORDER BY a.prioritaria DESC, a.fecha DESC
+            """)
+    List<AlertaSistema> findPendientesParaUsuario(
+            @org.springframework.data.repository.query.Param("correo") String correo,
+            @org.springframework.data.repository.query.Param("practicaIds") java.util.Collection<Long> practicaIds
+    );
 }

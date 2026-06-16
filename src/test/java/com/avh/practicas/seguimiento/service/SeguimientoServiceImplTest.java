@@ -16,6 +16,7 @@ import com.avh.practicas.seguimiento.dto.ObservacionRequest;
 import com.avh.practicas.seguimiento.entity.AvanceTutor;
 import com.avh.practicas.seguimiento.entity.BitacoraEstudiante;
 import com.avh.practicas.seguimiento.entity.ObservacionDocente;
+import com.avh.practicas.notificacion.service.NotificacionService;
 import com.avh.practicas.seguimiento.repository.AlertaSistemaRepository;
 import com.avh.practicas.seguimiento.repository.AvanceTutorRepository;
 import com.avh.practicas.seguimiento.repository.BitacoraEstudianteRepository;
@@ -57,6 +58,8 @@ class SeguimientoServiceImplTest {
     @Mock
     private AlertaSistemaRepository alertaSistemaRepository;
     @Mock
+    private NotificacionService notificacionService;
+    @Mock
     private JdbcTemplate jdbcTemplate;
 
     private SeguimientoServiceImpl service;
@@ -72,6 +75,7 @@ class SeguimientoServiceImplTest {
                 avanceTutorRepository,
                 bitacoraEstudianteRepository,
                 alertaSistemaRepository,
+                notificacionService,
                 jdbcTemplate
         );
     }
