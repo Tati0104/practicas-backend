@@ -96,7 +96,8 @@ export function mensajeErrorResetear(error) {
  */
 export function mensajeErrorLogin(error) {
   if (!error.response) {
-    return 'No se pudo conectar con el servidor. Verifica que el backend esté activo y que uses http://localhost:5173 (no otro puerto).';
+    const api = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    return `No se pudo conectar con el servidor (${api}). Verifica que el backend esté activo.`;
   }
 
   if (error.response?.status === 401) {
