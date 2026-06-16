@@ -274,6 +274,7 @@ public class UsuarioAdminService {
                 .telefono(dto.getTelefono())
                 .programa(programa)
                 .usuario(usuario)
+                .semestre(1)
                 .estadoAptitud(EstadoAptitud.SIN_EVALUAR)
                 .creditosAprobados(0)
                 .promedioAcumulado(0.0)
