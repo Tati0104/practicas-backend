@@ -6,11 +6,6 @@ import com.avh.practicas.calificacion.repository.NotaTutorRepository;
 import com.avh.practicas.cierre.checklist.composite.ChecklistCierre;
 import com.avh.practicas.cierre.checklist.composite.GrupoRequisitos;
 import com.avh.practicas.cierre.checklist.leaf.*;
-import com.avh.practicas.cierre.entity.Encuesta;
-import com.avh.practicas.cierre.entity.TipoEncuesta;
-import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioDispatcher;
-import com.avh.practicas.cierre.notificacion.NotificacionRecordatorioFactory;
-import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
@@ -34,9 +29,6 @@ public class ChecklistCierreFabrica {
     private final NotaTutorRepository notaTutorRepository;
     private final NotaFinalRepository notaFinalRepository;
     private final DocumentoPracticaRepository documentoPracticaRepository;
-    private final EncuestaService encuestaService;
-    private final NotificacionRecordatorioFactory recordatorioFactory;
-    private final NotificacionRecordatorioDispatcher recordatorioDispatcher;
 
     public ChecklistCierre construir(Long practicaId) {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
@@ -76,33 +68,7 @@ public class ChecklistCierreFabrica {
                 )
         ));
 
-        grupos.add(new GrupoRequisitos(
-                "Encuestas de cierre",
-                true,
-                List.of(
-                        crearItemEncuesta(practica, TipoEncuesta.TUTOR),
-                        crearItemEncuesta(practica, TipoEncuesta.ESTUDIANTE)
-                )
-        ));
-
         return new ChecklistCierre(practicaId, grupos);
-    }
-
-    private ItemEncuesta crearItemEncuesta(InstanciaPractica practica, TipoEncuesta tipo) {
-        Long practicaId = practica.getId();
-        Encuesta encuesta = encuestaService.obtenerPorPracticaYTipo(practicaId, tipo)
-                .orElseGet(() -> encuestaService.crearEncuestaPendiente(practicaId, tipo));
-
-        return new ItemEncuesta(
-                practicaId,
-                practica,
-                tipo,
-                true,
-                encuesta,
-                encuestaService,
-                recordatorioFactory,
-                recordatorioDispatcher
-        );
     }
 
     private boolean tieneDocumento(Long practicaId, CategoriaDocumento categoria) {

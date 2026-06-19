@@ -8,6 +8,7 @@ import com.avh.practicas.cierre.checklist.composite.ChecklistCierre;
 import com.avh.practicas.cierre.checklist.composite.GrupoRequisitos;
 import com.avh.practicas.cierre.checklist.leaf.ItemNotaFinal;
 import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
+import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.cierre.support.DocumentoProxyActivador;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
@@ -55,6 +56,8 @@ class FachadaCierrePracticaImplTest {
     private ScopePracticaResolver scopePracticaResolver;
     @Mock
     private ScopePracticas scopePracticas;
+    @Mock
+    private EncuestaService encuestaService;
 
     private FachadaCierrePracticaImpl fachada;
 
@@ -69,7 +72,8 @@ class FachadaCierrePracticaImplTest {
                 notificadorEventos,
                 tutorRepository,
                 docenteRepository,
-                scopePracticaResolver
+                scopePracticaResolver,
+                encuestaService
         );
         lenient().when(scopePracticaResolver.resolver()).thenReturn(scopePracticas);
         lenient().when(scopePracticas.esVisible(any(InstanciaPractica.class))).thenReturn(true);

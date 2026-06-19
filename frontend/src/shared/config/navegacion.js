@@ -193,7 +193,7 @@ export const GRUPOS_NAVEGACION = [
         nombre: 'Checklist de cierre',
         ruta: '/cierre',
         icono: 'CheckSquare',
-        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.COORD_ACADEMICA, ROLES.ESTUDIANTE],
+        roles: [ROLES.ADMIN, ROLES.COORD_PRACTICA, ROLES.SECRETARIA],
         prefijo: true,
       },
     ],

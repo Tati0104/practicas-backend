@@ -10,6 +10,7 @@ import com.avh.practicas.cierre.checklist.leaf.ItemEncuesta;
 import com.avh.practicas.cierre.dto.CierrePracticaResponse;
 import com.avh.practicas.cierre.entity.TipoEncuesta;
 import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
+import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.cierre.state.practica.PracticaContext;
 import com.avh.practicas.cierre.support.DocumentoProxyActivador;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
@@ -55,6 +56,7 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     private final TutorEmpresarialRepository tutorRepository;
     private final DocenteAsesorRepository docenteRepository;
     private final ScopePracticaResolver scopePracticaResolver;
+    private final EncuestaService encuestaService;
 
     @Value("${cierre.coord-academica-correo:coord.academica@demo.com}")
     private String correoCoordAcademica;
@@ -115,8 +117,7 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     @Override
     @Transactional
     public void enviarRecordatorioEncuesta(Long practicaId, TipoEncuesta tipo) {
-        ChecklistCierre checklist = checklistFabrica.construir(practicaId);
-        checklist.buscarItemEncuesta(tipo).enviarRecordatorio();
+        encuestaService.enviarRecordatorio(practicaId, tipo);
     }
 
     private boolean determinarResultado(Double notaFinal) {

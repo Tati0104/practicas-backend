@@ -250,7 +250,7 @@ export default function AppRouter() {
           <Route
             path="/cierre"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'SECRETARIA', 'ADMIN']}>
                 <CierreListPage />
               </RutaPrivada>
             }
@@ -259,7 +259,7 @@ export default function AppRouter() {
           <Route
             path="/cierre/:practicaId"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'SECRETARIA', 'ADMIN']}>
                 <CierrePage />
               </RutaPrivada>
             }
