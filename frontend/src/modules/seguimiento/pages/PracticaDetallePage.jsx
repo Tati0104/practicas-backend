@@ -123,7 +123,7 @@ export default function PracticaDetallePage() {
           </Card>
 
           <div className="mb-5">
-            {(rol === 'COORD_PRACTICA' || rol === 'DOCENTE_ASESOR') && (
+            {rol === 'DOCENTE_ASESOR' && (
               <Button onClick={() => setModalObservacion(true)}>+ Registrar observación</Button>
             )}
             {rol === 'TUTOR_EMPRESARIAL' && (

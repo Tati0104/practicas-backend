@@ -43,8 +43,8 @@ const seguimientoService = {
     http.post(`/seguimiento/${practicaId}/observaciones`, dto),
 
   /** POST /seguimiento/{practicaId}/avances-tutor */
-  registrarAvance: (practicaId, dto) =>
-    http.post(`/seguimiento/${practicaId}/avances-tutor`, dto),
+  registrarAvance: (practicaId, { corte, ...body }) =>
+    http.post(`/seguimiento/${practicaId}/avances-tutor`, body, { params: { corte } }),
 
   /** POST /seguimiento/{practicaId}/bitacora */
   registrarBitacora: (practicaId, dto, corte = 1) =>

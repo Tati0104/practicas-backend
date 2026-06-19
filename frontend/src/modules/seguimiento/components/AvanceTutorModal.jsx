@@ -1,29 +1,26 @@
 // src/modules/seguimiento/components/AvanceTutorModal.jsx
 
-/**
- * Modal para que TUTOR_EMPRESARIAL registre un avance con porcentaje.
- */
 import { useState } from 'react';
-import { Button, Input, Modal } from '@/shared/components/ui';
+import { Button, Modal, Select } from '@/shared/components/ui';
+
+const CORTES = [1, 2, 3, 4];
 
 export default function AvanceTutorModal({ isOpen, practicaId, onClose, onGuardar, isPending }) {
-  const [descripcion, setDescripcion] = useState('');
-  const [porcentaje, setPorcentaje] = useState('');
+  const [avance, setAvance] = useState('');
+  const [corte, setCorte] = useState('1');
 
   if (!isOpen) return null;
 
   const handleGuardar = () => {
-    if (!descripcion.trim() || porcentaje === '') return;
-    onGuardar({ practicaId, descripcion, porcentaje: Number(porcentaje) });
-    setDescripcion('');
-    setPorcentaje('');
+    if (!avance.trim()) return;
+    onGuardar({ practicaId, avance: avance.trim(), corte: Number(corte) });
+    setAvance('');
+    setCorte('1');
   };
-
-  const puedeGuardar = descripcion.trim() && porcentaje !== '';
 
   return (
     <Modal
-      titulo="Registrar avance"
+      titulo="Registrar observación de corte"
       onCerrar={onClose}
       ancho="max-w-lg"
       acciones={
@@ -35,7 +32,7 @@ export default function AvanceTutorModal({ isOpen, practicaId, onClose, onGuarda
             size="sm"
             className="bg-emerald-600 hover:bg-emerald-700"
             onClick={handleGuardar}
-            disabled={isPending || !puedeGuardar}
+            disabled={isPending || !avance.trim()}
           >
             {isPending ? 'Guardando...' : 'Guardar'}
           </Button>
@@ -44,28 +41,27 @@ export default function AvanceTutorModal({ isOpen, practicaId, onClose, onGuarda
     >
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-700">
-          Descripción del avance
+          Corte
         </label>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Describe el avance realizado..."
-          rows={4}
-          className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-        />
+        <Select value={corte} onChange={(e) => setCorte(e.target.value)}>
+          {CORTES.map((c) => (
+            <option key={c} value={c}>
+              Corte {c}
+            </option>
+          ))}
+        </Select>
       </div>
 
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-700">
-          Porcentaje de avance (%)
+          Observación / avance del practicante
         </label>
-        <Input
-          type="number"
-          min={0}
-          max={100}
-          value={porcentaje}
-          onChange={(e) => setPorcentaje(e.target.value)}
-          placeholder="0 - 100"
+        <textarea
+          value={avance}
+          onChange={(e) => setAvance(e.target.value)}
+          placeholder="Describe el avance o escribe tu observación sobre el practicante..."
+          rows={5}
+          className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
       </div>
     </Modal>
