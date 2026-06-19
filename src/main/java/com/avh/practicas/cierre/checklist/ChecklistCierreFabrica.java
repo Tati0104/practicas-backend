@@ -90,8 +90,7 @@ public class ChecklistCierreFabrica {
 
     private ItemEncuesta crearItemEncuesta(InstanciaPractica practica, TipoEncuesta tipo) {
         Long practicaId = practica.getId();
-        Encuesta encuesta = encuestaService.obtenerPorPracticaYTipo(practicaId, tipo)
-                .orElseGet(() -> encuestaService.crearEncuestaPendiente(practicaId, tipo));
+        Encuesta encuesta = encuestaService.obtenerPorPracticaYTipo(practicaId, tipo).orElse(null);
 
         return new ItemEncuesta(
                 practicaId,

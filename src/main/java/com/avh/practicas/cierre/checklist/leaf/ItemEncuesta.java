@@ -12,6 +12,7 @@ import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Hoja del Composite: encuesta de cierre con recordatorio vía Factory Method.
@@ -96,8 +97,16 @@ public class ItemEncuesta implements ItemChecklist {
 
     /**
      * Envía recordatorio usando {@link NotificacionRecordatorioFactory} y persiste auditoría vía {@link EncuestaService}.
+     * Si la encuesta no existe aún en BD, la crea y envía la invitación inicial en lugar del recordatorio.
      */
     public void enviarRecordatorio() {
+        Optional<com.avh.practicas.cierre.entity.Encuesta> encuestaOpt =
+                encuestaService.obtenerPorPracticaYTipo(practicaId, tipoEncuesta);
+        if (encuestaOpt.isEmpty()) {
+            encuestaService.crearEncuestaPendiente(practicaId, tipoEncuesta);
+            refrescarEstadoEncuesta();
+            return;
+        }
         encuestaService.validarRecordatorioDiario(practicaId, tipoEncuesta);
         NotificacionRecordatorio notificacion = recordatorioFactory.crear(practica, tipoEncuesta, estadoEncuesta);
         recordatorioDispatcher.enviar(notificacion);

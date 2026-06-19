@@ -18,6 +18,7 @@ import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import java.util.Optional;
  * Implementación del servicio de encuestas de práctica.
  * Aplica el patrón Factory Method para la creación y despacho de notificaciones correspondientes.
  */
+@Slf4j
 @Service("encuestaServiceImpl")
 @RequiredArgsConstructor
 @Transactional
@@ -67,8 +69,12 @@ public class EncuestaServiceImpl implements EncuestaService {
 
         Encuesta guardada = encuestaRepository.save(encuesta);
 
-        // Disparar invitación de correo según el tipo
-        despacharNotificacionEncuesta(TipoEventoSistema.ENCUESTA_DISPONIBLE, practica, tipo);
+        try {
+            despacharNotificacionEncuesta(TipoEventoSistema.ENCUESTA_DISPONIBLE, practica, tipo);
+        } catch (Exception e) {
+            log.warn("crearEncuestaPendiente: error al despachar notificación para práctica {} tipo {}: {}",
+                    practicaId, tipo, e.getMessage());
+        }
 
         return guardada;
     }
@@ -182,11 +188,16 @@ public class EncuestaServiceImpl implements EncuestaService {
             if (encuesta.getEstado() == EstadoEncuesta.COMPLETADA) {
                 return encuesta;
             }
-            despacharNotificacionEncuesta(
-                    TipoEventoSistema.ENCUESTA_DISPONIBLE,
-                    encuesta.getInstanciaPractica(),
-                    tipo
-            );
+            try {
+                despacharNotificacionEncuesta(
+                        TipoEventoSistema.ENCUESTA_DISPONIBLE,
+                        encuesta.getInstanciaPractica(),
+                        tipo
+                );
+            } catch (Exception e) {
+                log.warn("enviarInvitacion: error al despachar notificación para práctica {} tipo {}: {}",
+                        practicaId, tipo, e.getMessage());
+            }
             encuesta.setFechaEnvioInvitacion(LocalDateTime.now());
             return encuestaRepository.save(encuesta);
         }
@@ -227,8 +238,8 @@ public class EncuestaServiceImpl implements EncuestaService {
             }
         }
 
-        if (correo.isEmpty()) {
-            return; // No se puede enviar correo sin destinatario
+        if (correo == null || correo.isBlank()) {
+            return;
         }
 
         Map<String, Object> datos = new HashMap<>();
