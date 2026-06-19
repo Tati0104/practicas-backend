@@ -54,4 +54,10 @@ public class UsuarioAdminController {
         usuarioAdminService.inactivar(id);
         return ResponseEntity.ok(ApiResponse.ok("Usuario inactivado"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        usuarioAdminService.eliminar(id);
+        return ResponseEntity.ok(ApiResponse.ok("Usuario eliminado correctamente"));
+    }
 }

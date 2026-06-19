@@ -81,22 +81,61 @@ class ScopeGuardTest {
                 .build();
 
         Programa programa = Programa.builder().id(1L).nombre("Sistemas").build();
-        
+
         Estudiante estudianteUsuario = Estudiante.builder()
+                .id(1L)
                 .correo("estudiante@test.com")
                 .programa(programa)
                 .build();
 
         Estudiante recursoEstudiante = Estudiante.builder()
+                .id(1L)
                 .identificacion("123")
                 .programa(programa)
                 .build();
 
-        when(estudianteRepository.findByCorreo("estudiante@test.com")).thenReturn(Optional.of(estudianteUsuario));
+        when(estudianteRepository.findByCorreoIgnoreCase("estudiante@test.com")).thenReturn(Optional.of(estudianteUsuario));
 
         assertTrue(scopeGuard.verificarScope(usuario, recursoEstudiante, "LEER"));
-        verify(estudianteRepository).findByCorreo("estudiante@test.com");
+        verify(estudianteRepository).findByCorreoIgnoreCase("estudiante@test.com");
         verifyNoInteractions(bitacoraService);
+    }
+
+    @Test
+    void verificarScope_EstudianteOtroEstudianteMismoPrograma_LanzaExcepcion() {
+        Usuario usuario = Usuario.builder()
+                .correo("estudiante@test.com")
+                .rol(Rol.ESTUDIANTE)
+                .scope(Scope.PROGRAMA)
+                .build();
+
+        Programa programa = Programa.builder().id(1L).nombre("Sistemas").build();
+
+        Estudiante estudianteUsuario = Estudiante.builder()
+                .id(1L)
+                .correo("estudiante@test.com")
+                .programa(programa)
+                .build();
+
+        Estudiante recursoEstudiante = Estudiante.builder()
+                .id(2L)
+                .identificacion("456")
+                .programa(programa)
+                .build();
+
+        when(estudianteRepository.findByCorreoIgnoreCase("estudiante@test.com")).thenReturn(Optional.of(estudianteUsuario));
+
+        AccesoNoAutorizadoException exception = assertThrows(AccesoNoAutorizadoException.class, () ->
+                scopeGuard.verificarScope(usuario, recursoEstudiante, "LEER")
+        );
+
+        assertEquals("Acceso denegado: solo puede consultar su propia información", exception.getMessage());
+        verify(bitacoraService).registrar(
+                eq("estudiantes"),
+                eq("LEER"),
+                eq(usuario),
+                contains("Acceso denegado: recurso fuera del scope del estudiante")
+        );
     }
 
     @Test
@@ -109,28 +148,23 @@ class ScopeGuardTest {
 
         Programa programaUsuario = Programa.builder().id(1L).nombre("Sistemas").build();
         Programa programaRecurso = Programa.builder().id(2L).nombre("Civil").build();
-        
+
         Estudiante estudianteUsuario = Estudiante.builder()
+                .id(10L)
                 .correo("estudiante@test.com")
                 .programa(programaUsuario)
                 .build();
 
-        Estudiante recursoEstudiante = Estudiante.builder()
-                .id(10L)
-                .identificacion("123")
-                .programa(programaRecurso)
-                .build();
+        when(estudianteRepository.findByCorreoIgnoreCase("estudiante@test.com")).thenReturn(Optional.of(estudianteUsuario));
 
-        when(estudianteRepository.findByCorreo("estudiante@test.com")).thenReturn(Optional.of(estudianteUsuario));
-
-        AccesoNoAutorizadoException exception = assertThrows(AccesoNoAutorizadoException.class, () -> 
-            scopeGuard.verificarScope(usuario, recursoEstudiante, "LEER")
+        AccesoNoAutorizadoException exception = assertThrows(AccesoNoAutorizadoException.class, () ->
+            scopeGuard.verificarScope(usuario, programaRecurso, "LEER")
         );
 
         assertEquals("Acceso denegado: recurso fuera del scope", exception.getMessage());
-        verify(estudianteRepository).findByCorreo("estudiante@test.com");
+        verify(estudianteRepository).findByCorreoIgnoreCase("estudiante@test.com");
         verify(bitacoraService).registrar(
-                eq("estudiantes"),
+                eq("programas"),
                 eq("LEER"),
                 eq(usuario),
                 contains("Acceso denegado: recurso fuera del scope del programa")

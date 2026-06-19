@@ -6,11 +6,13 @@ import { toast } from 'react-hot-toast';
 import { useAsignaciones } from '../hooks/useAsignaciones';
 import { useAsignacionesMutaciones } from '../hooks/useAsignacionesMutaciones';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
+import { usePuedeAsignarDocenteAsesor } from '../../../shared/hooks/usePermisosDocenteAsesor';
 import AsignacionesFiltros from '../components/AsignacionesFiltros';
 import AsignacionesTabla from '../components/AsignacionesTabla';
 import AsignacionCard from '../components/AsignacionCard';
 import AsignacionForm from '../components/AsignacionForm';
 import CancelarAsignacionModal from '../components/CancelarAsignacionModal';
+import AsignarDocenteModal from '../components/AsignarDocenteModal';
 import IndicadoresAsignaciones from '../components/IndicadoresAsignaciones';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Button, PageHeader } from '@/shared/components/ui';
@@ -32,15 +34,18 @@ export default function AsignacionesPage() {
   const esDesktop = useEsDesktop();
   const [formAbierto, setFormAbierto] = useState(false);
   const [asignacionACancelar, setAsignacionACancelar] = useState(null);
+  const [asignacionParaDocente, setAsignacionParaDocente] = useState(null);
 
   const { asignaciones, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
     useAsignaciones();
   const { canCreate } = usePermisos();
+  const puedeAsignarDocente = usePuedeAsignarDocenteAsesor();
 
-  const { crear, cancelar } = useAsignacionesMutaciones({
+  const { crear, cancelar, asignarDocente } = useAsignacionesMutaciones({
     onSuccess: () => {
       setFormAbierto(false);
       setAsignacionACancelar(null);
+      setAsignacionParaDocente(null);
     },
   });
 
@@ -80,6 +85,8 @@ export default function AsignacionesPage() {
           isLoading={isLoading}
           canCancelar={canCreate}
           onCancelar={(a) => setAsignacionACancelar(a)}
+          canAsignarDocente={puedeAsignarDocente}
+          onAsignarDocente={(a) => setAsignacionParaDocente(a)}
         />
       )}
 
@@ -91,6 +98,8 @@ export default function AsignacionesPage() {
               asignacion={a}
               canCancelar={canCreate}
               onCancelar={(item) => setAsignacionACancelar(item)}
+              canAsignarDocente={puedeAsignarDocente}
+              onAsignarDocente={(item) => setAsignacionParaDocente(item)}
             />
           ))}
         </div>
@@ -111,6 +120,16 @@ export default function AsignacionesPage() {
         onClose={() => setAsignacionACancelar(null)}
         onConfirmar={(motivo) => cancelar.mutate({ id: asignacionACancelar.id, motivo })}
         isPending={cancelar.isPending}
+      />
+
+      <AsignarDocenteModal
+        isOpen={!!asignacionParaDocente}
+        asignacion={asignacionParaDocente}
+        onClose={() => setAsignacionParaDocente(null)}
+        onConfirmar={(docenteAsesorId) =>
+          asignarDocente.mutate({ asignacionId: asignacionParaDocente.id, docenteAsesorId })
+        }
+        isPending={asignarDocente.isPending}
       />
     </div>
   );

@@ -11,6 +11,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import asignacionService from '../services/asignacionService';
+import vinculacionService from '../../vinculacion/services/vinculacionService';
 import useAuthStore from '@/store/authStore';
 import { extraerMensajeError } from '@/modules/auth/utils/schemas';
 
@@ -72,5 +73,16 @@ export function useAsignacionesMutaciones({ onSuccess, onError } = {}) {
     onError: alError,
   });
 
-  return { crear, cancelar };
+  /**
+   * Asignar/cambiar el docente asesor de la práctica vinculada a una asignación.
+   * Parámetros: { asignacionId, docenteAsesorId }
+   */
+  const asignarDocente = useMutation({
+    mutationFn: ({ asignacionId, docenteAsesorId }) =>
+      vinculacionService.asignarDocenteAsesor(asignacionId, docenteAsesorId),
+    onSuccess: alExito('Docente asesor asignado correctamente'),
+    onError: alError,
+  });
+
+  return { crear, cancelar, asignarDocente };
 }

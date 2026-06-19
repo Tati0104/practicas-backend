@@ -1,10 +1,6 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-
-const tooltipStyle = {
-  borderRadius: '10px',
-  border: '1px solid #E2E8F0',
-  fontSize: '12px',
-};
+import useTheme from '@/shared/hooks/useTheme';
+import { getTooltipStyle } from './paletaIndicadores';
 
 export default function GraficaDonut({
   datos = [],
@@ -12,11 +8,13 @@ export default function GraficaDonut({
   etiquetaCentral,
   valorCentral,
 }) {
+  const { esOscuro } = useTheme();
+  const tooltipStyle = getTooltipStyle(esOscuro);
   const total = datos.reduce((sum, d) => sum + (Number(d.valor) || 0), 0);
   const filtrados = datos.filter((d) => Number(d.valor) > 0);
 
   if (total === 0) {
-    return <p className="py-12 text-center text-sm text-gray-400">Sin datos para graficar</p>;
+    return <p className="py-12 text-center text-sm ui-text-muted">Sin datos para graficar</p>;
   }
 
   const pctCentral =
@@ -50,10 +48,12 @@ export default function GraficaDonut({
         {(pctCentral != null || etiquetaCentral) && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             {pctCentral != null && (
-              <span className="text-2xl font-bold text-primary">{pctCentral}%</span>
+              <span className="text-2xl font-bold text-primary dark:text-primary-glow">
+                {pctCentral}%
+              </span>
             )}
             {etiquetaCentral && (
-              <span className="text-[11px] text-gray-500">{etiquetaCentral}</span>
+              <span className="text-[11px] ui-text-muted">{etiquetaCentral}</span>
             )}
           </div>
         )}
@@ -68,9 +68,9 @@ export default function GraficaDonut({
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: item.color }}
               />
-              <span className="flex-1 text-gray-600">{item.nombre}</span>
-              <span className="font-semibold tabular-nums text-gray-900">{item.valor}</span>
-              <span className="w-9 text-right text-xs text-gray-400">{pct}%</span>
+              <span className="flex-1 ui-text-body">{item.nombre}</span>
+              <span className="font-semibold tabular-nums ui-text-title">{item.valor}</span>
+              <span className="w-9 text-right text-xs ui-text-muted">{pct}%</span>
             </li>
           );
         })}

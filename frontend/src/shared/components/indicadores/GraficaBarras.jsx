@@ -8,13 +8,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { PALETA } from './paletaIndicadores';
-
-const tooltipStyle = {
-  borderRadius: '10px',
-  border: '1px solid #E2E8F0',
-  fontSize: '12px',
-};
+import useTheme from '@/shared/hooks/useTheme';
+import { getPaleta, getTooltipStyle } from './paletaIndicadores';
 
 export default function GraficaBarras({
   datos = [],
@@ -22,22 +17,26 @@ export default function GraficaBarras({
   altura = 280,
   apilada = false,
 }) {
+  const { esOscuro } = useTheme();
+  const paleta = getPaleta(esOscuro);
+  const tooltipStyle = getTooltipStyle(esOscuro);
+
   if (!datos.length) {
-    return <p className="py-12 text-center text-sm text-gray-400">Sin datos para graficar</p>;
+    return <p className="py-12 text-center text-sm ui-text-muted">Sin datos para graficar</p>;
   }
 
   return (
     <ResponsiveContainer width="100%" height={altura}>
       <BarChart data={datos} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={PALETA.grid} vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={paleta.grid} vertical={false} />
         <XAxis
           dataKey="nombre"
-          tick={{ fill: PALETA.textMuted, fontSize: 11 }}
+          tick={{ fill: paleta.textMuted, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fill: PALETA.textMuted, fontSize: 11 }}
+          tick={{ fill: paleta.textMuted, fontSize: 11 }}
           axisLine={false}
           tickLine={false}
           allowDecimals={false}
@@ -45,7 +44,7 @@ export default function GraficaBarras({
         <Tooltip contentStyle={tooltipStyle} />
         {series.length > 1 && (
           <Legend
-            wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+            wrapperStyle={{ fontSize: '12px', paddingTop: '8px', color: paleta.text }}
             iconType="circle"
             iconSize={8}
           />

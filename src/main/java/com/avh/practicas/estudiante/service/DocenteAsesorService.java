@@ -8,6 +8,7 @@ import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
 import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.usuario.service.CorreoPersonaService;
 import com.avh.practicas.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Servicio KBM S2 para administrar docentes asesores.
- * Se encarga de registrar, editar, activar e inactivar docentes vinculados a un programa.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,25 +25,20 @@ public class DocenteAsesorService {
 
     private final DocenteAsesorRepository repository;
     private final UsuarioService usuarioService;
+    private final CorreoPersonaService correoPersonaService;
     private final NotificadorEventos notificadorEventos;
 
     @Transactional
     public DocenteAsesorResponse registrar(DocenteAsesorRequest request) {
-        // Validacion de negocio: el correo del docente asesor no se puede repetir.
-        if (repository.existsByCorreo(request.correo())) {
-            throw new IllegalArgumentException("Ya existe un docente asesor con este correo");
-        }
+        String correo = correoPersonaService.normalizar(request.correo());
+        correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 
-        // Se crea o actualiza el usuario asociado con rol DOCENTE_ASESOR.
-        Usuario usuario = usuarioService.crearUsuarioDocenteAsesor(
-                request.nombreCompleto(),
-                request.correo()
-        );
+        Usuario usuario = usuarioService.crearUsuarioDocenteAsesor(request.nombreCompleto(), correo);
 
         DocenteAsesor docente = DocenteAsesor.builder()
                 .usuario(usuario)
-                .nombre(request.nombreCompleto())
-                .correo(request.correo())
+                .nombre(request.nombreCompleto().trim())
+                .correo(correo)
                 .telefono(request.telefono())
                 .programaId(request.programaId())
                 .areaConocimiento(request.areaConocimiento())
@@ -54,7 +46,6 @@ public class DocenteAsesorService {
                 .build();
 
         DocenteAsesor guardado = repository.save(docente);
-        // Observer: se notifica la creacion, pero sin impedir el registro si el observador falla.
         notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_CREADO, guardado);
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
@@ -62,15 +53,33 @@ public class DocenteAsesorService {
     @Transactional
     public DocenteAsesorResponse editar(Long id, DocenteAsesorRequest request) {
         DocenteAsesor docente = obtenerEntidad(id);
+        String correo = correoPersonaService.normalizar(request.correo());
 
-        docente.setNombre(request.nombreCompleto());
-        docente.setCorreo(request.correo());
+        correoPersonaService.validarCorreoDisponible(
+                correo,
+                new CorreoPersonaService.Exclusiones(
+                        docente.getUsuario() != null ? docente.getUsuario().getId() : null,
+                        docente.getId(),
+                        null,
+                        null
+                )
+        );
+
+        docente.setNombre(request.nombreCompleto().trim());
+        docente.setCorreo(correo);
         docente.setTelefono(request.telefono());
         docente.setProgramaId(request.programaId());
         docente.setAreaConocimiento(request.areaConocimiento());
 
-        DocenteAsesor guardado = repository.save(docente);
+        if (docente.getUsuario() != null) {
+            usuarioService.sincronizarPerfil(
+                    docente.getUsuario(),
+                    request.nombreCompleto(),
+                    correo
+            );
+        }
 
+        DocenteAsesor guardado = repository.save(docente);
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
@@ -94,7 +103,6 @@ public class DocenteAsesorService {
     public DocenteAsesorResponse inactivar(Long id) {
         DocenteAsesor docente = obtenerEntidad(id);
 
-        // Integración futura: validar que no tenga estudiantes activos asignados.
         docente.setActivo(false);
 
         if (docente.getUsuario() != null) {
@@ -141,9 +149,6 @@ public class DocenteAsesorService {
                 .orElseThrow(() -> new IllegalArgumentException("Docente asesor no encontrado"));
     }
 
-    /**
-     * Proteccion del flujo principal: si falla la notificacion, no se revierte la creacion del docente.
-     */
     private void notificarSeguro(TipoEventoSistema tipo, DocenteAsesor docente) {
         try {
             notificar(tipo, docente);

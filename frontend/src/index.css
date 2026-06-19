@@ -5,17 +5,64 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply m-0 font-sans text-gray-900 antialiased;
+    @apply m-0 bg-white font-sans text-gray-900 antialiased;
+    @apply dark:bg-dark-base dark:text-slate-100;
   }
 
   #root {
     @apply min-h-screen w-full max-w-none text-left;
   }
+
+  .dark {
+    color-scheme: dark;
+  }
 }
 
 @layer components {
-  /* Contenedor scroll del sidebar — sin barras visibles (scroll con rueda/touch) */
+  /* Superficies (modo oscuro estilo dashboard) */
+  .ui-page {
+    @apply bg-white dark:bg-dark-base;
+  }
+
+  .ui-panel {
+    @apply rounded-2xl border border-gray-100 bg-white shadow-card-light;
+    @apply dark:border-white/[0.06] dark:bg-dark-card dark:shadow-card;
+  }
+
+  .ui-panel-muted {
+    @apply rounded-2xl border border-gray-100 bg-slate-50;
+    @apply dark:border-white/[0.04] dark:bg-dark-elevated;
+  }
+
+  .ui-text-title {
+    @apply text-gray-900 dark:text-white;
+  }
+
+  .ui-text-body {
+    @apply text-gray-700 dark:text-slate-300;
+  }
+
+  .ui-text-muted {
+    @apply text-gray-500 dark:text-slate-400;
+  }
+
+  .ui-border {
+    @apply border-gray-200 dark:border-white/[0.06];
+  }
+
+  .ui-input {
+    @apply rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900;
+    @apply outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20;
+    @apply dark:border-dark-border dark:bg-dark-elevated dark:text-slate-100;
+    @apply dark:placeholder:text-slate-500 dark:focus:border-primary-accent dark:focus:ring-primary-accent/25;
+  }
+
+  /* Contenedor scroll del sidebar */
   .sidebar-nav {
     min-height: 0;
     flex: 1 1 auto;
@@ -32,7 +79,7 @@
     height: 0;
   }
 
-  /* Ítem activo: pestaña blanca integrada con el contenido principal */
+  /* Ítem activo — modo claro: pestaña blanca */
   .nav-item-active {
     position: relative;
     z-index: 2;
@@ -47,11 +94,9 @@
     color: #19426b;
     font-weight: 600;
     border-radius: 9999px;
-    /* Extiende el blanco hacia el contenido sin alterar el ancho (no genera scroll) */
     box-shadow: 1.25rem 0 0 0 #ffffff;
   }
 
-  /* Curvas cóncavas superior e inferior (unión sidebar ↔ contenido) */
   .nav-item-active::before,
   .nav-item-active::after {
     content: '';
@@ -97,6 +142,20 @@
     box-shadow: 0.4rem -0.4rem 0 0.4rem #ffffff;
   }
 
+  /* Ítem activo — modo oscuro: píldora azul marca (estilo dashboard) */
+  .dark .nav-item-active {
+    margin-right: 0.75rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #19426b 0%, #2e6da8 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(25, 66, 107, 0.45);
+  }
+
+  .dark .nav-item-active::before,
+  .dark .nav-item-active::after {
+    display: none;
+  }
+
   @media (max-width: 1023px) {
     .nav-item-active {
       margin-right: 0.75rem;
@@ -109,6 +168,10 @@
     .nav-item-active::before,
     .nav-item-active::after {
       display: none;
+    }
+
+    .dark .nav-item-active {
+      background: linear-gradient(135deg, #19426b 0%, #2e6da8 100%);
     }
   }
 }

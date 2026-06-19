@@ -7,6 +7,7 @@ import useAuthStore from '@/store/authStore';
 import { useVinculacionDocumentos } from '../hooks/useVinculacionDocumentos';
 import { useVinculacionMutaciones } from '../hooks/useVinculacionMutaciones';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
+import { usePuedeAsignarDocenteAsesor } from '../../../shared/hooks/usePermisosDocenteAsesor';
 import PanelDocumento from '../components/PanelDocumento';
 import ConfirmarFirmaModal from '../components/ConfirmarFirmaModal';
 import ActivarPracticaModal from '../components/ActivarPracticaModal';
@@ -41,15 +42,19 @@ export default function VinculacionDetallePage() {
       setModalActivarOpen(false);
     },
   });
-  const { canCreate } = usePermisos();
+  const { canUploadDocumentos } = usePermisos();
   const rol = useAuthStore((state) => state.rol);
   const esTutor = rol === 'TUTOR_EMPRESARIAL';
-  const isCoordinadorAcademico = rol === 'COORD_PRACTICA' || rol === 'ADMIN';
+  // "Activar Práctica" sigue siendo exclusivo de Coordinación de Prácticas: se excluye
+  // explícitamente a COORD_ACADEMICA, que ahora también entra a esta pantalla pero solo
+  // para ver/cambiar el docente asesor (permiso separado, ver más abajo).
+  const puedeActivarPractica = !esTutor && rol !== 'COORD_ACADEMICA';
+  const puedeAsignarDocenteAsesor = usePuedeAsignarDocenteAsesor();
 
   const { data: docentes = [] } = useQuery({
     queryKey: ['docentes-asesores-activos'],
     queryFn: () => docentesAsesoresService.listarPorPrograma().then((res) => res.filter((d) => d.activo)),
-    enabled: !!isCoordinadorAcademico,
+    enabled: !!puedeAsignarDocenteAsesor,
   });
   const tipoFirmanteRol = ROL_A_FIRMANTE[rol] ?? null;
 
@@ -108,7 +113,7 @@ export default function VinculacionDetallePage() {
               onDescargar={() => {}}
               onFirmar={() => {}}
               isPendingSubir={subirDocumento.isPending}
-              puedeSubir={canCreate}
+              puedeSubir={canUploadDocumentos}
             />
           ))}
         </div>
@@ -162,7 +167,7 @@ export default function VinculacionDetallePage() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 mb-1">Docente Asesor</p>
-            {isCoordinadorAcademico ? (
+            {puedeAsignarDocenteAsesor ? (
               <select
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-1.5 border"
                 value={detalle?.docenteAsesorId || ''}
@@ -218,14 +223,14 @@ export default function VinculacionDetallePage() {
             onFirmar={(tipoFirmante) => setFirmaSeleccionada({ documento, tipoFirmante })}
             isPendingSubir={subirDocumento.isPending}
             isPendingFirma={confirmarFirma.isPending}
-            puedeSubir={canCreate}
+            puedeSubir={canUploadDocumentos}
             tipoFirmanteRol={tipoFirmanteRol}
           />
         ))}
       </div>
 
       <div className="border-t border-gray-200 pt-5">
-        {!esTutor && (
+        {puedeActivarPractica && (
           <>
             {!puedeActivar && (
               <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -243,10 +248,11 @@ export default function VinculacionDetallePage() {
             </Button>
           </>
         )}
-        {esTutor && (
+        {!puedeActivarPractica && (
           <p className="text-sm text-gray-600">
-            Como tutor empresarial puedes revisar los documentos y registrar tu firma en el convenio.
-            La activación de la práctica la realiza el coordinador.
+            {esTutor
+              ? 'Como tutor empresarial puedes revisar los documentos y registrar tu firma en el convenio. La activación de la práctica la realiza el coordinador.'
+              : 'La activación de la práctica la realiza Coordinación de Prácticas. Desde aquí puedes ver y cambiar el docente asesor.'}
           </p>
         )}
       </div>

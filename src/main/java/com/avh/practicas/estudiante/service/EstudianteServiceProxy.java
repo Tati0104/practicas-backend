@@ -8,12 +8,14 @@ import com.avh.practicas.estudiante.dto.EstudianteDto;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,7 +51,7 @@ public class EstudianteServiceProxy implements EstudianteService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
             String correo = (String) auth.getPrincipal();
-            return usuarioRepository.findByCorreo(correo).orElse(null);
+            return usuarioRepository.findByCorreoIgnoreCase(correo).orElse(null);
         }
         return null;
     }
@@ -114,12 +116,17 @@ public class EstudianteServiceProxy implements EstudianteService {
     @Override
     public Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, String busqueda, Pageable pageable) {
         Usuario usuario = obtenerUsuarioActual();
-        if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
-            Estudiante estudianteAsociado = estudianteRepository.findByCorreo(usuario.getCorreo()).orElse(null);
-            if (estudianteAsociado == null || estudianteAsociado.getPrograma() == null
-                    || programa == null || !estudianteAsociado.getPrograma().getNombre().equalsIgnoreCase(programa)) {
-                throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
-            }
+        if (usuario != null
+                && (usuario.getRol() == Rol.ADMIN
+                || usuario.getRol() == Rol.DIRECCION
+                || usuario.getScope() == Scope.GLOBAL)) {
+            return realService.listar(programa, facultad, aptitud, estadoPractica, busqueda, pageable);
+        }
+        if (usuario != null && usuario.getRol() == Rol.ESTUDIANTE) {
+            Estudiante propio = estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            "Acceso denegado: perfil de estudiante no encontrado"));
+            return new PageImpl<>(List.of(propio), pageable, 1);
         }
         if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
             if (usuario.getFacultad() == null) {

@@ -5,7 +5,14 @@ import TablaBase from '../../../shared/components/TablaBase';
 import BadgeAsignacion from './BadgeAsignacion';
 import { Button } from '@/shared/components/ui';
 
-export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar, canCancelar }) {
+export default function AsignacionesTabla({
+  asignaciones,
+  isLoading,
+  onCancelar,
+  canCancelar,
+  onAsignarDocente,
+  canAsignarDocente,
+}) {
   const navigate = useNavigate();
 
   const columnas = [
@@ -59,6 +66,11 @@ export default function AsignacionesTabla({ asignaciones, isLoading, onCancelar,
           {canCancelar && fila.estado !== 'CANCELADA' && fila.estado !== 'VINCULADA' && (
             <Button variant="danger" size="sm" onClick={() => onCancelar(fila)}>
               Cancelar
+            </Button>
+          )}
+          {canAsignarDocente && fila.estado !== 'CANCELADA' && (
+            <Button variant="info" size="sm" onClick={() => onAsignarDocente(fila)}>
+              Asignar Docente
             </Button>
           )}
         </div>

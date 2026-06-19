@@ -48,14 +48,14 @@ export default function Modal({
       <div
         className={[
           'relative z-10 flex max-h-[min(90vh,920px)] w-full flex-col overflow-hidden',
-          'rounded-2xl bg-white shadow-2xl ring-1 ring-black/5',
+          'rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-dark-card dark:ring-white/[0.06]',
           ancho,
         ].join(' ')}
       >
         {(titulo || onCerrar) && (
-          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-gray-100 px-5 py-4 sm:px-6">
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b ui-border px-5 py-4 sm:px-6">
             {titulo ? (
-              <h3 id="modal-titulo" className="text-base font-bold text-primary sm:text-lg">
+              <h3 id="modal-titulo" className="text-base font-bold text-primary dark:text-primary-glow sm:text-lg">
                 {titulo}
               </h3>
             ) : (
@@ -65,7 +65,7 @@ export default function Modal({
               <button
                 type="button"
                 onClick={onCerrar}
-                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-slate-500 dark:hover:bg-white/[0.06] dark:hover:text-slate-200"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -77,12 +77,12 @@ export default function Modal({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">{children}</div>
 
         {acciones !== undefined ? (
-          <div className="shrink-0 border-t border-gray-100 bg-gray-50/80 px-5 py-4 sm:px-6">
+          <div className="shrink-0 border-t ui-border bg-gray-50/80 px-5 py-4 dark:bg-dark-elevated/80 sm:px-6">
             {acciones}
           </div>
         ) : (
           onCerrar && (
-            <div className="shrink-0 border-t border-gray-100 bg-gray-50/80 px-5 py-4 sm:px-6">
+            <div className="shrink-0 border-t ui-border bg-gray-50/80 px-5 py-4 dark:bg-dark-elevated/80 sm:px-6">
               <div className="flex justify-end">
                 <Button variant="ghost" size="sm" onClick={onCerrar}>
                   Cancelar

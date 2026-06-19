@@ -32,6 +32,15 @@ export default function useUsuarios() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['usuarios'] }),
   });
 
+  const eliminar = useMutation({
+    mutationFn: (id) => usuarioService.eliminar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['docentes-asesores'] });
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+    },
+  });
+
   return {
     usuarios: listado.items,
     totalElementos: listado.totalElementos,
@@ -47,5 +56,6 @@ export default function useUsuarios() {
     editar,
     activar,
     inactivar,
+    eliminar,
   };
 }

@@ -21,6 +21,12 @@ public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPrac
             WHERE ip.id = :id
             """)
     Optional<InstanciaPractica> findByIdWithExpedienteAndEstudiante(@Param("id") Long id);
+
+    Optional<InstanciaPractica> findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
+            Long estudianteId,
+            EstadoPractica estado
+    );
+
     boolean existsByExpedienteEstudianteProgramaIdAndEstadoIn(Long programaId, List<EstadoPractica> estados);
     boolean existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(Long programaId, Integer numeroPractica, List<EstadoPractica> estados);
 
@@ -29,6 +35,26 @@ public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPrac
     long countByDocenteAsesorIdAndEstado(Long docenteAsesorId, EstadoPractica estado);
 
     long countByTutorIdAndEstado(Long tutorId, EstadoPractica estado);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(ip) > 0 THEN true ELSE false END
+            FROM InstanciaPractica ip
+            JOIN ip.expediente e
+            WHERE e.estudiante.id = :estudianteId
+              AND ip.estado IN :estados
+            """)
+    boolean existsByExpedienteEstudianteIdAndEstadoIn(
+            @Param("estudianteId") Long estudianteId,
+            @Param("estados") List<EstadoPractica> estados
+    );
+
+    @Query("""
+            SELECT CASE WHEN COUNT(ip) > 0 THEN true ELSE false END
+            FROM InstanciaPractica ip
+            JOIN ip.expediente e
+            WHERE e.estudiante.id = :estudianteId
+            """)
+    boolean existsByExpedienteEstudianteId(@Param("estudianteId") Long estudianteId);
 
     @Query("""
             SELECT COUNT(ip)

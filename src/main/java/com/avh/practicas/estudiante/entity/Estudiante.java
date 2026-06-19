@@ -3,6 +3,9 @@ package com.avh.practicas.estudiante.entity;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.shared.pattern.observer.Observador;
 import com.avh.practicas.shared.pattern.observer.Sujeto;
+import com.avh.practicas.auth.entity.Usuario;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +14,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "estudiantes")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,6 +34,11 @@ public class Estudiante implements Sujeto {
 
     @Column(nullable = false, unique = true)
     private String correo;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", unique = true)
+    @JsonIgnore
+    private Usuario usuario;
 
     @Column
     private String telefono;

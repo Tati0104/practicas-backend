@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
 import Layout from '@/shared/components/Layout';
+import ThemeSync from '@/shared/components/ThemeSync';
 import {
   LoginPage,
   RecuperarPasswordPage,
@@ -47,6 +48,7 @@ function InicializadorSesion({ children }) {
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <ThemeSync />
       <InicializadorSesion>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -140,7 +142,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones"
             element={
-              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'COORD_ACADEMICA']}>
                 <AsignacionesPage />
               </RutaPrivada>
             }
@@ -149,7 +151,7 @@ export default function AppRouter() {
           <Route
             path="/asignaciones/:id"
             element={
-              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA']}>
+              <RutaPrivada roles={['ADMIN', 'COORD_PRACTICA', 'COORD_ACADEMICA']}>
                 <AsignacionDetallePage />
               </RutaPrivada>
             }
@@ -163,6 +165,7 @@ export default function AppRouter() {
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}
@@ -180,6 +183,7 @@ export default function AppRouter() {
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}
@@ -195,6 +199,7 @@ export default function AppRouter() {
               <RutaPrivada
                 roles={[
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
@@ -212,6 +217,7 @@ export default function AppRouter() {
               <RutaPrivada
                 roles={[
                   'COORD_PRACTICA',
+                  'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
                   'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
@@ -226,7 +232,7 @@ export default function AppRouter() {
           <Route
             path="/vinculacion"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
                 <VinculacionPage />
               </RutaPrivada>
             }
@@ -235,7 +241,7 @@ export default function AppRouter() {
           <Route
             path="/vinculacion/:asignacionId"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
                 <VinculacionDetallePage />
               </RutaPrivada>
             }
@@ -244,7 +250,7 @@ export default function AppRouter() {
           <Route
             path="/cierre"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
                 <CierreListPage />
               </RutaPrivada>
             }
@@ -253,7 +259,7 @@ export default function AppRouter() {
           <Route
             path="/cierre/:practicaId"
             element={
-              <RutaPrivada roles={['COORD_PRACTICA', 'ADMIN']}>
+              <RutaPrivada roles={['COORD_PRACTICA', 'COORD_ACADEMICA', 'ESTUDIANTE', 'ADMIN']}>
                 <CierrePage />
               </RutaPrivada>
             }

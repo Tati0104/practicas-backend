@@ -30,10 +30,11 @@ export default function CierrePage() {
   const { ejecutarCierre, enviarRecordatorio } = useCierreMutaciones(practicaId);
 
   const puedeGestionar = rol === 'COORD_PRACTICA' || rol === 'ADMIN';
+  const puedeVerSoloLectura = rol === 'ESTUDIANTE' || rol === 'COORD_ACADEMICA';
   const puedeEjecutar = puedeGestionar && canClose;
   const puedeRecordatorio = puedeGestionar;
 
-  if (!puedeGestionar) {
+  if (!puedeGestionar && !puedeVerSoloLectura) {
     return (
       <div className="p-4 sm:p-6">
         <ErrorState mensaje="No tienes permiso para acceder al cierre de esta práctica." />
@@ -111,6 +112,14 @@ export default function CierrePage() {
           ) : null
         }
       />
+
+      {puedeVerSoloLectura && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          {rol === 'ESTUDIANTE'
+            ? 'Estás viendo el progreso de cierre de tu práctica en modo solo lectura. La ejecución del cierre la realiza Coordinación de Prácticas.'
+            : 'Estás en modo de solo lectura. La ejecución del cierre y el envío de recordatorios los realiza Coordinación de Prácticas.'}
+        </div>
+      )}
 
       <ProgresoCierre
         itemsCompletados={checklist.itemsCompletados}

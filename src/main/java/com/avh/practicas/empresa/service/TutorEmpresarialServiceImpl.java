@@ -6,6 +6,8 @@ import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
+import com.avh.practicas.usuario.service.CorreoPersonaService;
+import com.avh.practicas.usuario.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +22,14 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
 
     private final TutorEmpresarialRepository tutorEmpresarialRepository;
     private final EmpresaRepository empresaRepository;
+    private final CorreoPersonaService correoPersonaService;
+    private final UsuarioService usuarioService;
 
     @Override
     @Transactional
     public TutorEmpresarial registrar(TutorEmpresarial tutor) {
-        if (tutorEmpresarialRepository.existsByCorreo(tutor.getCorreo())) {
-            throw new NegocioException("Ya existe un tutor registrado con el correo: " + tutor.getCorreo());
-        }
+        String correo = correoPersonaService.normalizar(tutor.getCorreo());
+        correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 
         Empresa empresa = empresaRepository.findById(tutor.getEmpresa().getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + tutor.getEmpresa().getId()));
@@ -35,7 +38,12 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
             throw new NegocioException("No se puede registrar un tutor bajo una empresa inactiva.");
         }
 
+        var usuario = usuarioService.crearUsuarioTutorEmpresarial(tutor.getNombre(), correo);
+
         tutor.setEmpresa(empresa);
+        tutor.setCorreo(correo);
+        tutor.setNombre(tutor.getNombre().trim());
+        tutor.setUsuarioId(usuario.getId());
         tutor.setActivo(true);
         return tutorEmpresarialRepository.save(tutor);
     }
@@ -46,19 +54,30 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
         TutorEmpresarial tutorExistente = tutorEmpresarialRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el tutor con id: " + id));
 
-        if (tutorEmpresarialRepository.existsByCorreoAndIdNot(tutorActualizado.getCorreo(), id)) {
-            throw new NegocioException("Ya existe otro tutor registrado con el correo: " + tutorActualizado.getCorreo());
-        }
+        String correo = correoPersonaService.normalizar(tutorActualizado.getCorreo());
+        correoPersonaService.validarCorreoDisponible(
+                correo,
+                new CorreoPersonaService.Exclusiones(
+                        tutorExistente.getUsuarioId(),
+                        null,
+                        tutorExistente.getId(),
+                        null
+                )
+        );
 
         Empresa empresa = empresaRepository.findById(tutorActualizado.getEmpresa().getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + tutorActualizado.getEmpresa().getId()));
 
-        tutorExistente.setNombre(tutorActualizado.getNombre());
+        tutorExistente.setNombre(tutorActualizado.getNombre().trim());
         tutorExistente.setCargo(tutorActualizado.getCargo());
-        tutorExistente.setCorreo(tutorActualizado.getCorreo());
+        tutorExistente.setCorreo(correo);
         tutorExistente.setTelefono(tutorActualizado.getTelefono());
-        tutorExistente.setUsuarioId(tutorActualizado.getUsuarioId());
         tutorExistente.setEmpresa(empresa);
+
+        if (tutorExistente.getUsuarioId() != null) {
+            var usuario = usuarioService.obtener(tutorExistente.getUsuarioId());
+            usuarioService.sincronizarPerfil(usuario, tutorActualizado.getNombre(), correo);
+        }
 
         if (tutorActualizado.getActivo() != null) {
             tutorExistente.setActivo(tutorActualizado.getActivo());

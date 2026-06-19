@@ -17,7 +17,7 @@ export default function Paginacion({ pagina = 0, totalPaginas = 1, onCambiarPagi
       >
         ← Anterior
       </Button>
-      <span className="text-sm text-gray-600">
+      <span className="text-sm text-gray-600 dark:text-slate-400">
         Página {pagina + 1} de {totalPaginas}
       </span>
       <Button

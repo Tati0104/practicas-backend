@@ -7,6 +7,7 @@ const PERMISOS_COMPLETOS = {
   canReject: true,
   canPause: true,
   canClose: true,
+  canUploadDocumentos: true,
 };
 
 const PERMISOS_POR_ROL = {
@@ -17,6 +18,7 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: false,
   },
   ESTUDIANTE: {
     canCreate: false,
@@ -25,6 +27,7 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: true,
   },
   DOCENTE_ASESOR: {
     canCreate: false,
@@ -33,6 +36,19 @@ const PERMISOS_POR_ROL = {
     canReject: false,
     canPause: false,
     canClose: false,
+    canUploadDocumentos: false,
+  },
+  // Coordinacion Academica solo gestiona el docente asesor (permiso aparte, ver
+  // usePermisosDocenteAsesor); crear/cancelar asignaciones y subir documentos de
+  // vinculacion sigue siendo de Coordinacion de Practicas.
+  COORD_ACADEMICA: {
+    canCreate: false,
+    canEdit: false,
+    canApprove: false,
+    canReject: false,
+    canPause: false,
+    canClose: false,
+    canUploadDocumentos: false,
   },
 };
 

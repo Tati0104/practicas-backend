@@ -70,7 +70,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("SCOPE_" + scope.name()));
         }
 
-        if (rol == Rol.EMPRESA || rol == Rol.COORD_PRACTICA) {
+        if (rol == Rol.EMPRESA || rol == Rol.COORD_PRACTICA || rol == Rol.COORD_ACADEMICA) {
             authorities.add(new SimpleGrantedAuthority("EMPRESA_LISTAR"));
         }
 
@@ -82,11 +82,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LISTAR"));
         }
 
+        if (rol == Rol.ADMIN || rol == Rol.DIRECCION) {
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_LISTAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_REGISTRAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_EDITAR"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_APTITUD"));
+            authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_IMPORTAR"));
+        }
+
         if (rol == Rol.COORD_ACADEMICA || rol == Rol.COORD_PRACTICA) {
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_REGISTRAR"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_EDITAR"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_APTITUD"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_IMPORTAR"));
+        }
+
+        // Permite que Coordinacion Academica asigne/cambie el docente asesor de una practica,
+        // ademas de Coordinacion de Practicas que ya lo hacia desde la pantalla de Vinculacion.
+        if (rol == Rol.COORD_ACADEMICA || rol == Rol.COORD_PRACTICA) {
+            authorities.add(new SimpleGrantedAuthority("DOCENTE_ASESOR_ASIGNAR"));
         }
 
         return authorities;

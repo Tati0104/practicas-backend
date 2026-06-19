@@ -2,9 +2,10 @@ package com.avh.practicas.correo.factory;
 
 import com.avh.practicas.correo.service.IMailService;
 import com.avh.practicas.shared.evento.EventoSistema;
-import com.avh.practicas.shared.exception.NegocioException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public abstract class NotificacionFactory {
 
@@ -18,9 +19,13 @@ public abstract class NotificacionFactory {
             if (destinatario == null || destinatario.isBlank()) {
                 continue;
             }
-            boolean enviado = mailService.enviar(destinatario, notificacion.getAsunto(), notificacion.getMensaje());
-            if (!enviado) {
-                throw new NegocioException("No se pudo enviar el correo a: " + destinatario);
+            try {
+                boolean enviado = mailService.enviar(destinatario, notificacion.getAsunto(), notificacion.getMensaje());
+                if (!enviado) {
+                    log.warn("No se pudo enviar el correo de notificación a {}: el servicio de correo no lo confirmó.", destinatario);
+                }
+            } catch (Exception ex) {
+                log.warn("No se pudo enviar el correo de notificación a {}: {}", destinatario, ex.getMessage());
             }
         }
     }
