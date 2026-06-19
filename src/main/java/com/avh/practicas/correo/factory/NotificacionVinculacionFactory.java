@@ -4,12 +4,14 @@ import com.avh.practicas.correo.entity.TipoEventoCorreo;
 import com.avh.practicas.correo.service.IMailService;
 import com.avh.practicas.correo.service.PlantillaCorreoService;
 import com.avh.practicas.shared.evento.EventoSistema;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class NotificacionVinculacionFactory extends NotificacionFactory {
 
@@ -22,7 +24,13 @@ public class NotificacionVinculacionFactory extends NotificacionFactory {
 
     @Override
     public Notificacion crearNotificacion(EventoSistema evento) {
-        String correo = String.valueOf(evento.getDatos().getOrDefault("correo", "notificaciones@demo.com"));
+        Object correoObj = evento.getDatos().get("correo");
+        String correo = correoObj != null ? String.valueOf(correoObj).trim() : null;
+        if (correo == null || correo.isBlank()) {
+            log.warn("NotificacionVinculacionFactory: correo destinatario ausente o vacío para evento {} (id={}), notificación omitida",
+                    evento.getTipo(), evento.getIdRecurso());
+            return new NotificacionBase(evento.getTipo().name(), "", "", List.of(), LocalDateTime.now());
+        }
         String nombreEstudiante = String.valueOf(evento.getDatos().getOrDefault("nombre_estudiante", "Estudiante"));
         String empresa = String.valueOf(evento.getDatos().getOrDefault("empresa", "Empresa"));
 

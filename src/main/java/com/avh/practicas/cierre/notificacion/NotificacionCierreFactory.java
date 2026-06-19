@@ -8,6 +8,7 @@ import com.avh.practicas.correo.service.IMailService;
 import com.avh.practicas.correo.service.PlantillaCorreoService;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import java.util.Map;
 /**
  * Factory Method para notificaciones de cierre de práctica (PE-43).
  */
+@Slf4j
 @Component
 public class NotificacionCierreFactory extends NotificacionFactory {
 
@@ -29,7 +31,13 @@ public class NotificacionCierreFactory extends NotificacionFactory {
 
     @Override
     public Notificacion crearNotificacion(EventoSistema evento) {
-        String correo = String.valueOf(evento.getDatos().getOrDefault("correo", "notificaciones@demo.com"));
+        Object correoObj = evento.getDatos().get("correo");
+        String correo = correoObj != null ? String.valueOf(correoObj).trim() : null;
+        if (correo == null || correo.isBlank()) {
+            log.warn("NotificacionCierreFactory: correo destinatario ausente o vacío para evento {} (id={}), notificación omitida",
+                    evento.getTipo(), evento.getIdRecurso());
+            return new NotificacionBase(evento.getTipo().name(), "", "", List.of(), LocalDateTime.now());
+        }
         String nombre = String.valueOf(evento.getDatos().getOrDefault("nombre_estudiante", "participante"));
         String resultado = String.valueOf(evento.getDatos().getOrDefault("resultado", "CERRADA"));
 

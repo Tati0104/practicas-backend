@@ -4,6 +4,7 @@ import com.avh.practicas.correo.entity.TipoEventoCorreo;
 import com.avh.practicas.correo.service.PlantillaCorreoService;
 import com.avh.practicas.vinculacion.event.EventoAsignacion;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import java.util.Map;
 /**
  * Factory Method (PE-30): crea la notificación de correo según el tipo de evento de asignación.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificacionAsignacionFactory {
@@ -103,7 +105,7 @@ public class NotificacionAsignacionFactory {
             }
         }
         if (lista.isEmpty()) {
-            lista.add("notificaciones@demo.com");
+            log.warn("NotificacionAsignacionFactory: sin destinatarios válidos para notificación de asignación, no se enviará correo");
         }
         return lista;
     }

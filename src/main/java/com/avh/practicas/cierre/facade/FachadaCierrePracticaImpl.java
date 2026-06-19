@@ -53,7 +53,7 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     private final TutorEmpresarialRepository tutorRepository;
     private final DocenteAsesorRepository docenteRepository;
 
-    @Value("${cierre.coord-academica-correo:coord.academica@demo.com}")
+    @Value("${cierre.coord-academica-correo:}")
     private String correoCoordAcademica;
 
     @Override
@@ -206,7 +206,8 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
         }
 
         if (correos.isEmpty()) {
-            correos.add("notificaciones@demo.com");
+            log.warn("FachadaCierrePracticaImpl: sin destinatarios válidos para notificar cierre de práctica id={}, no se enviará correo",
+                    practica.getId());
         }
 
         return correos;
