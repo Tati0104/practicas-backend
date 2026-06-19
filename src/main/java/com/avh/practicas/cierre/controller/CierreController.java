@@ -18,10 +18,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * API de cierre de práctica (PE-43 — Facade).
+ * API de cierre de practica (PE-43 - Facade).
  */
 @RestController
 @RequestMapping("/cierres")
@@ -39,11 +44,6 @@ public class CierreController {
         return ResponseEntity.ok(ApiResponse.ok(resumen));
     }
 
-    /**
-     * El checklist no tenía verificación de pertenencia: un ESTUDIANTE autenticado podía
-     * pedir el de cualquier práctica cambiando el ID en la URL. Mismo patrón de ownership
-     * que CalificacionServiceImpl usa para /calificaciones/{practicaId}/resumen.
-     */
     private void validarAccesoSiEsEstudiante(Long practicaId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) {
@@ -56,10 +56,10 @@ public class CierreController {
         }
 
         InstanciaPractica practica = practicaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Practica no encontrada: " + practicaId));
         String correoEstudiante = practica.getExpediente().getEstudiante().getCorreo();
         if (!auth.getName().equals(correoEstudiante)) {
-            throw new AccesoNoAutorizadoException("No tiene permisos para ver el cierre de otra práctica.");
+            throw new AccesoNoAutorizadoException("No tiene permisos para ver el cierre de otra practica.");
         }
     }
 
@@ -71,10 +71,10 @@ public class CierreController {
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Usuario usuario = usuarioRepository.findByCorreo(email)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontró usuario asociado al correo: " + email));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro usuario asociado al correo: " + email));
 
         CierrePracticaResponse resultado = fachadaCierrePractica.ejecutarCierre(practicaId, usuario.getId());
-        return ResponseEntity.ok(ApiResponse.ok("Cierre de práctica ejecutado", resultado));
+        return ResponseEntity.ok(ApiResponse.ok("Cierre de practica ejecutado", resultado));
     }
 
     @PostMapping("/{practicaId}/recordatorio/{tipo}")

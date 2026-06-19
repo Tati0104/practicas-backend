@@ -17,6 +17,8 @@ import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.evento.NotificadorEventos;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
+import com.avh.practicas.shared.scope.ScopePracticas;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +51,10 @@ class FachadaCierrePracticaImplTest {
     private TutorEmpresarialRepository tutorRepository;
     @Mock
     private DocenteAsesorRepository docenteRepository;
+    @Mock
+    private ScopePracticaResolver scopePracticaResolver;
+    @Mock
+    private ScopePracticas scopePracticas;
 
     private FachadaCierrePracticaImpl fachada;
 
@@ -62,8 +68,11 @@ class FachadaCierrePracticaImplTest {
                 documentoProxyActivador,
                 notificadorEventos,
                 tutorRepository,
-                docenteRepository
+                docenteRepository,
+                scopePracticaResolver
         );
+        lenient().when(scopePracticaResolver.resolver()).thenReturn(scopePracticas);
+        lenient().when(scopePracticas.esVisible(any(InstanciaPractica.class))).thenReturn(true);
     }
 
     @Test

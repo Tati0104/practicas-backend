@@ -165,6 +165,9 @@ public class UsuarioAdminService {
     }
 
     private void validarCamposPorRol(CrearUsuarioRequest dto) {
+        if (dto.getRol() == Rol.EMPRESA && dto.getEmpresaId() == null) {
+            throw new NegocioException("Debe seleccionar la empresa para este usuario.");
+        }
         if (dto.getRol() == Rol.DOCENTE_ASESOR && dto.getProgramaId() == null) {
             throw new NegocioException("Debe seleccionar el programa del docente asesor.");
         }
@@ -183,6 +186,7 @@ public class UsuarioAdminService {
 
     private void vincularPerfilDominio(Usuario usuario, CrearUsuarioRequest dto) {
         switch (usuario.getRol()) {
+            case EMPRESA -> vincularUsuarioEmpresa(usuario, dto.getEmpresaId());
             case TUTOR_EMPRESARIAL -> registrarTutorEmpresarial(usuario, dto);
             case DOCENTE_ASESOR -> registrarDocenteAsesor(usuario, dto);
             case ESTUDIANTE -> registrarEstudianteDesdeUsuario(usuario, dto);
@@ -193,6 +197,7 @@ public class UsuarioAdminService {
 
     private void sincronizarPerfilDominio(Usuario usuario, EditarUsuarioRequest dto) {
         switch (usuario.getRol()) {
+            case EMPRESA -> vincularUsuarioEmpresa(usuario, dto.getEmpresaId());
             case TUTOR_EMPRESARIAL -> actualizarTutorEmpresarial(usuario, dto);
             case DOCENTE_ASESOR -> docenteAsesorRepository.findByUsuario_Id(usuario.getId()).ifPresent(docente -> {
                 docente.setNombre(usuario.getNombre());
@@ -411,6 +416,11 @@ public class UsuarioAdminService {
                     });
         }
 
+        if (u.getRol() == Rol.EMPRESA) {
+            empresaRepository.findByUsuarioId(u.getId()).ifPresent(empresa ->
+                    builder.empresaId(empresa.getId()));
+        }
+
         if (u.getRol() == Rol.DOCENTE_ASESOR) {
             docenteAsesorRepository.findByUsuario_Id(u.getId()).ifPresent(docente -> {
                 builder.programaId(docente.getProgramaId());
@@ -427,5 +437,17 @@ public class UsuarioAdminService {
         }
 
         return builder.build();
+    }
+
+    private void vincularUsuarioEmpresa(Usuario usuario, Long empresaId) {
+        Empresa empresa = obtenerEmpresaActiva(empresaId);
+        empresaRepository.findByUsuarioId(usuario.getId())
+                .filter(actual -> !actual.getId().equals(empresa.getId()))
+                .ifPresent(actual -> {
+                    actual.setUsuarioId(null);
+                    empresaRepository.save(actual);
+                });
+        empresa.setUsuarioId(usuario.getId());
+        empresaRepository.save(empresa);
     }
 }

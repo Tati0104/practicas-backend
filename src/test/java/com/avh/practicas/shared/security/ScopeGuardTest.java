@@ -9,11 +9,16 @@ import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.estudiante.entity.Estudiante;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.seguimiento.service.BitacoraService;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
+import com.avh.practicas.vacante.repository.VacanteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,12 +43,31 @@ class ScopeGuardTest {
 
     @Mock
     private ProgramaRepository programaRepository;
+    @Mock
+    private DocenteAsesorRepository docenteAsesorRepository;
+    @Mock
+    private EmpresaRepository empresaRepository;
+    @Mock
+    private TutorEmpresarialRepository tutorEmpresarialRepository;
+    @Mock
+    private InstanciaPracticaRepository instanciaPracticaRepository;
+    @Mock
+    private VacanteRepository vacanteRepository;
 
     private ScopeGuard scopeGuard;
 
     @BeforeEach
     void setUp() {
-        scopeGuard = new ScopeGuard(estudianteRepository, programaRepository, bitacoraService);
+        scopeGuard = new ScopeGuard(
+                estudianteRepository,
+                programaRepository,
+                docenteAsesorRepository,
+                empresaRepository,
+                tutorEmpresarialRepository,
+                instanciaPracticaRepository,
+                vacanteRepository,
+                bitacoraService
+        );
     }
 
     @Test
@@ -213,7 +237,7 @@ class ScopeGuardTest {
         Facultad facultad = Facultad.builder().id(1L).nombre("Ingenieria").build();
         Usuario usuario = Usuario.builder()
                 .correo("coord@test.com")
-                .rol(Rol.COORD_PRACTICA)
+                .rol(Rol.COORD_ACADEMICA)
                 .scope(Scope.FACULTAD)
                 .facultad(facultad)
                 .build();
@@ -235,7 +259,7 @@ class ScopeGuardTest {
                 .build();
         Usuario usuario = Usuario.builder()
                 .correo("coord@test.com")
-                .rol(Rol.COORD_PRACTICA)
+                .rol(Rol.COORD_ACADEMICA)
                 .scope(Scope.FACULTAD)
                 .facultad(facultadUsuario)
                 .build();

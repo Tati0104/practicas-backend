@@ -11,9 +11,13 @@ import com.avh.practicas.asignacion.entity.HistorialAsignacion;
 import com.avh.practicas.asignacion.repository.AsignacionRepository;
 import com.avh.practicas.asignacion.repository.HistorialAsignacionRepository;
 import com.avh.practicas.asignacion.state.AsignacionContext;
+import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.bitacora.entity.TipoAccion;
 import com.avh.practicas.bitacora.service.BitacoraService;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
@@ -23,6 +27,8 @@ import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
+import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.vacante.dto.VacanteResponse;
@@ -75,6 +81,9 @@ public class AsignacionService {
     private final NotificadorEventos notificadorEventos;
     private final InstanciaPracticaRepository instanciaPracticaRepository;
     private final TutorEmpresarialRepository tutorEmpresarialRepository;
+    private final AuthUsuarioRepository usuarioRepository;
+    private final EmpresaRepository empresaRepository;
+    private final DocenteAsesorRepository docenteAsesorRepository;
 
     @Transactional
     public AsignacionResponse asignar(AsignacionRequest request) {
@@ -118,6 +127,7 @@ public class AsignacionService {
     @Transactional
     public AsignacionResponse iniciarVinculacion(Long id, Long responsableId, String motivo) {
         Asignacion asignacion = obtenerEntidad(id);
+        validarAccesoAsignacion(asignacion);
         EstadoAsignacion anterior = asignacion.getEstado();
         // Patron State: ASIGNADA -> EN_PROCESO_VINCULACION.
         new AsignacionContext(asignacion).iniciarVinculacion();
@@ -131,6 +141,7 @@ public class AsignacionService {
     @Transactional
     public AsignacionResponse completarVinculacion(Long id, Long responsableId, String motivo) {
         Asignacion asignacion = obtenerEntidad(id);
+        validarAccesoAsignacion(asignacion);
         EstadoAsignacion anterior = asignacion.getEstado();
         // Patron State: EN_PROCESO_VINCULACION -> VINCULADA.
         new AsignacionContext(asignacion).completarVinculacion();
@@ -144,6 +155,7 @@ public class AsignacionService {
     @Transactional
     public AsignacionResponse cancelar(Long id, Long responsableId, String motivo) {
         Asignacion asignacion = obtenerEntidad(id);
+        validarAccesoAsignacion(asignacion);
         EstadoAsignacion anterior = asignacion.getEstado();
         // Patron State: cancela solo si el estado actual permite la transicion.
         new AsignacionContext(asignacion).cancelar(motivo);
@@ -164,6 +176,7 @@ public class AsignacionService {
     @Transactional(readOnly = true)
     public AsignacionDetalleResponse obtener(Long id) {
         Asignacion asignacion = obtenerEntidad(id);
+        validarAccesoAsignacion(asignacion);
         List<HistorialAsignacionResponse> historial = historialRepository.findByAsignacionIdOrderByFechaAsc(id)
                 .stream()
                 .map(HistorialAsignacionResponse::desdeEntidad)
@@ -178,6 +191,7 @@ public class AsignacionService {
                                            EstadoAsignacion estado,
                                            Pageable pageable) {
 
+        Usuario usuario = obtenerUsuarioActual();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"))) {
             String correo = auth.getName();
@@ -186,8 +200,33 @@ public class AsignacionService {
                 estudianteId = estudianteLogueado.getId();
             }
         }
+        List<Long> vacanteIdsPermitidas = null;
+        List<Long> estudianteIdsPermitidos = null;
+        if (usuario != null && usuario.getRol() == Rol.EMPRESA) {
+            Long empresaId = empresaRepository.findByUsuarioId(usuario.getId())
+                    .map(e -> e.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Empresa asociada no encontrada."));
+            vacanteIdsPermitidas = vacanteRepository.findByEmpresaId(empresaId).stream()
+                    .map(Vacante::getId)
+                    .toList();
+        }
+        if (usuario != null && usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long tutorId = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                    .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(t -> t.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Tutor empresarial no encontrado."));
+            estudianteIdsPermitidos = instanciaPracticaRepository.findEstudianteIdsByTutorId(tutorId);
+        }
+        if (usuario != null && usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            Long docenteId = docenteAsesorRepository.findByUsuario_Id(usuario.getId())
+                    .or(() -> docenteAsesorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(d -> d.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Docente asesor no encontrado."));
+            estudianteIdsPermitidos = instanciaPracticaRepository.findEstudianteIdsByDocenteAsesorId(docenteId);
+        }
 
-        return asignacionRepository.findAll(conFiltros(estudianteId, vacanteId, coordinadorId, estado), pageable)
+        return asignacionRepository.findAll(conFiltros(estudianteId, vacanteId, coordinadorId, estado,
+                        vacanteIdsPermitidas, estudianteIdsPermitidos), pageable)
                 .map(asignacionResponseMapper::toResponse);
     }
 
@@ -286,6 +325,65 @@ public class AsignacionService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la asignación con id: " + id));
     }
 
+    private void validarAccesoAsignacion(Asignacion asignacion) {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.COORD_PRACTICA) {
+            return;
+        }
+        if (usuario.getRol() == Rol.ESTUDIANTE) {
+            Estudiante estudiante = estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Perfil de estudiante no encontrado."));
+            if (!estudiante.getId().equals(asignacion.getEstudianteId())) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación de otro estudiante.");
+            }
+            return;
+        }
+        if (usuario.getRol() == Rol.EMPRESA) {
+            Long empresaId = empresaRepository.findByUsuarioId(usuario.getId())
+                    .map(e -> e.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Empresa asociada no encontrada."));
+            Vacante vacante = vacanteRepository.findById(asignacion.getVacanteId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Vacante no encontrada"));
+            if (!empresaId.equals(vacante.getEmpresaId())) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera de su empresa.");
+            }
+            return;
+        }
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long tutorId = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                    .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(t -> t.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Tutor empresarial no encontrado."));
+            boolean permitido = asignacion.getInstanciaPracticaId() != null
+                    ? instanciaPracticaRepository.existsByIdAndTutorId(asignacion.getInstanciaPracticaId(), tutorId)
+                    : instanciaPracticaRepository.findEstudianteIdsByTutorId(tutorId).contains(asignacion.getEstudianteId());
+            if (!permitido) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera de su empresa.");
+            }
+            return;
+        }
+        if (usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            Long docenteId = docenteAsesorRepository.findByUsuario_Id(usuario.getId())
+                    .or(() -> docenteAsesorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(d -> d.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Docente asesor no encontrado."));
+            boolean permitido = asignacion.getInstanciaPracticaId() != null
+                    ? instanciaPracticaRepository.existsByIdAndDocenteAsesorId(asignacion.getInstanciaPracticaId(), docenteId)
+                    : instanciaPracticaRepository.existsByExpedienteEstudianteIdAndDocenteAsesorId(asignacion.getEstudianteId(), docenteId);
+            if (!permitido) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera del docente.");
+            }
+        }
+    }
+
+    private Usuario obtenerUsuarioActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        return usuarioRepository.findByCorreoIgnoreCase(auth.getName()).orElse(null);
+    }
+
     /**
      * Guarda la trazabilidad de cambios de estado solicitada en PE-31.
      */
@@ -351,7 +449,9 @@ public class AsignacionService {
     private Specification<Asignacion> conFiltros(Long estudianteId,
                                                  Long vacanteId,
                                                  Long coordinadorId,
-                                                 EstadoAsignacion estado) {
+                                                 EstadoAsignacion estado,
+                                                 List<Long> vacanteIdsPermitidas,
+                                                 List<Long> estudianteIdsPermitidos) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (estudianteId != null) {
@@ -365,6 +465,20 @@ public class AsignacionService {
             }
             if (estado != null) {
                 predicates.add(cb.equal(root.get("estado"), estado));
+            }
+            if (vacanteIdsPermitidas != null) {
+                if (vacanteIdsPermitidas.isEmpty()) {
+                    predicates.add(cb.disjunction());
+                } else {
+                    predicates.add(root.get("vacanteId").in(vacanteIdsPermitidas));
+                }
+            }
+            if (estudianteIdsPermitidos != null) {
+                if (estudianteIdsPermitidos.isEmpty()) {
+                    predicates.add(cb.disjunction());
+                } else {
+                    predicates.add(root.get("estudianteId").in(estudianteIdsPermitidos));
+                }
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };

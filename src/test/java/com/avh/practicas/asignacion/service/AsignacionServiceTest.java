@@ -10,8 +10,12 @@ import com.avh.practicas.asignacion.repository.HistorialAsignacionRepository;
 import com.avh.practicas.bitacora.service.BitacoraService;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
+import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
+import com.avh.practicas.estudiante.entity.InstanciaPractica;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.exception.NegocioException;
@@ -43,6 +47,10 @@ class AsignacionServiceTest {
     @Mock
     private EstudianteRepository estudianteRepository;
     @Mock
+    private InstanciaPracticaRepository instanciaPracticaRepository;
+    @Mock
+    private TutorEmpresarialRepository tutorEmpresarialRepository;
+    @Mock
     private VacanteRepository vacanteRepository;
     @Mock
     private VacanteResponseMapper vacanteResponseMapper;
@@ -64,6 +72,9 @@ class AsignacionServiceTest {
         when(estudianteRepository.findById(10L)).thenReturn(Optional.of(estudiante));
         when(vacanteRepository.findById(20L)).thenReturn(Optional.of(vacante));
         when(asignacionRepository.existsByEstudianteIdAndEstadoIn(eq(10L), any())).thenReturn(false);
+        when(instanciaPracticaRepository.findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
+                10L, EstadoPractica.ASIGNADA_PENDIENTE_INICIO))
+                .thenReturn(Optional.of(InstanciaPractica.builder().id(50L).build()));
         when(asignacionRepository.save(any(Asignacion.class))).thenAnswer(invocation -> {
             Asignacion asignacion = invocation.getArgument(0);
             asignacion.setId(100L);

@@ -19,6 +19,8 @@ import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.shared.pattern.singleton.GestorConfiguracion;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
+import com.avh.practicas.shared.scope.ScopePracticas;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +56,10 @@ class CalificacionServiceImplTest {
     private NotaFinalRepository notaFinalRepository;
     @Mock
     private JdbcTemplate jdbcTemplate;
+    @Mock
+    private ScopePracticaResolver scopeResolver;
+    @Mock
+    private ScopePracticas scopePracticas;
 
     private CalificacionServiceImpl service;
 
@@ -66,8 +72,11 @@ class CalificacionServiceImplTest {
                 notaDocenteRepository,
                 notaTutorRepository,
                 notaFinalRepository,
-                jdbcTemplate
+                jdbcTemplate,
+                scopeResolver
         );
+        lenient().when(scopeResolver.resolver()).thenReturn(scopePracticas);
+        lenient().when(scopePracticas.esVisible(any(InstanciaPractica.class))).thenReturn(true);
         // Reset singleton configuration if needed
         GestorConfiguracion.getInstancia().setMaxNota(5.0);
     }

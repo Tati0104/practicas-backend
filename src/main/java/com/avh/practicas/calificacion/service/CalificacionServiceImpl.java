@@ -16,7 +16,9 @@ import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.pattern.singleton.GestorConfiguracion;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class CalificacionServiceImpl implements CalificacionService {
     private final NotaTutorRepository notaTutorRepository;
     private final NotaFinalRepository notaFinalRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final ScopePracticaResolver scopeResolver;
 
     /**
      * Valida si la práctica está marcada como inmutable (cerrada).
@@ -190,6 +193,7 @@ public class CalificacionServiceImpl implements CalificacionService {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
 
+        validarVisible(practica);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"))) {
             String correo = auth.getName();
@@ -248,5 +252,11 @@ public class CalificacionServiceImpl implements CalificacionService {
                 aprobada,
                 promedioEstimado
         );
+    }
+
+    private void validarVisible(InstanciaPractica practica) {
+        if (!scopeResolver.resolver().esVisible(practica)) {
+            throw new AccesoNoAutorizadoException("No tiene acceso a las calificaciones de esta practica.");
+        }
     }
 }

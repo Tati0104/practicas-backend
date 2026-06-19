@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
@@ -11,6 +11,7 @@ import http from '../../../shared/services/http';
 const vacanteSchema = z.object({
   empresaId:               z.coerce.number().int().positive('Empresa es requerida'),
   programaId:              z.coerce.number().int().positive('Programa es requerido'),
+  catalogoPracticaId:      z.coerce.number().int().positive('Nivel de prÃ¡ctica es requerido'),
   cargo:                   z.string().min(1, 'Cargo es requerido'),
   descripcionPerfil:       z.string().min(1, 'Descripción del perfil es requerida'),
   modalidad:               z.enum(['PRESENCIAL', 'REMOTO', 'HÍBRIDO'], { errorMap: () => ({ message: 'Modalidad es requerida' }) }),
@@ -40,9 +41,18 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     enabled: isOpen,
   });
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, control, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(vacanteSchema),
     defaultValues: vacante ?? {},
+  });
+  const programaId = useWatch({ name: 'programaId', control });
+
+  const { data: catalogoPracticas = [] } = useQuery({
+    queryKey: ['catalogo-practicas-select', programaId],
+    queryFn: () => http.get('/configuracion/catalogo', {
+      params: { programaId: Number(programaId), soloActivos: true },
+    }).then(r => r.data ?? []),
+    enabled: isOpen && Boolean(programaId),
   });
 
   const { crear, editar } = useVacantesMutaciones({
@@ -102,6 +112,19 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
               ))}
             </select>
             {fldError('programaId')}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Nivel de prÃ¡ctica</label>
+            <select {...register('catalogoPracticaId')} className="w-full border rounded px-3 py-2">
+              <option value="">â€” Selecciona nivel â€”</option>
+              {catalogoPracticas.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre ?? `PrÃ¡ctica ${c.numeroPractica}`}
+                </option>
+              ))}
+            </select>
+            {fldError('catalogoPracticaId')}
           </div>
 
           {/* Cargo */}

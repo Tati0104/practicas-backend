@@ -56,7 +56,7 @@ public class SeguimientoController {
      * del usuario autenticado (ESTUDIANTE ve solo la suya, coordinadores ven su facultad).
      */
     @GetMapping("/practicas")
-    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'COORD_ACADEMICA', 'SECRETARIA', 'ADMIN', 'ESTUDIANTE')")
+    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'COORD_ACADEMICA', 'SECRETARIA', 'ADMIN', 'ESTUDIANTE', 'DOCENTE_ASESOR', 'EMPRESA', 'TUTOR_EMPRESARIAL')")
     public List<TableroResponse> obtenerPracticasVisibles(
             @RequestParam(required = false) String busqueda,
             @RequestParam(required = false) Long programaId,

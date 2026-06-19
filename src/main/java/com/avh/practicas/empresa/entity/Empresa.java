@@ -53,6 +53,9 @@ public class Empresa implements Sujeto {
     @Column(name = "fecha_inactivacion")
     private java.time.LocalDateTime fechaInactivacion;
 
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+
     @Transient
     @Builder.Default
     private List<Observador> observadores = new ArrayList<>();

@@ -37,6 +37,9 @@ public class Vacante {
     @Column(name = "programa_id", nullable = false)
     private Long programaId;
 
+    @Column(name = "catalogo_practica_id")
+    private Long catalogoPracticaId;
+
     @Column(name = "creado_por_id")
     private Long creadoPorId;
 

@@ -1,8 +1,16 @@
 package com.avh.practicas.vacante.service;
 
+import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.auth.repository.AuthUsuarioRepository;
+import com.avh.practicas.configuracion.repository.CatalogoPracticaRepository;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
+import com.avh.practicas.shared.exception.CatalogoPracticaNoEncontradaException;
 import com.avh.practicas.vacante.dto.VacanteRequest;
 import com.avh.practicas.vacante.dto.VacanteResponse;
 import com.avh.practicas.vacante.entity.EstadoVacanteEnum;
@@ -15,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,12 +44,20 @@ public class VacanteService {
     private final VacanteRepository repository;
     private final NotificadorEventos notificadorEventos;
     private final VacanteResponseMapper responseMapper;
+    private final AuthUsuarioRepository usuarioRepository;
+    private final EmpresaRepository empresaRepository;
+    private final TutorEmpresarialRepository tutorRepository;
+    private final CatalogoPracticaRepository catalogoPracticaRepository;
 
     @Transactional
     public VacanteResponse crear(VacanteRequest request) {
+        Long empresaId = resolverEmpresaIdPermitida(request.empresaId());
+        validarCatalogoPractica(request.catalogoPracticaId(), request.programaId());
+
         Vacante vacante = Vacante.builder()
-                .empresaId(request.empresaId())
+                .empresaId(empresaId)
                 .programaId(request.programaId())
+                .catalogoPracticaId(request.catalogoPracticaId())
                 .creadoPorId(request.creadoPorId())
                 .cargo(request.cargo())
                 .descripcionPerfil(request.descripcionPerfil())
@@ -62,6 +80,7 @@ public class VacanteService {
     // Patron State: PENDIENTE_APROBACION -> ACTIVA.
     public VacanteResponse aprobar(Long id, Long aprobadoPorId) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).aprobar();
         vacante.setAprobadoPorId(aprobadoPorId);
         Vacante guardada = repository.save(vacante);
@@ -73,6 +92,7 @@ public class VacanteService {
     // Patron State: rechaza la vacante dejando motivo obligatorio.
     public VacanteResponse rechazar(Long id, String motivo) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).rechazar(motivo);
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_RECHAZADA, guardada, null);
@@ -83,6 +103,7 @@ public class VacanteService {
     // Patron State: ACTIVA -> PAUSADA.
     public VacanteResponse pausar(Long id) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).pausar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_PAUSADA, guardada, null);
@@ -93,6 +114,7 @@ public class VacanteService {
     // Patron State: PAUSADA -> ACTIVA.
     public VacanteResponse reactivar(Long id) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).reactivar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_REACTIVADA, guardada, null);
@@ -103,6 +125,7 @@ public class VacanteService {
     // Patron State: pasa la vacante a estado CERRADA.
     public VacanteResponse cerrar(Long id) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).cerrar();
         Vacante guardada = repository.save(vacante);
         notificar(TipoEventoSistema.VACANTE_CERRADA, guardada, null);
@@ -113,6 +136,7 @@ public class VacanteService {
     // Cupos: descuenta cupo y puede mover la vacante a CUPOS_COMPLETOS.
     public VacanteResponse descontarCupo(Long id) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).descontarCupo();
         Vacante guardada = repository.save(vacante);
         if (guardada.getEstado() == EstadoVacanteEnum.CUPOS_COMPLETOS) {
@@ -125,13 +149,16 @@ public class VacanteService {
     // Cupos: libera cupo al cancelar una asignacion.
     public VacanteResponse liberarCupo(Long id) {
         Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
         new VacanteContext(vacante).liberarCupo();
         return responseMapper.toResponse(repository.save(vacante));
     }
 
     @Transactional(readOnly = true)
     public VacanteResponse obtener(Long id) {
-        return responseMapper.toResponse(obtenerEntidad(id));
+        Vacante vacante = obtenerEntidad(id);
+        validarAccesoVacante(vacante);
+        return responseMapper.toResponse(vacante);
     }
 
     @Transactional(readOnly = true)
@@ -141,7 +168,8 @@ public class VacanteService {
                                         String modalidad,
                                         String area,
                                         Pageable pageable) {
-        return repository.findAll(conFiltros(empresaId, programaId, estado, modalidad, area), pageable)
+        Long empresaScoped = resolverEmpresaIdFiltro(empresaId);
+        return repository.findAll(conFiltros(empresaScoped, programaId, estado, modalidad, area), pageable)
                 .map(responseMapper::toResponse);
     }
 
@@ -161,6 +189,81 @@ public class VacanteService {
     private Vacante obtenerEntidad(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vacante no encontrada"));
+    }
+
+    private void validarCatalogoPractica(Long catalogoPracticaId, Long programaId) {
+        if (catalogoPracticaId == null) {
+            return;
+        }
+        catalogoPracticaRepository.findById(catalogoPracticaId)
+                .filter(c -> c.getPrograma() != null && c.getPrograma().getId().equals(programaId))
+                .orElseThrow(() -> new CatalogoPracticaNoEncontradaException(
+                        "El nivel de práctica seleccionado no pertenece al programa de la vacante."));
+    }
+
+    private Long resolverEmpresaIdPermitida(Long empresaIdSolicitada) {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null) {
+            return empresaIdSolicitada;
+        }
+        if (usuario.getRol() == Rol.EMPRESA || usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long propia = resolverEmpresaIdUsuario(usuario);
+            if (empresaIdSolicitada != null && !propia.equals(empresaIdSolicitada)) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: no puede crear vacantes para otra empresa.");
+            }
+            return propia;
+        }
+        return empresaIdSolicitada;
+    }
+
+    private Long resolverEmpresaIdFiltro(Long empresaIdSolicitada) {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null) {
+            return empresaIdSolicitada;
+        }
+        if (usuario.getRol() == Rol.EMPRESA || usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long propia = resolverEmpresaIdUsuario(usuario);
+            if (empresaIdSolicitada != null && !propia.equals(empresaIdSolicitada)) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: vacantes fuera de su empresa.");
+            }
+            return propia;
+        }
+        return empresaIdSolicitada;
+    }
+
+    private void validarAccesoVacante(Vacante vacante) {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.COORD_PRACTICA) {
+            return;
+        }
+        if (usuario.getRol() == Rol.EMPRESA || usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long propia = resolverEmpresaIdUsuario(usuario);
+            if (!propia.equals(vacante.getEmpresaId())) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: vacante fuera de su empresa.");
+            }
+        }
+    }
+
+    private Long resolverEmpresaIdUsuario(Usuario usuario) {
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            return tutorRepository.findByUsuarioId(usuario.getId())
+                    .or(() -> tutorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(t -> t.getEmpresa().getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            "Acceso denegado: tutor empresarial no encontrado"));
+        }
+        return empresaRepository.findByUsuarioId(usuario.getId())
+                .map(e -> e.getId())
+                .orElseThrow(() -> new AccesoNoAutorizadoException(
+                        "Acceso denegado: empresa asociada no encontrada"));
+    }
+
+    private Usuario obtenerUsuarioActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
+        return usuarioRepository.findByCorreoIgnoreCase(auth.getName()).orElse(null);
     }
 
     private Specification<Vacante> conFiltros(Long empresaId,

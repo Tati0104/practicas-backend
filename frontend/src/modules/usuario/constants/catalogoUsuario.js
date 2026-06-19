@@ -19,7 +19,7 @@ export const ROLES_CON_PROGRAMA = ['DOCENTE_ASESOR', 'ESTUDIANTE'];
 export const ROLES_CON_FACULTAD = ['COORD_ACADEMICA', 'COORD_PRACTICA', 'SECRETARIA'];
 
 /** Roles que deben estar vinculados a una empresa. */
-export const ROLES_CON_EMPRESA = ['TUTOR_EMPRESARIAL'];
+export const ROLES_CON_EMPRESA = ['EMPRESA', 'TUTOR_EMPRESARIAL'];
 
 const ETIQUETAS_ROL = {
   ADMIN: 'Administrador',
@@ -112,8 +112,10 @@ export function dtoUsuario({
 
   if (requiereEmpresa(rol)) {
     dto.empresaId = empresaId ? Number(empresaId) : null;
-    dto.cargoTutor = cargoTutor?.trim() || 'Tutor empresarial';
-    dto.telefonoTutor = telefonoTutor?.trim() || '';
+    if (rol === 'TUTOR_EMPRESARIAL') {
+      dto.cargoTutor = cargoTutor?.trim() || 'Tutor empresarial';
+      dto.telefonoTutor = telefonoTutor?.trim() || '';
+    }
   }
 
   return dto;
