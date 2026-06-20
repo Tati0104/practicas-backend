@@ -55,6 +55,7 @@ export function useListadoPaginado({
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     isError: query.isError,
+    error: query.error,
     filtros,
     setFiltros,
     actualizarFiltros,

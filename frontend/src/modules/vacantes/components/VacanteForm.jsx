@@ -10,7 +10,10 @@ import empresaService from '../../empresa/services/empresaService';
 import http from '../../../shared/services/http';
 
 const vacanteSchema = z.object({
-  empresaId: z.coerce.number().int().positive('Empresa es requerida'),
+  empresaId: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().positive('Empresa es requerida').optional()
+  ),
   programaId: z.coerce.number().int().positive('Programa es requerido'),
   cargo: z.string().min(1, 'Cargo es requerido'),
   descripcionPerfil: z.string().min(1, 'Descripcion del perfil es requerida'),
@@ -45,7 +48,7 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     enabled: isOpen,
   });
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(vacanteSchema),
     defaultValues: vacante ?? {},
   });
@@ -68,9 +71,16 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
   }, [isOpen, vacante, reset, esEmpresa, empresas]);
 
   const onSubmit = data => {
+    if (!esEmpresa && !data.empresaId) {
+      setError('empresaId', { type: 'manual', message: 'Empresa es requerida' });
+      return;
+    }
+
     const payload = {
       ...data,
       catalogoPracticaId: null,
+      fechaInicioDisponibilidad: data.fechaInicioDisponibilidad || null,
+      fechaFinDisponibilidad: data.fechaFinDisponibilidad || null,
       ...(esEmpresa && empresas[0] ? { empresaId: empresas[0].id } : {}),
     };
     if (isEdit) {

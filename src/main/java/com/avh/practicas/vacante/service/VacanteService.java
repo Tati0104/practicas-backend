@@ -41,6 +41,9 @@ import java.util.Map;
 @Slf4j
 public class VacanteService {
 
+    private static final String MENSAJE_EMPRESA_SIN_ASOCIAR =
+            "Tu cuenta de empresa aún no tiene una empresa asociada. Comunícate con coordinación de prácticas.";
+
     private final VacanteRepository repository;
     private final NotificadorEventos notificadorEventos;
     private final VacanteResponseMapper responseMapper;
@@ -213,6 +216,9 @@ public class VacanteService {
             }
             return propia;
         }
+        if (empresaIdSolicitada == null) {
+            throw new IllegalArgumentException("Debe seleccionar la empresa de la vacante.");
+        }
         return empresaIdSolicitada;
     }
 
@@ -255,7 +261,7 @@ public class VacanteService {
         return empresaRepository.findByUsuarioId(usuario.getId())
                 .map(e -> e.getId())
                 .orElseThrow(() -> new AccesoNoAutorizadoException(
-                        "Acceso denegado: empresa asociada no encontrada"));
+                        MENSAJE_EMPRESA_SIN_ASOCIAR));
     }
 
     private Usuario obtenerUsuarioActual() {

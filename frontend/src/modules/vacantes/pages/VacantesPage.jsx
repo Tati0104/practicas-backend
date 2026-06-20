@@ -9,6 +9,7 @@ import VacantesTabla from '../components/VacantesTabla';
 import VacanteCard from '../components/VacanteCard';
 import VacanteForm from '../components/VacanteForm';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
+import useAuthStore from '@/store/authStore';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Button, PageHeader } from '@/shared/components/ui';
 
@@ -26,8 +27,9 @@ function useEsDesktop() {
 }
 
 export default function VacantesPage() {
-  const { vacantes, isLoading, isError, filtros, setFiltros, totalPaginas, irAPagina, refetch } =
+  const { vacantes, isLoading, isError, error, filtros, setFiltros, totalPaginas, irAPagina, refetch } =
     useVacantes();
+  const rol = useAuthStore((state) => state.rol);
   const { aprobar, rechazar, pausar, cerrar } = useVacantesMutaciones({
     onSuccess: () => {
       toast.success('Operación exitosa');
@@ -44,8 +46,10 @@ export default function VacantesPage() {
   const [vacanteEditando, setVacanteEditando] = useState(null);
 
   useEffect(() => {
-    if (isError) toast.error('Error al cargar vacantes');
-  }, [isError]);
+    if (isError) {
+      toast.error(error?.response?.data?.message ?? error?.message ?? 'Error al cargar vacantes');
+    }
+  }, [isError, error]);
 
   const abrirCrear = () => {
     setVacanteEditando(null);
@@ -75,9 +79,15 @@ export default function VacantesPage() {
         <p className="py-10 text-center text-sm text-gray-500">Cargando vacantes...</p>
       )}
 
-      {!isLoading && vacantes.length === 0 && (
+      {!isLoading && !isError && vacantes.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-400">
-          No hay vacantes registradas.
+          {rol === 'EMPRESA' ? 'No tienes vacantes registradas.' : 'No hay vacantes registradas.'}
+        </div>
+      )}
+
+      {!isLoading && isError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 py-12 text-center text-sm text-red-700">
+          {error?.response?.data?.message ?? error?.message ?? 'No se pudieron cargar las vacantes.'}
         </div>
       )}
 

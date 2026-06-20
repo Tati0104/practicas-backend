@@ -25,6 +25,9 @@ import java.util.Optional;
 @Primary
 public class EmpresaServiceProxy implements EmpresaService {
 
+    private static final String MENSAJE_EMPRESA_SIN_ASOCIAR =
+            "Tu cuenta de empresa aún no tiene una empresa asociada. Comunícate con coordinación de prácticas.";
+
     private final EmpresaService realService;
     private final ScopeGuard scopeGuard;
     private final AuthUsuarioRepository usuarioRepository;
@@ -122,7 +125,7 @@ public class EmpresaServiceProxy implements EmpresaService {
         if (usuario != null && usuario.getRol() == Rol.EMPRESA) {
             Empresa empresa = empresaRepository.findByUsuarioId(usuario.getId())
                     .orElseThrow(() -> new AccesoNoAutorizadoException(
-                            "Acceso denegado: empresa asociada no encontrada"));
+                            MENSAJE_EMPRESA_SIN_ASOCIAR));
             return new org.springframework.data.domain.PageImpl<>(List.of(empresa), pageable, 1);
         }
         if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {

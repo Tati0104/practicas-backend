@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record VacanteRequest(
-        @NotNull Long empresaId,
+        Long empresaId,
         @NotNull Long programaId,
         Long catalogoPracticaId,
         Long creadoPorId,
