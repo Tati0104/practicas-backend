@@ -7,8 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record VacanteRequest(
-        @NotNull Long empresaId,
+        Long empresaId,
         @NotNull Long programaId,
+        Long catalogoPracticaId,
         Long creadoPorId,
         String correoEmpresa,
         @NotBlank String cargo,
@@ -20,4 +21,21 @@ public record VacanteRequest(
         LocalDate fechaInicioDisponibilidad,
         LocalDate fechaFinDisponibilidad
 ) {
+    public VacanteRequest(
+            Long empresaId,
+            Long programaId,
+            Long creadoPorId,
+            String correoEmpresa,
+            String cargo,
+            String descripcionPerfil,
+            String requisitos,
+            Integer cuposTotales,
+            String area,
+            String modalidad,
+            LocalDate fechaInicioDisponibilidad,
+            LocalDate fechaFinDisponibilidad
+    ) {
+        this(empresaId, programaId, null, creadoPorId, correoEmpresa, cargo, descripcionPerfil,
+                requisitos, cuposTotales, area, modalidad, fechaInicioDisponibilidad, fechaFinDisponibilidad);
+    }
 }

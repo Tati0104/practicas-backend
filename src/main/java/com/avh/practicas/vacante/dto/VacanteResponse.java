@@ -11,6 +11,9 @@ public record VacanteResponse(
         String empresaNombre,
         Long programaId,
         String programaNombre,
+        Long catalogoPracticaId,
+        String catalogoPracticaNombre,
+        Integer numeroPractica,
         Long creadoPorId,
         Long aprobadoPorId,
         String cargo,
@@ -27,6 +30,34 @@ public record VacanteResponse(
         LocalDate fechaInicioDisponibilidad,
         LocalDate fechaFinDisponibilidad
 ) {
+    public VacanteResponse(
+            Long id,
+            Long empresaId,
+            String empresaNombre,
+            Long programaId,
+            String programaNombre,
+            Long creadoPorId,
+            Long aprobadoPorId,
+            String cargo,
+            String descripcionPerfil,
+            String requisitos,
+            String modalidad,
+            String area,
+            Integer cuposTotales,
+            Integer cuposOcupados,
+            Integer cuposDisponibles,
+            EstadoVacanteEnum estado,
+            String estadoColor,
+            String motivoRechazo,
+            LocalDate fechaInicioDisponibilidad,
+            LocalDate fechaFinDisponibilidad
+    ) {
+        this(id, empresaId, empresaNombre, programaId, programaNombre, null, null, null,
+                creadoPorId, aprobadoPorId, cargo, descripcionPerfil, requisitos, modalidad,
+                area, cuposTotales, cuposOcupados, cuposDisponibles, estado, estadoColor,
+                motivoRechazo, fechaInicioDisponibilidad, fechaFinDisponibilidad);
+    }
+
     public static VacanteResponse desdeEntidad(
             Vacante vacante,
             String empresaNombre,
@@ -37,6 +68,9 @@ public record VacanteResponse(
                 empresaNombre,
                 vacante.getProgramaId(),
                 programaNombre,
+                vacante.getCatalogoPracticaId(),
+                null,
+                null,
                 vacante.getCreadoPorId(),
                 vacante.getAprobadoPorId(),
                 vacante.getCargo(),
@@ -52,6 +86,34 @@ public record VacanteResponse(
                 vacante.getMotivoRechazo(),
                 vacante.getFechaInicioDisponibilidad(),
                 vacante.getFechaFinDisponibilidad()
+        );
+    }
+
+    public VacanteResponse conCatalogoPractica(String catalogoPracticaNombre, Integer numeroPractica) {
+        return new VacanteResponse(
+                id,
+                empresaId,
+                empresaNombre,
+                programaId,
+                programaNombre,
+                catalogoPracticaId,
+                catalogoPracticaNombre,
+                numeroPractica,
+                creadoPorId,
+                aprobadoPorId,
+                cargo,
+                descripcionPerfil,
+                requisitos,
+                modalidad,
+                area,
+                cuposTotales,
+                cuposOcupados,
+                cuposDisponibles,
+                estado,
+                estadoColor,
+                motivoRechazo,
+                fechaInicioDisponibilidad,
+                fechaFinDisponibilidad
         );
     }
 

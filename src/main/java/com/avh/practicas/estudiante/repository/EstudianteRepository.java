@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface EstudianteRepository extends JpaRepository<Estudiante, Long>, JpaSpecificationExecutor<Estudiante> {
@@ -21,6 +22,15 @@ public interface EstudianteRepository extends JpaRepository<Estudiante, Long>, J
     Optional<Estudiante> findByCorreoIgnoreCase(@Param("correo") String correo);
 
     Optional<Estudiante> findByUsuario_Id(Long usuarioId);
+
+    @Query("""
+            SELECT DISTINCT e
+            FROM Estudiante e
+            JOIN e.expediente exp
+            JOIN exp.instanciasPractica ip
+            WHERE ip.docenteAsesorId = :docenteAsesorId
+            """)
+    List<Estudiante> findAsignadosADocente(@Param("docenteAsesorId") Long docenteAsesorId);
 
     @Query("""
             SELECT COUNT(e)

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import docentesAsesoresService from '../../docentes/services/docentesAsesoresService';
 import { Modal, Button, Input } from '@/shared/components/ui';
 
-export default function ActivarPracticaModal({ isOpen, onClose, onConfirmar, isPending, programaNombre }) {
+export default function ActivarPracticaModal({ isOpen, onClose, onConfirmar, isPending }) {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [docenteAsesorId, setDocenteAsesorId] = useState('');
@@ -13,8 +13,6 @@ export default function ActivarPracticaModal({ isOpen, onClose, onConfirmar, isP
     queryFn: () => docentesAsesoresService.listarPorPrograma().then(res => res.filter(d => d.activo)),
     enabled: isOpen
   });
-
-  const docentesPrograma = docentes.filter(d => !programaNombre || d.programaId /* We don't have exactly the programaId from EstudianteDto, but the backend lists all of them */);
 
   const handleSubmit = () => {
     onConfirmar({ fechaInicio, fechaFin, docenteAsesorId: Number(docenteAsesorId) });

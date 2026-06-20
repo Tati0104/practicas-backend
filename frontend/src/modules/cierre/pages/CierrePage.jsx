@@ -30,7 +30,7 @@ export default function CierrePage() {
   const { ejecutarCierre, enviarRecordatorio } = useCierreMutaciones(practicaId);
 
   const puedeGestionar = rol === 'COORD_PRACTICA' || rol === 'ADMIN';
-  const puedeVerSoloLectura = rol === 'ESTUDIANTE' || rol === 'COORD_ACADEMICA';
+  const puedeVerSoloLectura = rol === 'SECRETARIA';
   const puedeEjecutar = puedeGestionar && canClose;
   const puedeRecordatorio = puedeGestionar;
 

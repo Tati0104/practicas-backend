@@ -7,6 +7,7 @@ import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.estudiante.dto.EstudianteDto;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
 import com.avh.practicas.estudiante.entity.Estudiante;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
@@ -33,18 +34,21 @@ public class EstudianteServiceProxy implements EstudianteService {
     private final AuthUsuarioRepository usuarioRepository;
     private final EstudianteRepository estudianteRepository;
     private final ProgramaRepository programaRepository;
+    private final DocenteAsesorRepository docenteAsesorRepository;
 
     public EstudianteServiceProxy(
             @Qualifier("estudianteServiceImpl") EstudianteService realService,
             ScopeGuard scopeGuard,
             AuthUsuarioRepository usuarioRepository,
             EstudianteRepository estudianteRepository,
-            ProgramaRepository programaRepository) {
+            ProgramaRepository programaRepository,
+            DocenteAsesorRepository docenteAsesorRepository) {
         this.realService = realService;
         this.scopeGuard = scopeGuard;
         this.usuarioRepository = usuarioRepository;
         this.estudianteRepository = estudianteRepository;
         this.programaRepository = programaRepository;
+        this.docenteAsesorRepository = docenteAsesorRepository;
     }
 
     private Usuario obtenerUsuarioActual() {
@@ -119,6 +123,7 @@ public class EstudianteServiceProxy implements EstudianteService {
         if (usuario != null
                 && (usuario.getRol() == Rol.ADMIN
                 || usuario.getRol() == Rol.DIRECCION
+                || usuario.getRol() == Rol.COORD_PRACTICA
                 || usuario.getScope() == Scope.GLOBAL)) {
             return realService.listar(programa, facultad, aptitud, estadoPractica, busqueda, pageable);
         }
@@ -127,6 +132,15 @@ public class EstudianteServiceProxy implements EstudianteService {
                     .orElseThrow(() -> new AccesoNoAutorizadoException(
                             "Acceso denegado: perfil de estudiante no encontrado"));
             return new PageImpl<>(List.of(propio), pageable, 1);
+        }
+        if (usuario != null && usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            Long docenteId = docenteAsesorRepository.findByUsuario_Id(usuario.getId())
+                    .or(() -> docenteAsesorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            "Acceso denegado: perfil de docente asesor no encontrado"))
+                    .getId();
+            List<Estudiante> asignados = estudianteRepository.findAsignadosADocente(docenteId);
+            return new PageImpl<>(asignados, pageable, asignados.size());
         }
         if (usuario != null && usuario.getScope() == Scope.FACULTAD) {
             if (usuario.getFacultad() == null) {

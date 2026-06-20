@@ -26,6 +26,7 @@ export function useVacantes() {
     isLoading: listado.isLoading,
     isFetching: listado.isFetching,
     isError: listado.isError,
+    error: listado.error,
     filtros: listado.filtros,
     setFiltros: listado.setFiltros,
     actualizarFiltros: listado.actualizarFiltros,

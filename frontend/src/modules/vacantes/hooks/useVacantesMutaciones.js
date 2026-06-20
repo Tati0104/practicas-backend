@@ -7,7 +7,6 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import empresaService from '../../empresa/services/empresaService';
-import { toast } from 'react-hot-toast';
 
 export function useVacantesMutaciones({ onSuccess, onError } = {}) {
   const queryClient = useQueryClient();

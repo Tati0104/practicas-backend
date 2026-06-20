@@ -23,6 +23,7 @@ import com.avh.practicas.seguimiento.repository.ObservacionDocenteRepository;
 import com.avh.practicas.notificacion.service.NotificacionService;
 import com.avh.practicas.shared.scope.ScopePracticaResolver;
 import com.avh.practicas.shared.scope.ScopePracticas;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
@@ -435,6 +436,8 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     private TableroResponse construirTableroResponseScoped(InstanciaPractica p) {
         String nombreEstudiante = p.getExpediente().getEstudiante().getNombre();
 
+        validarVisible(p);
+
         String nombreEmpresa = "No asignada";
         if (p.getEmpresaId() != null) {
             try {
@@ -547,18 +550,21 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Override
     @Transactional(readOnly = true)
     public List<ObservacionDocente> obtenerObservacionesPorPractica(Long practicaId) {
+        validarVisiblePorId(practicaId);
         return observacionDocenteRepository.findByInstanciaPracticaId(practicaId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AvanceTutor> obtenerAvancesPorPractica(Long practicaId) {
+        validarVisiblePorId(practicaId);
         return avanceTutorRepository.findByInstanciaPracticaId(practicaId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<BitacoraEstudiante> obtenerBitacorasPorPractica(Long practicaId) {
+        validarVisiblePorId(practicaId);
         return bitacoraEstudianteRepository.findByInstanciaPracticaId(practicaId);
     }
 
@@ -661,5 +667,31 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Transactional(readOnly = true)
     public List<AlertaSistema> obtenerAlertasActivas() {
         return notificacionService.listarParaUsuarioActual(null);
+    }
+
+    private void validarVisiblePorId(Long practicaId) {
+        if (!hayUsuarioAutenticado()) {
+            return;
+        }
+        validarVisible(obtenerPracticaConScope(practicaId));
+    }
+
+    private InstanciaPractica obtenerPracticaConScope(Long practicaId) {
+        return practicaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro la practica con ID: " + practicaId));
+    }
+
+    private void validarVisible(InstanciaPractica practica) {
+        if (!hayUsuarioAutenticado()) {
+            return;
+        }
+        if (!scopeResolver.resolver().esVisible(practica)) {
+            throw new AccesoNoAutorizadoException("No tiene acceso a esta practica.");
+        }
+    }
+
+    private boolean hayUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal());
     }
 }

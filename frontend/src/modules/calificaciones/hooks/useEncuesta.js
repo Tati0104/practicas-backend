@@ -21,6 +21,9 @@ export default function useEncuesta(practicaId, tipo, habilitada = true) {
     queryKey,
     queryFn: async () => {
       const { data } = await http.get(`/encuestas/${practicaId}/${tipo}`);
+      if (!data) {
+        return null;
+      }
       return {
         ...data,
         respuestas: parseRespuestas(data.respuestasJson),

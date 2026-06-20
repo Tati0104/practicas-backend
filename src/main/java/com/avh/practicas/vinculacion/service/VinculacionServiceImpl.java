@@ -9,9 +9,11 @@ import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.empresa.entity.Empresa;
+import com.avh.practicas.estudiante.entity.DocenteAsesor;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
@@ -61,6 +63,7 @@ public class VinculacionServiceImpl implements VinculacionService {
     private final EstudianteRepository estudianteRepository;
     private final EmpresaRepository empresaRepository;
     private final TutorEmpresarialRepository tutorRepository;
+    private final DocenteAsesorRepository docenteRepository;
     private final AlmacenArchivosPort almacenArchivos;
     private final ValidadorArchivoVinculacion validadorArchivo;
     private final MediadorVinculacion mediadorVinculacion;
@@ -80,6 +83,10 @@ public class VinculacionServiceImpl implements VinculacionService {
         String estadoParam = estado != null ? estado.name() : null;
         Long tutorId = resolverTutorAutenticado().map(TutorEmpresarial::getId).orElse(null);
         Long estudianteId = resolverEstudianteAutenticado().map(Estudiante::getId).orElse(null);
+        Optional<Empresa> empresaAutenticada = resolverEmpresaAutenticada();
+        if (empresaAutenticada.isPresent()) {
+            empresaId = empresaAutenticada.get().getId();
+        }
         return asignacionRepository.buscarVinculaciones(
                         busqueda, programaId, empresaId, estadoParam, tutorId, estudianteId, pageable)
                 .map(this::mapearListado);
@@ -169,6 +176,8 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (documento.getAsignacionId() != null) {
             Asignacion asignacion = obtenerAsignacion(documento.getAsignacionId());
             validarAccesoAsignacion(asignacion);
+        } else if (documento.getInstanciaPracticaId() != null) {
+            validarAccesoPractica(documento.getInstanciaPracticaId());
         }
 
         try {
@@ -192,9 +201,14 @@ public class VinculacionServiceImpl implements VinculacionService {
     @Override
     @Transactional(readOnly = true)
     public String nombreDescargaDocumento(Long documentoId) {
-        return documentoPracticaRepository.findById(documentoId)
-                .map(DocumentoPractica::getNombre)
-                .orElse("documento.pdf");
+        DocumentoPractica documento = documentoPracticaRepository.findById(documentoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Documento no encontrado: " + documentoId));
+        if (documento.getAsignacionId() != null) {
+            validarAccesoAsignacion(obtenerAsignacion(documento.getAsignacionId()));
+        } else if (documento.getInstanciaPracticaId() != null) {
+            validarAccesoPractica(documento.getInstanciaPracticaId());
+        }
+        return documento.getNombre();
     }
 
     @Override
@@ -271,6 +285,7 @@ public class VinculacionServiceImpl implements VinculacionService {
             throw new RecursoNoEncontradoException("No se encontró la práctica con id: " + practicaId);
         }
 
+        validarAccesoPractica(practicaId);
         List<DocumentoPractica> documentos = documentoPracticaRepository.findByInstanciaPracticaIdOrderByFechaDesc(practicaId);
 
         Map<String, List<DocumentoPracticaDto>> porCategoria = Arrays.stream(CategoriaDocumento.values())
@@ -292,6 +307,7 @@ public class VinculacionServiceImpl implements VinculacionService {
     public com.avh.practicas.estudiante.entity.Estudiante obtenerEstudiantePorPractica(Long practicaId) {
         InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+        validarAccesoPractica(practicaId);
         return practica.getExpediente().getEstudiante();
     }
 
@@ -515,7 +531,25 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (usuario == null || usuario.getRol() != Rol.TUTOR_EMPRESARIAL) {
             return Optional.empty();
         }
-        return tutorRepository.findByCorreo(usuario.getCorreo());
+        return tutorRepository.findByUsuarioId(usuario.getId())
+                .or(() -> tutorRepository.findByCorreoIgnoreCase(usuario.getCorreo()));
+    }
+
+    private Optional<DocenteAsesor> resolverDocenteAutenticado() {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() != Rol.DOCENTE_ASESOR) {
+            return Optional.empty();
+        }
+        return docenteRepository.findByUsuario_Id(usuario.getId())
+                .or(() -> docenteRepository.findByCorreoIgnoreCase(usuario.getCorreo()));
+    }
+
+    private Optional<Empresa> resolverEmpresaAutenticada() {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() != Rol.EMPRESA) {
+            return Optional.empty();
+        }
+        return empresaRepository.findByUsuarioId(usuario.getId());
     }
 
     private Optional<Estudiante> resolverEstudianteAutenticado() {
@@ -555,6 +589,28 @@ public class VinculacionServiceImpl implements VinculacionService {
     }
 
     private void validarAccesoAsignacion(Asignacion asignacion) {
+        Optional<Empresa> empresa = resolverEmpresaAutenticada();
+        if (empresa.isPresent()) {
+            Vacante vacante = obtenerVacante(asignacion.getVacanteId());
+            if (!empresa.get().getId().equals(vacante.getEmpresaId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a la vinculacion de este estudiante.");
+            }
+            return;
+        }
+
+        Optional<DocenteAsesor> docente = resolverDocenteAutenticado();
+        if (docente.isPresent()) {
+            Long docenteId = docente.get().getId();
+            boolean asignada = asignacion.getInstanciaPracticaId() != null
+                    && practicaRepository.findById(asignacion.getInstanciaPracticaId())
+                    .map(p -> docenteId.equals(p.getDocenteAsesorId()))
+                    .orElse(false);
+            if (!asignada) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a la vinculacion de este estudiante.");
+            }
+            return;
+        }
+
         Optional<TutorEmpresarial> tutor = resolverTutorAutenticado();
         if (tutor.isPresent()) {
             if (!tieneAccesoTutorAsignacion(asignacion, tutor.get().getId())) {
@@ -566,6 +622,47 @@ public class VinculacionServiceImpl implements VinculacionService {
         Optional<Estudiante> estudiante = resolverEstudianteAutenticado();
         if (estudiante.isPresent() && !estudiante.get().getId().equals(asignacion.getEstudianteId())) {
             throw new AccesoNoAutorizadoException("No tiene acceso a la vinculación de este estudiante.");
+        }
+    }
+
+    private void validarAccesoPractica(Long practicaId) {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.COORD_PRACTICA) {
+            return;
+        }
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Practica no encontrada: " + practicaId));
+        if (usuario.getRol() == Rol.ESTUDIANTE) {
+            Long propioId = resolverEstudianteAutenticado()
+                    .map(Estudiante::getId)
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Perfil de estudiante no encontrado."));
+            if (!propioId.equals(practica.getExpediente().getEstudiante().getId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a documentos de otra practica.");
+            }
+        }
+        if (usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            Long docenteId = resolverDocenteAutenticado()
+                    .map(DocenteAsesor::getId)
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Perfil de docente no encontrado."));
+            if (!docenteId.equals(practica.getDocenteAsesorId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a documentos de estudiantes no asignados.");
+            }
+        }
+        if (usuario.getRol() == Rol.EMPRESA) {
+            Long empresaId = resolverEmpresaAutenticada()
+                    .map(Empresa::getId)
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Empresa asociada no encontrada."));
+            if (!empresaId.equals(practica.getEmpresaId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a documentos fuera de su empresa.");
+            }
+        }
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            Long tutorId = resolverTutorAutenticado()
+                    .map(TutorEmpresarial::getId)
+                    .orElseThrow(() -> new AccesoNoAutorizadoException("Tutor empresarial no encontrado."));
+            if (!tutorId.equals(practica.getTutorId())) {
+                throw new AccesoNoAutorizadoException("No tiene acceso a documentos fuera de su empresa.");
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import BadgeDocumento from './BadgeDocumento';
 import SubirDocumentoDropzone from './SubirDocumentoDropzone';
 import estudianteService from '../../estudiante/services/estudianteService';
