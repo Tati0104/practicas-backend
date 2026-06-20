@@ -4,7 +4,7 @@ import BadgeVacanteEstado from './BadgeVacanteEstado';
 import { Button, Card } from '@/shared/components/ui';
 
 export default function VacanteCard({ vacante, acciones }) {
-  const { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose } = acciones;
+  const { aprobar, rechazar, pausar, reanudar, cerrar, canApprove, canReject, canPause, canClose } = acciones;
 
   return (
     <Card padding="p-4">
@@ -39,6 +39,11 @@ export default function VacanteCard({ vacante, acciones }) {
         {canPause && vacante.estado === 'ACTIVA' && (
           <Button variant="warning" size="sm" onClick={() => pausar.mutate(vacante.id)}>
             Pausar
+          </Button>
+        )}
+        {canPause && vacante.estado === 'PAUSADA' && (
+          <Button variant="success" size="sm" onClick={() => reanudar.mutate(vacante.id)}>
+            Reanudar
           </Button>
         )}
         {canClose && vacante.estado !== 'CERRADA' && (

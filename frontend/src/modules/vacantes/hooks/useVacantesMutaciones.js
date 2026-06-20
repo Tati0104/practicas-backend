@@ -57,6 +57,15 @@ export function useVacantesMutaciones({ onSuccess, onError } = {}) {
     onError,
   });
 
+  const reanudar = useMutation({
+    mutationFn: id => empresaService.reactivarVacante(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['vacantes']);
+      if (onSuccess) onSuccess();
+    },
+    onError,
+  });
+
   const cerrar = useMutation({
     mutationFn: id => empresaService.cerrarVacante(id),
     onSuccess: () => {
@@ -66,5 +75,5 @@ export function useVacantesMutaciones({ onSuccess, onError } = {}) {
     onError,
   });
 
-  return { crear, editar, aprobar, rechazar, pausar, cerrar };
+  return { crear, editar, aprobar, rechazar, pausar, reanudar, cerrar };
 }

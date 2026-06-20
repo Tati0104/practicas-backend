@@ -33,6 +33,7 @@ const empresaService = {
   rechazarVacante:  (id, motivo) =>
     http.patch(`/vacantes/${id}/rechazar`, null, { params: { motivo } }),
   pausarVacante:    (id)      => http.patch(`/vacantes/${id}/pausar`),
+  reactivarVacante: (id)      => http.patch(`/vacantes/${id}/reactivar`),
   cerrarVacante:    (id)      => http.patch(`/vacantes/${id}/cerrar`)
 };
 

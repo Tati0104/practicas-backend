@@ -28,7 +28,7 @@ function useEsDesktop() {
 export default function VacantesPage() {
   const { vacantes, isLoading, isError, filtros, setFiltros, totalPaginas, irAPagina, refetch } =
     useVacantes();
-  const { aprobar, rechazar, pausar, cerrar } = useVacantesMutaciones({
+  const { aprobar, rechazar, pausar, reanudar, cerrar } = useVacantesMutaciones({
     onSuccess: () => {
       toast.success('Operación exitosa');
       refetch();
@@ -57,7 +57,7 @@ export default function VacantesPage() {
     refetch();
   };
 
-  const acciones = { aprobar, rechazar, pausar, cerrar, canApprove, canReject, canPause, canClose };
+  const acciones = { aprobar, rechazar, pausar, reanudar, cerrar, canApprove, canReject, canPause, canClose };
 
   return (
     <div>
