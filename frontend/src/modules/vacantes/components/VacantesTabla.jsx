@@ -14,6 +14,11 @@ export default function VacantesTabla({ vacantes, acciones }) {
       render: (v) => v.empresaNombre ?? (v.empresaId ? `Empresa #${v.empresaId}` : '—'),
     },
     { key: 'cargo', titulo: 'Cargo' },
+    {
+      key: 'nivelPractica',
+      titulo: 'Nivel',
+      render: (v) => v.catalogoPracticaNombre ?? (v.numeroPractica ? `PrÃ¡ctica ${v.numeroPractica}` : 'â€”'),
+    },
     { key: 'modalidad', titulo: 'Modalidad' },
     {
       key: 'cupos',

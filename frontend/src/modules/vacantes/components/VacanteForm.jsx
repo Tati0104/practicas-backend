@@ -4,25 +4,33 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
+import useAuthStore from '@/store/authStore';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
 import empresaService from '../../empresa/services/empresaService';
 import http from '../../../shared/services/http';
 
 const vacanteSchema = z.object({
-  empresaId:               z.coerce.number().int().positive('Empresa es requerida'),
-  programaId:              z.coerce.number().int().positive('Programa es requerido'),
-  cargo:                   z.string().min(1, 'Cargo es requerido'),
-  descripcionPerfil:       z.string().min(1, 'Descripción del perfil es requerida'),
-  modalidad:               z.enum(['PRESENCIAL', 'REMOTO', 'HÍBRIDO'], { errorMap: () => ({ message: 'Modalidad es requerida' }) }),
-  cuposTotales:            z.coerce.number().int().min(1, 'Debe ser al menos 1'),
-  area:                    z.string().optional(),
-  requisitos:              z.string().optional(),
+  empresaId: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.coerce.number().int().positive('Empresa es requerida').optional()
+  ),
+  programaId: z.coerce.number().int().positive('Programa es requerido'),
+  cargo: z.string().min(1, 'Cargo es requerido'),
+  descripcionPerfil: z.string().min(1, 'Descripcion del perfil es requerida'),
+  modalidad: z.enum(['PRESENCIAL', 'REMOTO', 'HÍBRIDO'], {
+    errorMap: () => ({ message: 'Modalidad es requerida' }),
+  }),
+  cuposTotales: z.coerce.number().int().min(1, 'Debe ser al menos 1'),
+  area: z.string().optional(),
+  requisitos: z.string().optional(),
   fechaInicioDisponibilidad: z.string().optional(),
-  fechaFinDisponibilidad:    z.string().optional(),
+  fechaFinDisponibilidad: z.string().optional(),
 });
 
 export default function VacanteForm({ isOpen, onClose, vacante }) {
   const isEdit = !!vacante?.id;
+  const rol = useAuthStore((state) => state.rol);
+  const esEmpresa = rol === 'EMPRESA';
 
   const { data: empresas = [] } = useQuery({
     queryKey: ['empresas-select-vacante'],
@@ -40,7 +48,7 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     enabled: isOpen,
   });
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(vacanteSchema),
     defaultValues: vacante ?? {},
   });
@@ -54,14 +62,31 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
   });
 
   useEffect(() => {
-    if (isOpen) reset(vacante ?? {});
-  }, [isOpen, vacante, reset]);
+    if (!isOpen) return;
+    const empresaPropia = esEmpresa ? empresas[0] : null;
+    reset({
+      ...(vacante ?? {}),
+      ...(empresaPropia ? { empresaId: empresaPropia.id } : {}),
+    });
+  }, [isOpen, vacante, reset, esEmpresa, empresas]);
 
   const onSubmit = data => {
+    if (!esEmpresa && !data.empresaId) {
+      setError('empresaId', { type: 'manual', message: 'Empresa es requerida' });
+      return;
+    }
+
+    const payload = {
+      ...data,
+      catalogoPracticaId: null,
+      fechaInicioDisponibilidad: data.fechaInicioDisponibilidad || null,
+      fechaFinDisponibilidad: data.fechaFinDisponibilidad || null,
+      ...(esEmpresa && empresas[0] ? { empresaId: empresas[0].id } : {}),
+    };
     if (isEdit) {
-      editar.mutate({ id: vacante.id, dto: data });
+      editar.mutate({ id: vacante.id, dto: payload });
     } else {
-      crear.mutate(data);
+      crear.mutate(payload);
     }
   };
 
@@ -71,6 +96,8 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     <p className="text-red-600 text-sm mt-1">{errors[key].message}</p>
   );
 
+  const nombreEmpresa = empresas[0]?.razonSocial ?? empresas[0]?.nombre ?? (empresas[0]?.id ? `Empresa ${empresas[0].id}` : 'Empresa asociada');
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
       <div className="bg-white rounded-lg w-full max-w-lg p-6 shadow-lg overflow-y-auto max-h-[90vh]">
@@ -79,24 +106,30 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-
-          {/* Empresa */}
           <div>
             <label className="block text-sm font-medium mb-1">Empresa</label>
-            <select {...register('empresaId')} className="w-full border rounded px-3 py-2">
-              <option value="">— Selecciona empresa —</option>
-              {empresas.map(e => (
-                <option key={e.id} value={e.id}>{e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`}</option>
-              ))}
-            </select>
+            {esEmpresa ? (
+              <>
+                <input type="hidden" {...register('empresaId')} />
+                <div className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-700">
+                  {nombreEmpresa}
+                </div>
+              </>
+            ) : (
+              <select {...register('empresaId')} className="w-full border rounded px-3 py-2">
+                <option value="">- Selecciona empresa -</option>
+                {empresas.map(e => (
+                  <option key={e.id} value={e.id}>{e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`}</option>
+                ))}
+              </select>
+            )}
             {fldError('empresaId')}
           </div>
 
-          {/* Programa */}
           <div>
             <label className="block text-sm font-medium mb-1">Programa</label>
             <select {...register('programaId')} className="w-full border rounded px-3 py-2">
-              <option value="">— Selecciona programa —</option>
+              <option value="">- Selecciona programa -</option>
               {programas.map(p => (
                 <option key={p.id} value={p.id}>{p.nombre}</option>
               ))}
@@ -104,27 +137,24 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
             {fldError('programaId')}
           </div>
 
-          {/* Cargo */}
           <div>
             <label className="block text-sm font-medium mb-1">Cargo</label>
             <input {...register('cargo')} className="w-full border rounded px-3 py-2" placeholder="Ej: Desarrollador Backend" />
             {fldError('cargo')}
           </div>
 
-          {/* Descripción del perfil */}
           <div>
-            <label className="block text-sm font-medium mb-1">Descripción del perfil</label>
+            <label className="block text-sm font-medium mb-1">Descripcion del perfil</label>
             <textarea {...register('descripcionPerfil')} rows={3}
               className="w-full border rounded px-3 py-2 resize-none"
               placeholder="Describe el perfil requerido para el cargo..." />
             {fldError('descripcionPerfil')}
           </div>
 
-          {/* Modalidad */}
           <div>
             <label className="block text-sm font-medium mb-1">Modalidad</label>
             <select {...register('modalidad')} className="w-full border rounded px-3 py-2">
-              <option value="">— Selecciona modalidad —</option>
+              <option value="">- Selecciona modalidad -</option>
               <option value="PRESENCIAL">Presencial</option>
               <option value="REMOTO">Remoto</option>
               <option value="HÍBRIDO">Híbrido</option>
@@ -132,7 +162,6 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
             {fldError('modalidad')}
           </div>
 
-          {/* Cupos totales */}
           <div>
             <label className="block text-sm font-medium mb-1">Cupos totales</label>
             <input type="number" min={1} {...register('cuposTotales')}
@@ -140,16 +169,14 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
             {fldError('cuposTotales')}
           </div>
 
-          {/* Área (opcional) */}
           <div>
             <label className="block text-sm font-medium mb-1">
-              Área <span className="text-gray-400 font-normal">(opcional)</span>
+              Area <span className="text-gray-400 font-normal">(opcional)</span>
             </label>
             <input {...register('area')} className="w-full border rounded px-3 py-2"
-              placeholder="Ej: Tecnología, Administración..." />
+              placeholder="Ej: Tecnologia, Administracion..." />
           </div>
 
-          {/* Requisitos (opcional) */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Requisitos <span className="text-gray-400 font-normal">(opcional)</span>
@@ -159,7 +186,6 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
               placeholder="Conocimientos, habilidades, etc." />
           </div>
 
-          {/* Fechas (opcionales) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Disponible desde</label>

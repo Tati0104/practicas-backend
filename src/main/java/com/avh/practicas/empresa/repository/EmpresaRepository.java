@@ -15,6 +15,7 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long>, JpaSpec
     boolean existsBySectorIdAndActivoTrue(Long sectorId);
     boolean existsByNit(String nit);
     Optional<Empresa> findByNit(String nit);
+    Optional<Empresa> findByUsuarioId(Long usuarioId);
 
     @Query("SELECT DISTINCT e FROM Empresa e, Vacante v WHERE v.empresaId = e.id AND v.programaId = :programaId")
     List<Empresa> findByProgramaId(@Param("programaId") Long programaId);

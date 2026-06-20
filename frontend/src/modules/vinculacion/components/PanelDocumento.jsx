@@ -13,7 +13,6 @@ const TITULOS = {
 
 export default function PanelDocumento({
   documento,
-  asignacionId,
   onSubir,
   onDescargar,
   onFirmar,

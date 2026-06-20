@@ -4,7 +4,11 @@ import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -26,6 +30,9 @@ public class ScopePracticaResolver {
     private final AuthUsuarioRepository usuarioRepository;
     private final EstudianteRepository estudianteRepository;
     private final ProgramaRepository programaRepository;
+    private final DocenteAsesorRepository docenteAsesorRepository;
+    private final EmpresaRepository empresaRepository;
+    private final TutorEmpresarialRepository tutorEmpresarialRepository;
 
     public ScopePracticas resolver() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -44,6 +51,30 @@ public class ScopePracticaResolver {
         Usuario usuario = usuarioRepository.findByCorreo(auth.getName()).orElse(null);
         if (usuario == null) {
             return ScopePracticas.ninguna();
+        }
+
+        if (usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.COORD_PRACTICA) {
+            return ScopePracticas.todas();
+        }
+
+        if (usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            return docenteAsesorRepository.findByUsuario_Id(usuario.getId())
+                    .or(() -> docenteAsesorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(d -> ScopePracticas.deDocente(d.getId()))
+                    .orElse(ScopePracticas.ninguna());
+        }
+
+        if (usuario.getRol() == Rol.EMPRESA) {
+            return empresaRepository.findByUsuarioId(usuario.getId())
+                    .map(e -> ScopePracticas.deEmpresa(e.getId()))
+                    .orElse(ScopePracticas.ninguna());
+        }
+
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            return tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                    .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(t -> ScopePracticas.deTutor(t.getId()))
+                    .orElse(ScopePracticas.ninguna());
         }
 
         if (usuario.getScope() == Scope.FACULTAD) {

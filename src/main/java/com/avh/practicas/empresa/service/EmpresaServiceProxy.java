@@ -3,8 +3,10 @@ package com.avh.practicas.empresa.service;
 import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.empresa.entity.Empresa;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.security.ScopeGuard;
@@ -23,20 +25,26 @@ import java.util.Optional;
 @Primary
 public class EmpresaServiceProxy implements EmpresaService {
 
+    private static final String MENSAJE_EMPRESA_SIN_ASOCIAR =
+            "Tu cuenta de empresa aún no tiene una empresa asociada. Comunícate con coordinación de prácticas.";
+
     private final EmpresaService realService;
     private final ScopeGuard scopeGuard;
     private final AuthUsuarioRepository usuarioRepository;
     private final EstudianteRepository estudianteRepository;
+    private final EmpresaRepository empresaRepository;
 
     public EmpresaServiceProxy(
             @Qualifier("empresaServiceImpl") EmpresaService realService,
             ScopeGuard scopeGuard,
             AuthUsuarioRepository usuarioRepository,
-            EstudianteRepository estudianteRepository) {
+            EstudianteRepository estudianteRepository,
+            EmpresaRepository empresaRepository) {
         this.realService = realService;
         this.scopeGuard = scopeGuard;
         this.usuarioRepository = usuarioRepository;
         this.estudianteRepository = estudianteRepository;
+        this.empresaRepository = empresaRepository;
     }
 
     private Usuario obtenerUsuarioActual() {
@@ -114,6 +122,12 @@ public class EmpresaServiceProxy implements EmpresaService {
     @Override
     public Page<Empresa> listar(String sector, String programa, Boolean activo, Pageable pageable) {
         Usuario usuario = obtenerUsuarioActual();
+        if (usuario != null && usuario.getRol() == Rol.EMPRESA) {
+            Empresa empresa = empresaRepository.findByUsuarioId(usuario.getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            MENSAJE_EMPRESA_SIN_ASOCIAR));
+            return new org.springframework.data.domain.PageImpl<>(List.of(empresa), pageable, 1);
+        }
         if (usuario != null && usuario.getScope() == Scope.PROGRAMA) {
             Estudiante estudianteAsociado = estudianteRepository.findByCorreo(usuario.getCorreo()).orElse(null);
             if (estudianteAsociado == null || estudianteAsociado.getPrograma() == null 

@@ -5,11 +5,17 @@ import com.avh.practicas.cierre.entity.Encuesta;
 import com.avh.practicas.cierre.entity.TipoEncuesta;
 import com.avh.practicas.cierre.service.EncuestaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controlador REST para gestionar encuestas de estudiantes y tutores.
+ * Controlador REST para gestionar encuestas de practica.
  */
 @RestController
 @RequestMapping("/encuestas")
@@ -19,19 +25,19 @@ public class EncuestaController {
     private final EncuestaService service;
 
     /**
-     * Obtiene la encuesta asociada a una práctica y tipo.
-     * Si no existe, se crea automáticamente como PENDIENTE y se envía la invitación.
+     * Obtiene la encuesta asociada a una practica y tipo si ya fue habilitada.
      */
     @GetMapping("/{practicaId}/{tipo}")
-    public Encuesta obtenerEncuesta(
+    public ResponseEntity<Encuesta> obtenerEncuesta(
             @PathVariable Long practicaId,
             @PathVariable TipoEncuesta tipo) {
         return service.obtenerPorPracticaYTipo(practicaId, tipo)
-                .orElseGet(() -> service.crearEncuestaPendiente(practicaId, tipo));
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     /**
-     * Guarda el borrador de respuestas para una encuesta específica.
+     * Guarda el borrador de respuestas para una encuesta especifica.
      */
     @PostMapping("/{id}/borrador")
     public Encuesta guardarBorrador(
@@ -41,7 +47,7 @@ public class EncuestaController {
     }
 
     /**
-     * Valida y finaliza la encuesta (marcando como COMPLETADA).
+     * Valida y finaliza la encuesta marcandola como COMPLETADA.
      */
     @PostMapping("/{id}/enviar")
     public Encuesta enviar(@PathVariable Long id) {
@@ -49,7 +55,7 @@ public class EncuestaController {
     }
 
     /**
-     * Envía manualmente un recordatorio de encuesta pendiente (máximo uno diario).
+     * Envia manualmente un recordatorio de encuesta pendiente.
      */
     @PostMapping("/{practicaId}/{tipo}/recordatorio")
     @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'ADMIN')")
@@ -60,7 +66,7 @@ public class EncuestaController {
     }
 
     /**
-     * Envía la invitación inicial (o la reenvía) al correo del estudiante o tutor.
+     * Habilita la encuesta si no existe y envia la invitacion al destinatario.
      */
     @PostMapping("/{practicaId}/{tipo}/invitar")
     @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'ADMIN')")

@@ -8,6 +8,7 @@ import com.avh.practicas.cierre.checklist.composite.ChecklistCierre;
 import com.avh.practicas.cierre.checklist.composite.GrupoRequisitos;
 import com.avh.practicas.cierre.checklist.leaf.ItemNotaFinal;
 import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
+import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.cierre.support.DocumentoProxyActivador;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.EstadoPractica;
@@ -17,6 +18,8 @@ import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.evento.NotificadorEventos;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
+import com.avh.practicas.shared.scope.ScopePracticas;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +52,12 @@ class FachadaCierrePracticaImplTest {
     private TutorEmpresarialRepository tutorRepository;
     @Mock
     private DocenteAsesorRepository docenteRepository;
+    @Mock
+    private ScopePracticaResolver scopePracticaResolver;
+    @Mock
+    private ScopePracticas scopePracticas;
+    @Mock
+    private EncuestaService encuestaService;
 
     private FachadaCierrePracticaImpl fachada;
 
@@ -62,8 +71,12 @@ class FachadaCierrePracticaImplTest {
                 documentoProxyActivador,
                 notificadorEventos,
                 tutorRepository,
-                docenteRepository
+                docenteRepository,
+                scopePracticaResolver,
+                encuestaService
         );
+        lenient().when(scopePracticaResolver.resolver()).thenReturn(scopePracticas);
+        lenient().when(scopePracticas.esVisible(any(InstanciaPractica.class))).thenReturn(true);
     }
 
     @Test

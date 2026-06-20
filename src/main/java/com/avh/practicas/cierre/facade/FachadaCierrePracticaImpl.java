@@ -10,6 +10,7 @@ import com.avh.practicas.cierre.checklist.leaf.ItemEncuesta;
 import com.avh.practicas.cierre.dto.CierrePracticaResponse;
 import com.avh.practicas.cierre.entity.TipoEncuesta;
 import com.avh.practicas.cierre.exception.CierreNoPermitidoException;
+import com.avh.practicas.cierre.service.EncuestaService;
 import com.avh.practicas.cierre.state.practica.PracticaContext;
 import com.avh.practicas.cierre.support.DocumentoProxyActivador;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
@@ -23,8 +24,10 @@ import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.evento.EventoSistema;
 import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
+import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.shared.pattern.singleton.GestorConfiguracion;
+import com.avh.practicas.shared.scope.ScopePracticaResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +55,8 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     private final NotificadorEventos notificadorEventos;
     private final TutorEmpresarialRepository tutorRepository;
     private final DocenteAsesorRepository docenteRepository;
+    private final ScopePracticaResolver scopePracticaResolver;
+    private final EncuestaService encuestaService;
 
     @Value("${cierre.coord-academica-correo:}")
     private String correoCoordAcademica;
@@ -59,6 +64,7 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     @Override
     @Transactional(readOnly = true)
     public ResumenChecklist verificarChecklist(Long practicaId) {
+        validarScopePractica(practicaId);
         return checklistFabrica.construir(practicaId).getResumen();
     }
 
@@ -111,13 +117,20 @@ public class FachadaCierrePracticaImpl implements FachadaCierrePractica {
     @Override
     @Transactional
     public void enviarRecordatorioEncuesta(Long practicaId, TipoEncuesta tipo) {
-        ChecklistCierre checklist = checklistFabrica.construir(practicaId);
-        checklist.buscarItemEncuesta(tipo).enviarRecordatorio();
+        encuestaService.enviarRecordatorio(practicaId, tipo);
     }
 
     private boolean determinarResultado(Double notaFinal) {
         double notaMinima = GestorConfiguracion.getInstancia().getNotaMinimaAprobacion();
         return notaFinal != null && notaFinal >= notaMinima;
+    }
+
+    private void validarScopePractica(Long practicaId) {
+        InstanciaPractica practica = practicaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Practica no encontrada: " + practicaId));
+        if (!scopePracticaResolver.resolver().esVisible(practica)) {
+            throw new AccesoNoAutorizadoException("No tiene permisos para ver el cierre de esta practica.");
+        }
     }
 
     private void archivarExpediente(InstanciaPractica practica) {

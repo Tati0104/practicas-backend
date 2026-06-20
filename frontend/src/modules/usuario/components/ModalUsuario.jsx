@@ -102,7 +102,7 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
         setError('Debe seleccionar la empresa para el tutor empresarial');
         return;
       }
-      if (!form.telefonoTutor.trim()) {
+      if (form.rol === 'TUTOR_EMPRESARIAL' && !form.telefonoTutor.trim()) {
         setError('El teléfono es obligatorio para el tutor empresarial');
         return;
       }
@@ -121,6 +121,7 @@ export default function ModalUsuario({ usuario, onGuardar, onCerrar }) {
 
   const mostrarFacultad = requiereFacultad(form.rol);
   const mostrarEmpresa = requiereEmpresa(form.rol);
+  const mostrarDatosTutor = form.rol === 'TUTOR_EMPRESARIAL';
   const mostrarPrograma = requierePrograma(form.rol);
   const mostrarIdentificacion = requiereIdentificacion(form.rol) && !usuario;
 

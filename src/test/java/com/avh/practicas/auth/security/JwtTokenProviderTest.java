@@ -67,6 +67,29 @@ class JwtTokenProviderTest {
         assertThrows(Exception.class, () -> jwtTokenProvider.obtenerRol("malformado"));
     }
 
+    @Test
+    void obtenerScope_debeLanzarSiTokenInvalido() {
+        assertThrows(Exception.class, () -> jwtTokenProvider.obtenerScope("malformado"));
+    }
+
+    @Test
+    void generarToken_usuarioEstudiante_conservaRolYScopePrograma() {
+        Usuario usuario = Usuario.builder()
+                .nombre("Estudiante")
+                .correo("estudiante@test.com")
+                .passwordHash("hash")
+                .rol(Rol.ESTUDIANTE)
+                .scope(Scope.PROGRAMA)
+                .activo(true)
+                .build();
+
+        String token = jwtTokenProvider.generarToken(usuario);
+
+        assertEquals("estudiante@test.com", jwtTokenProvider.obtenerCorreo(token));
+        assertEquals(Rol.ESTUDIANTE, jwtTokenProvider.obtenerRol(token));
+        assertEquals(Scope.PROGRAMA, jwtTokenProvider.obtenerScope(token));
+    }
+
     private Usuario usuarioDePrueba() {
         return Usuario.builder()
                 .nombre("Tatiana")

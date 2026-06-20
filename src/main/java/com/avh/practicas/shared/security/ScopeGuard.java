@@ -1,37 +1,76 @@
 package com.avh.practicas.shared.security;
 
 import com.avh.practicas.auth.entity.Usuario;
+import com.avh.practicas.asignacion.entity.Asignacion;
 import com.avh.practicas.configuracion.entity.CatalogoPractica;
 import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
+import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.estudiante.entity.DocenteAsesor;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.seguimiento.service.BitacoraService;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.vacante.entity.Vacante;
-import lombok.RequiredArgsConstructor;
+import com.avh.practicas.vacante.repository.VacanteRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ScopeGuard {
 
     private final EstudianteRepository estudianteRepository;
     private final ProgramaRepository programaRepository;
+    private final DocenteAsesorRepository docenteAsesorRepository;
+    private final EmpresaRepository empresaRepository;
+    private final TutorEmpresarialRepository tutorEmpresarialRepository;
+    private final InstanciaPracticaRepository instanciaPracticaRepository;
+    private final VacanteRepository vacanteRepository;
     private final BitacoraService bitacoraService;
+
+    public ScopeGuard(
+            EstudianteRepository estudianteRepository,
+            ProgramaRepository programaRepository,
+            DocenteAsesorRepository docenteAsesorRepository,
+            EmpresaRepository empresaRepository,
+            TutorEmpresarialRepository tutorEmpresarialRepository,
+            InstanciaPracticaRepository instanciaPracticaRepository,
+            VacanteRepository vacanteRepository,
+            BitacoraService bitacoraService) {
+        this.estudianteRepository = estudianteRepository;
+        this.programaRepository = programaRepository;
+        this.docenteAsesorRepository = docenteAsesorRepository;
+        this.empresaRepository = empresaRepository;
+        this.tutorEmpresarialRepository = tutorEmpresarialRepository;
+        this.instanciaPracticaRepository = instanciaPracticaRepository;
+        this.vacanteRepository = vacanteRepository;
+        this.bitacoraService = bitacoraService;
+    }
 
     public boolean verificarScope(Usuario usuario, Object recurso, String accion) {
         if (usuario == null) {
             throw new AccesoNoAutorizadoException("Acceso denegado: usuario no autenticado");
         }
 
-        if (usuario.getRol() == Rol.ADMIN) {
+        if (usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.COORD_PRACTICA) {
+            return true;
+        }
+
+        if (usuario.getRol() == Rol.DOCENTE_ASESOR) {
+            verificarPropiedadDocente(usuario, recurso, accion);
+            return true;
+        }
+
+        if (usuario.getRol() == Rol.EMPRESA || usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            verificarPropiedadEmpresa(usuario, recurso, accion);
             return true;
         }
 
@@ -99,6 +138,108 @@ public class ScopeGuard {
             registrarAccesoDenegado(usuario, recurso, accion, "programa");
             throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del scope");
         }
+    }
+
+    private void verificarPropiedadDocente(Usuario usuario, Object recurso, String accion) {
+        DocenteAsesor docente = docenteAsesorRepository.findByUsuario_Id(usuario.getId())
+                .or(() -> docenteAsesorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                .orElseThrow(() -> new AccesoNoAutorizadoException(
+                        "Acceso denegado: perfil de docente asesor no encontrado"));
+
+        if (recurso instanceof InstanciaPractica practica) {
+            if (practica.getDocenteAsesorId() == null || !practica.getDocenteAsesorId().equals(docente.getId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "docente asignado");
+                throw new AccesoNoAutorizadoException("Acceso denegado: práctica no asignada al docente.");
+            }
+            return;
+        }
+
+        if (recurso instanceof Estudiante estudiante) {
+            boolean asignado = instanciaPracticaRepository.existsByExpedienteEstudianteIdAndDocenteAsesorId(
+                    estudiante.getId(), docente.getId());
+            if (!asignado) {
+                registrarAccesoDenegado(usuario, recurso, accion, "docente asignado");
+                throw new AccesoNoAutorizadoException("Acceso denegado: estudiante no asignado al docente.");
+            }
+            return;
+        }
+
+        if (recurso instanceof Asignacion asignacion) {
+            boolean asignado = asignacion.getInstanciaPracticaId() != null
+                    ? instanciaPracticaRepository.existsByIdAndDocenteAsesorId(asignacion.getInstanciaPracticaId(), docente.getId())
+                    : instanciaPracticaRepository.existsByExpedienteEstudianteIdAndDocenteAsesorId(asignacion.getEstudianteId(), docente.getId());
+            if (!asignado) {
+                registrarAccesoDenegado(usuario, recurso, accion, "docente asignado");
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación no relacionada con el docente.");
+            }
+            return;
+        }
+
+        throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del alcance del docente.");
+    }
+
+    private void verificarPropiedadEmpresa(Usuario usuario, Object recurso, String accion) {
+        Long empresaId = resolverEmpresaIdAsignada(usuario);
+
+        if (recurso instanceof Empresa empresa) {
+            if (!empresaId.equals(empresa.getId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
+                throw new AccesoNoAutorizadoException("Acceso denegado: solo puede consultar su empresa.");
+            }
+            return;
+        }
+
+        if (recurso instanceof TutorEmpresarial tutor) {
+            Long tutorEmpresaId = tutor.getEmpresa() != null ? tutor.getEmpresa().getId() : null;
+            if (!empresaId.equals(tutorEmpresaId)) {
+                registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
+                throw new AccesoNoAutorizadoException("Acceso denegado: tutor fuera de su empresa.");
+            }
+            return;
+        }
+
+        if (recurso instanceof Vacante vacante) {
+            if (!empresaId.equals(vacante.getEmpresaId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
+                throw new AccesoNoAutorizadoException("Acceso denegado: vacante fuera de su empresa.");
+            }
+            return;
+        }
+
+        if (recurso instanceof InstanciaPractica practica) {
+            if (!empresaId.equals(practica.getEmpresaId())) {
+                registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
+                throw new AccesoNoAutorizadoException("Acceso denegado: práctica fuera de su empresa.");
+            }
+            return;
+        }
+
+        if (recurso instanceof Asignacion asignacion) {
+            boolean propia = vacanteRepository.findById(asignacion.getVacanteId())
+                    .map(vacante -> empresaId.equals(vacante.getEmpresaId()))
+                    .orElse(false);
+            if (!propia) {
+                registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera de su empresa.");
+            }
+            return;
+        }
+
+        throw new AccesoNoAutorizadoException("Acceso denegado: recurso fuera del alcance de empresa.");
+    }
+
+    private Long resolverEmpresaIdAsignada(Usuario usuario) {
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+            return tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                    .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                    .map(t -> t.getEmpresa().getId())
+                    .orElseThrow(() -> new AccesoNoAutorizadoException(
+                            "Acceso denegado: perfil de tutor empresarial no encontrado"));
+        }
+        return empresaRepository.findByUsuarioId(usuario.getId())
+                .map(Empresa::getId)
+                .orElseThrow(() -> new AccesoNoAutorizadoException(
+                        "Acceso denegado: empresa asociada no encontrada"));
     }
 
     private Long obtenerEstudianteIdDePractica(InstanciaPractica instanciaPractica) {

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { resetearSchema } from '@/modules/auth/utils/schemas';
 import useAuthMutaciones from '@/modules/auth/hooks/useAuth';
 

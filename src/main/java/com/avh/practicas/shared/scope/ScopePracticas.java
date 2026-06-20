@@ -14,27 +14,45 @@ public class ScopePracticas {
     private final boolean todas;
     private final Set<Long> programaIds;
     private final Long estudianteId;
+    private final Long docenteAsesorId;
+    private final Long empresaId;
+    private final Long tutorId;
 
-    private ScopePracticas(boolean todas, Set<Long> programaIds, Long estudianteId) {
+    private ScopePracticas(boolean todas, Set<Long> programaIds, Long estudianteId, Long docenteAsesorId, Long empresaId, Long tutorId) {
         this.todas = todas;
         this.programaIds = programaIds;
         this.estudianteId = estudianteId;
+        this.docenteAsesorId = docenteAsesorId;
+        this.empresaId = empresaId;
+        this.tutorId = tutorId;
     }
 
     public static ScopePracticas todas() {
-        return new ScopePracticas(true, null, null);
+        return new ScopePracticas(true, null, null, null, null, null);
     }
 
     public static ScopePracticas porProgramas(Set<Long> programaIds) {
-        return new ScopePracticas(false, programaIds, null);
+        return new ScopePracticas(false, programaIds, null, null, null, null);
     }
 
     public static ScopePracticas deEstudiante(Long estudianteId) {
-        return new ScopePracticas(false, null, estudianteId);
+        return new ScopePracticas(false, null, estudianteId, null, null, null);
+    }
+
+    public static ScopePracticas deDocente(Long docenteAsesorId) {
+        return new ScopePracticas(false, null, null, docenteAsesorId, null, null);
+    }
+
+    public static ScopePracticas deEmpresa(Long empresaId) {
+        return new ScopePracticas(false, null, null, null, empresaId, null);
+    }
+
+    public static ScopePracticas deTutor(Long tutorId) {
+        return new ScopePracticas(false, null, null, null, null, tutorId);
     }
 
     public static ScopePracticas ninguna() {
-        return new ScopePracticas(false, Set.of(), null);
+        return new ScopePracticas(false, Set.of(), null, null, null, null);
     }
 
     public boolean esVisible(InstanciaPractica practica) {
@@ -44,6 +62,18 @@ public class ScopePracticas {
 
         if (estudianteId != null) {
             return estudianteId.equals(practica.getExpediente().getEstudiante().getId());
+        }
+
+        if (docenteAsesorId != null) {
+            return docenteAsesorId.equals(practica.getDocenteAsesorId());
+        }
+
+        if (empresaId != null) {
+            return empresaId.equals(practica.getEmpresaId());
+        }
+
+        if (tutorId != null) {
+            return tutorId.equals(practica.getTutorId());
         }
 
         if (todas) {

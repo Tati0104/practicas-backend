@@ -17,6 +17,9 @@ export default function VacanteCard({ vacante, acciones }) {
         </div>
         <BadgeVacanteEstado estado={vacante.estado} />
       </div>
+      <p className="text-sm text-gray-600">
+        {vacante.catalogoPracticaNombre ?? (vacante.numeroPractica ? `PrÃ¡ctica ${vacante.numeroPractica}` : 'Nivel no asignado')}
+      </p>
       <p className="text-sm text-gray-600">{vacante.modalidad}</p>
       <p className="text-sm text-gray-600">
         Cupos: {vacante.cuposDisponibles ?? 0} / {vacante.cuposTotales ?? '—'}
