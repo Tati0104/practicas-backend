@@ -1,0 +1,27 @@
+spring:
+  config:
+    import: optional:classpath:application-dev-local.yml,optional:file:./application-dev-local.yml
+  datasource:
+    url: ${TEST_DATASOURCE_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/practicas_db}}
+    username: ${TEST_DATASOURCE_USERNAME:${SPRING_DATASOURCE_USERNAME:postgres}}
+    password: ${TEST_DATASOURCE_PASSWORD:${SPRING_DATASOURCE_PASSWORD:postgres}}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+    out-of-order: true
+
+mail:
+  mode: stub
+
+jwt:
+  secret: ${JWT_SECRET:clave-secreta-avh-2026-practicas-empresariales-sistema}
+
+app:
+  frontend:
+    base-url: http://localhost:5173
+  cors:
+    allowed-origins: http://localhost:5173

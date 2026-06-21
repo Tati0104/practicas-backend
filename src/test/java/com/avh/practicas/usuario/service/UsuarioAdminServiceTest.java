@@ -4,11 +4,16 @@ import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.configuracion.entity.Facultad;
 import com.avh.practicas.configuracion.repository.FacultadRepository;
+import com.avh.practicas.configuracion.repository.ProgramaRepository;
 import com.avh.practicas.correo.service.IMailService;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
+import com.avh.practicas.estudiante.repository.EstudianteRepository;
+import com.avh.practicas.estudiante.repository.ExpedienteRepository;
+import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.NegocioException;
@@ -16,6 +21,7 @@ import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.usuario.dto.CrearUsuarioRequest;
 import com.avh.practicas.usuario.dto.EditarUsuarioRequest;
 import com.avh.practicas.usuario.dto.UsuarioDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,21 +44,38 @@ class UsuarioAdminServiceTest {
     @Mock
     private FacultadRepository facultadRepository;
     @Mock
+    private ProgramaRepository programaRepository;
+    @Mock
     private EmpresaRepository empresaRepository;
     @Mock
     private TutorEmpresarialRepository tutorEmpresarialRepository;
     @Mock
+    private DocenteAsesorRepository docenteAsesorRepository;
+    @Mock
+    private EstudianteRepository estudianteRepository;
+    @Mock
+    private ExpedienteRepository expedienteRepository;
+    @Mock
+    private InstanciaPracticaRepository instanciaPracticaRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private IMailService mailService;
+    @Mock
+    private CorreoPersonaService correoPersonaService;
 
     @InjectMocks
     private UsuarioAdminService usuarioAdminService;
 
+    @BeforeEach
+    void setUp() {
+        lenient().when(correoPersonaService.normalizar(any(String.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0, String.class).trim().toLowerCase());
+    }
+
     @Test
     void crear_adminValido_creaUsuarioGlobalYEnviaCorreo() {
         CrearUsuarioRequest request = crearRequest(Rol.ADMIN);
-        when(usuarioRepository.existsByCorreo("admin@test.com")).thenReturn(false);
         when(passwordEncoder.encode(any(String.class))).thenReturn("hash-temporal");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario usuario = invocation.getArgument(0);
@@ -70,11 +93,12 @@ class UsuarioAdminServiceTest {
     }
 
     @Test
-    void crear_correoDuplicado_lanzaIllegalArgumentException() {
+    void crear_correoDuplicado_lanzaNegocioException() {
         CrearUsuarioRequest request = crearRequest(Rol.ADMIN);
-        when(usuarioRepository.existsByCorreo("admin@test.com")).thenReturn(true);
+        doThrow(new NegocioException("Ya existe un usuario registrado con el correo: admin@test.com"))
+                .when(correoPersonaService).validarCorreoDisponible(eq("admin@test.com"), any());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        NegocioException exception = assertThrows(NegocioException.class,
                 () -> usuarioAdminService.crear(request));
 
         assertEquals("Ya existe un usuario registrado con el correo: admin@test.com", exception.getMessage());
@@ -85,7 +109,6 @@ class UsuarioAdminServiceTest {
     void crear_rolFacultadSinFacultad_lanzaNegocioException() {
         CrearUsuarioRequest request = crearRequest(Rol.COORD_PRACTICA);
         request.setFacultadId(null);
-        when(usuarioRepository.existsByCorreo("admin@test.com")).thenReturn(false);
         when(passwordEncoder.encode(any(String.class))).thenReturn("hash-temporal");
 
         NegocioException exception = assertThrows(NegocioException.class,
@@ -100,7 +123,6 @@ class UsuarioAdminServiceTest {
         CrearUsuarioRequest request = crearRequest(Rol.COORD_PRACTICA);
         request.setFacultadId(5L);
         Facultad facultad = Facultad.builder().id(5L).nombre("Ingenieria").activo(true).build();
-        when(usuarioRepository.existsByCorreo("admin@test.com")).thenReturn(false);
         when(passwordEncoder.encode(any(String.class))).thenReturn("hash-temporal");
         when(facultadRepository.findById(5L)).thenReturn(Optional.of(facultad));
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -119,7 +141,6 @@ class UsuarioAdminServiceTest {
         request.setTelefonoTutor(" 300123 ");
         request.setCargoTutor("");
         Empresa empresa = Empresa.builder().id(7L).razonSocial("Empresa").activo(true).build();
-        when(usuarioRepository.existsByCorreo("admin@test.com")).thenReturn(false);
         when(passwordEncoder.encode(any(String.class))).thenReturn("hash-temporal");
         when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> {
             Usuario usuario = invocation.getArgument(0);
@@ -127,7 +148,6 @@ class UsuarioAdminServiceTest {
             return usuario;
         });
         when(empresaRepository.findById(7L)).thenReturn(Optional.of(empresa));
-        when(tutorEmpresarialRepository.existsByCorreo("admin@test.com")).thenReturn(false);
 
         UsuarioDto response = usuarioAdminService.crear(request);
 

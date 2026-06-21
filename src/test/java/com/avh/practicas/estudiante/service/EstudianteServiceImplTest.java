@@ -1,5 +1,6 @@
 package com.avh.practicas.estudiante.service;
 
+import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.configuracion.entity.CatalogoPractica;
 import com.avh.practicas.configuracion.entity.Programa;
 import com.avh.practicas.configuracion.repository.CatalogoPracticaRepository;
@@ -16,6 +17,11 @@ import com.avh.practicas.estudiante.repository.InstanciaPracticaRepository;
 import com.avh.practicas.shared.exception.CatalogoPracticaNoEncontradaException;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
+import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.enums.Scope;
+import com.avh.practicas.usuario.service.CorreoPersonaService;
+import com.avh.practicas.usuario.service.UsuarioService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,17 +52,27 @@ class EstudianteServiceImplTest {
     private ProgramaRepository programaRepository;
     @Mock
     private CatalogoPracticaRepository catalogoPracticaRepository;
+    @Mock
+    private CorreoPersonaService correoPersonaService;
+    @Mock
+    private UsuarioService usuarioService;
 
     @InjectMocks
     private EstudianteServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(correoPersonaService.normalizar(anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0, String.class).trim().toLowerCase());
+    }
 
     @Test
     void registrar_estudianteValido_creaEstudianteYExpediente() {
         EstudianteDto dto = dto();
         Programa programa = programa(true);
         when(estudianteRepository.existsByIdentificacion("123")).thenReturn(false);
-        when(estudianteRepository.existsByCorreo("est@test.com")).thenReturn(false);
         when(programaRepository.findById(1L)).thenReturn(Optional.of(programa));
+        when(usuarioService.crearUsuarioEstudiante("Estudiante", "est@test.com")).thenReturn(usuario(10L));
         when(estudianteRepository.save(any(Estudiante.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(expedienteRepository.save(any(Expediente.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -82,7 +98,8 @@ class EstudianteServiceImplTest {
     void registrar_correoDuplicado_lanzaNegocioException() {
         EstudianteDto dto = dto();
         when(estudianteRepository.existsByIdentificacion("123")).thenReturn(false);
-        when(estudianteRepository.existsByCorreo("est@test.com")).thenReturn(true);
+        doThrow(new NegocioException("Correo duplicado"))
+                .when(correoPersonaService).validarCorreoDisponible(eq("est@test.com"), any());
 
         assertThrows(NegocioException.class, () -> service.registrar(dto));
         verify(estudianteRepository, never()).save(any());
@@ -92,7 +109,6 @@ class EstudianteServiceImplTest {
     void registrar_programaNoExiste_lanzaRecursoNoEncontrado() {
         EstudianteDto dto = dto();
         when(estudianteRepository.existsByIdentificacion("123")).thenReturn(false);
-        when(estudianteRepository.existsByCorreo("est@test.com")).thenReturn(false);
         when(programaRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNoEncontradoException.class, () -> service.registrar(dto));
@@ -102,7 +118,6 @@ class EstudianteServiceImplTest {
     void registrar_programaInactivo_lanzaNegocioException() {
         EstudianteDto dto = dto();
         when(estudianteRepository.existsByIdentificacion("123")).thenReturn(false);
-        when(estudianteRepository.existsByCorreo("est@test.com")).thenReturn(false);
         when(programaRepository.findById(1L)).thenReturn(Optional.of(programa(false)));
 
         assertThrows(NegocioException.class, () -> service.registrar(dto));
@@ -287,5 +302,19 @@ class EstudianteServiceImplTest {
                 .duracionSemanas(16)
                 .activo(activo)
                 .build();
+    }
+
+    private Usuario usuario(Long id) {
+        Usuario usuario = Usuario.builder()
+                .nombre("Estudiante")
+                .correo("est@test.com")
+                .passwordHash("hash")
+                .rol(Rol.ESTUDIANTE)
+                .scope(Scope.PROGRAMA)
+                .activo(true)
+                .primeraVez(true)
+                .build();
+        usuario.setId(id);
+        return usuario;
     }
 }

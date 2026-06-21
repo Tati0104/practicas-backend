@@ -1,11 +1,17 @@
 package com.avh.practicas.empresa.service;
 
+import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.empresa.entity.Empresa;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
+import com.avh.practicas.shared.enums.Rol;
+import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
+import com.avh.practicas.usuario.service.CorreoPersonaService;
+import com.avh.practicas.usuario.service.UsuarioService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,16 +31,26 @@ class TutorEmpresarialServiceImplTest {
     private TutorEmpresarialRepository tutorEmpresarialRepository;
     @Mock
     private EmpresaRepository empresaRepository;
+    @Mock
+    private CorreoPersonaService correoPersonaService;
+    @Mock
+    private UsuarioService usuarioService;
 
     @InjectMocks
     private TutorEmpresarialServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(correoPersonaService.normalizar(anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0, String.class).trim().toLowerCase());
+    }
 
     @Test
     void registrar_tutorValido_asociaEmpresaYActiva() {
         TutorEmpresarial tutor = tutor(false);
         Empresa empresa = empresa(true);
-        when(tutorEmpresarialRepository.existsByCorreo("tutor@test.com")).thenReturn(false);
         when(empresaRepository.findById(5L)).thenReturn(Optional.of(empresa));
+        when(usuarioService.crearUsuarioTutorEmpresarial("Tutor", "tutor@test.com")).thenReturn(usuario(10L));
         when(tutorEmpresarialRepository.save(tutor)).thenReturn(tutor);
 
         TutorEmpresarial response = service.registrar(tutor);
@@ -46,7 +62,8 @@ class TutorEmpresarialServiceImplTest {
     @Test
     void registrar_correoDuplicado_lanzaNegocioException() {
         TutorEmpresarial tutor = tutor(true);
-        when(tutorEmpresarialRepository.existsByCorreo("tutor@test.com")).thenReturn(true);
+        doThrow(new NegocioException("Correo duplicado"))
+                .when(correoPersonaService).validarCorreoDisponible(eq("tutor@test.com"), any());
 
         assertThrows(NegocioException.class, () -> service.registrar(tutor));
         verify(tutorEmpresarialRepository, never()).save(any());
@@ -55,7 +72,6 @@ class TutorEmpresarialServiceImplTest {
     @Test
     void registrar_empresaNoExiste_lanzaRecursoNoEncontrado() {
         TutorEmpresarial tutor = tutor(true);
-        when(tutorEmpresarialRepository.existsByCorreo("tutor@test.com")).thenReturn(false);
         when(empresaRepository.findById(5L)).thenReturn(Optional.empty());
 
         assertThrows(RecursoNoEncontradoException.class, () -> service.registrar(tutor));
@@ -64,7 +80,6 @@ class TutorEmpresarialServiceImplTest {
     @Test
     void registrar_empresaInactiva_lanzaNegocioException() {
         TutorEmpresarial tutor = tutor(true);
-        when(tutorEmpresarialRepository.existsByCorreo("tutor@test.com")).thenReturn(false);
         when(empresaRepository.findById(5L)).thenReturn(Optional.of(empresa(false)));
 
         assertThrows(NegocioException.class, () -> service.registrar(tutor));
@@ -74,16 +89,16 @@ class TutorEmpresarialServiceImplTest {
     @Test
     void editar_tutorExistente_actualizaCamposYEmpresa() {
         TutorEmpresarial existente = tutor(true);
+        existente.setUsuarioId(10L);
         TutorEmpresarial actualizado = tutor(true);
         actualizado.setNombre("Nuevo Tutor");
         actualizado.setCorreo("nuevo@test.com");
         actualizado.setCargo("Jefe");
         actualizado.setTelefono("555");
-        actualizado.setUsuarioId(10L);
         Empresa empresa = empresa(true);
         when(tutorEmpresarialRepository.findById(8L)).thenReturn(Optional.of(existente));
-        when(tutorEmpresarialRepository.existsByCorreoAndIdNot("nuevo@test.com", 8L)).thenReturn(false);
         when(empresaRepository.findById(5L)).thenReturn(Optional.of(empresa));
+        when(usuarioService.obtener(10L)).thenReturn(usuario(10L));
         when(tutorEmpresarialRepository.save(existente)).thenReturn(existente);
 
         TutorEmpresarial response = service.editar(8L, actualizado);
@@ -106,7 +121,8 @@ class TutorEmpresarialServiceImplTest {
         TutorEmpresarial existente = tutor(true);
         TutorEmpresarial actualizado = tutor(true);
         when(tutorEmpresarialRepository.findById(8L)).thenReturn(Optional.of(existente));
-        when(tutorEmpresarialRepository.existsByCorreoAndIdNot("tutor@test.com", 8L)).thenReturn(true);
+        doThrow(new NegocioException("Correo duplicado"))
+                .when(correoPersonaService).validarCorreoDisponible(eq("tutor@test.com"), any());
 
         assertThrows(NegocioException.class, () -> service.editar(8L, actualizado));
         verify(tutorEmpresarialRepository, never()).save(any());
@@ -179,5 +195,19 @@ class TutorEmpresarialServiceImplTest {
                 .razonSocial("Empresa SAS")
                 .activo(activo)
                 .build();
+    }
+
+    private Usuario usuario(Long id) {
+        Usuario usuario = Usuario.builder()
+                .nombre("Tutor")
+                .correo("tutor@test.com")
+                .passwordHash("hash")
+                .rol(Rol.TUTOR_EMPRESARIAL)
+                .scope(Scope.ASIGNADO)
+                .activo(true)
+                .primeraVez(true)
+                .build();
+        usuario.setId(id);
+        return usuario;
     }
 }
