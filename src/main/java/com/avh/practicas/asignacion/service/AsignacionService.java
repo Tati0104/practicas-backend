@@ -299,6 +299,7 @@ public class AsignacionService {
         practica.setEmpresaId(vacante.getEmpresaId());
         tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
                 .findFirst()
+                .or(() -> tutorEmpresarialRepository.findByEmpresaId(vacante.getEmpresaId()).stream().findFirst())
                 .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
         instanciaPracticaRepository.save(practica);
 

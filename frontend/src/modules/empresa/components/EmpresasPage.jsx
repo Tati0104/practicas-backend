@@ -20,6 +20,7 @@ export default function EmpresasPage() {
     editar,
     activar,
     inactivar,
+    registrarTutor,
   } = useEmpresas();
 
   const [modalForm, setModalForm] = useState(false);
@@ -164,6 +165,8 @@ export default function EmpresasPage() {
             abrirInactivar(empresa);
           }}
           onActivar={reactivarEmpresa}
+          onRegistrarTutor={(dto, opts) => registrarTutor.mutate(dto, opts)}
+          registrandoTutor={registrarTutor.isPending}
           activando={activar.isPending}
         />
       )}

@@ -21,9 +21,10 @@ export function useVinculacionDocumentos(asignacionId) {
         api: () => cargarDocumentosCompletos(asignacionId),
       }),
     enabled: Boolean(asignacionId),
-    staleTime: 60_000,
+    staleTime: 0,
     gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     placeholderData: useMocks ? MOCK_DOCUMENTOS_DETALLE : keepPreviousData,
   });
 

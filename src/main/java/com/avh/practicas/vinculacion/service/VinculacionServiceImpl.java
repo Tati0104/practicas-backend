@@ -111,18 +111,15 @@ public class VinculacionServiceImpl implements VinculacionService {
         Long docenteAsesorId = null;
         LocalDate fechaInicio = null;
         LocalDate fechaFin = null;
+        EstadoPractica estadoPractica = null;
 
-        if (practicaId != null) {
-            practicaRepository.findById(practicaId).ifPresent(p -> {
-                // p is InstanciaPractica, which is mutable inside lambdas if we map it or just we can't assign to local variables directly inside lambda, so:
-            });
-        }
-        
         Optional<InstanciaPractica> practicaOpt = practicaId != null ? practicaRepository.findById(practicaId) : Optional.empty();
         if (practicaOpt.isPresent()) {
-            docenteAsesorId = practicaOpt.get().getDocenteAsesorId();
-            fechaInicio = practicaOpt.get().getFechaInicio();
-            fechaFin = practicaOpt.get().getFechaFin();
+            InstanciaPractica practica = practicaOpt.get();
+            docenteAsesorId = practica.getDocenteAsesorId();
+            fechaInicio = practica.getFechaInicio();
+            fechaFin = practica.getFechaFin();
+            estadoPractica = practica.getEstado();
         }
 
         return new DocumentosAsignacionResponse(
@@ -136,6 +133,7 @@ public class VinculacionServiceImpl implements VinculacionService {
                 fechaInicio,
                 fechaFin,
                 asignacion.getEstado(),
+                estadoPractica,
                 paneles
         );
     }
@@ -225,6 +223,7 @@ public class VinculacionServiceImpl implements VinculacionService {
                     throw new NegocioException("La firma del tutor empresarial ya fue registrada.");
                 }
                 convenio.setFirmaTutorAt(ahora);
+                vincularTutorFirmanteEnPractica(convenio);
             }
             case ESTUDIANTE -> {
                 if (convenio.getFirmaEstudianteAt() != null) {
@@ -235,21 +234,12 @@ public class VinculacionServiceImpl implements VinculacionService {
         }
 
         convenioRepository.save(convenio);
-
-        if (convenio.tieneFirmasCompletas()) {
-            Long practicaId = convenio.getInstanciaPracticaId();
-            if (practicaId == null) {
-                throw new NegocioException("El convenio no tiene práctica asociada para completar la vinculación.");
-            }
-            validarPracticaPendienteDeVinculacion(practicaId);
-            marcarAsignacionVinculada(convenio.getAsignacionId());
-        }
     }
 
     @Override
     @Transactional
     public void confirmarVinculacion(Long practicaId, ConfirmarVinculacionRequest request) {
-        validarNoEsTutorSubiendo();
+        validarSoloCoordPractica();
         Convenio convenio = convenioRepository.findByInstanciaPracticaId(practicaId)
                 .orElseThrow(() -> new NegocioException(
                         "No existe convenio asociado a la práctica " + practicaId));
@@ -261,16 +251,17 @@ public class VinculacionServiceImpl implements VinculacionService {
             throw new NegocioException("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
 
-        // Red de seguridad: reintenta la propagacion de empresa/tutor desde la vacante
-        // por si la practica quedo sin esos datos (ej. asignaciones creadas antes de este fix,
-        // o un tutor activado despues de la carga de documentos).
-        Long vacanteId = resolverVacanteId(convenio);
-        if (vacanteId != null) {
-            enriquecerPracticaDesdeVacante(practicaId, vacanteId);
-        }
+        enriquecerPracticaParaActivacion(practicaId, convenio);
 
         InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+
+        if (practica.getEmpresaId() == null || practica.getTutorId() == null) {
+            throw new NegocioException(
+                    "La práctica no tiene empresa o tutor empresarial configurados. "
+                            + "Verifique que la vacante tenga empresa asignada y que exista un tutor empresarial vinculado.");
+        }
+
         practica.setDocenteAsesorId(request.docenteAsesorId());
         practicaRepository.save(practica);
 
@@ -454,11 +445,54 @@ public class VinculacionServiceImpl implements VinculacionService {
             practica.setEmpresaId(vacante.getEmpresaId());
         }
         if (practica.getTutorId() == null) {
-            tutorRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
-                    .findFirst()
-                    .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
+            asignarTutorDesdeEmpresa(practica, vacante.getEmpresaId());
         }
         practicaRepository.save(practica);
+    }
+
+    private void enriquecerPracticaParaActivacion(Long practicaId, Convenio convenio) {
+        Long vacanteId = resolverVacanteId(convenio);
+        if (vacanteId != null) {
+            enriquecerPracticaDesdeVacante(practicaId, vacanteId);
+        }
+
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+
+        Long empresaId = practica.getEmpresaId() != null ? practica.getEmpresaId() : convenio.getEmpresaId();
+        if (practica.getEmpresaId() == null && empresaId != null) {
+            practica.setEmpresaId(empresaId);
+        }
+        if (practica.getTutorId() == null && empresaId != null) {
+            asignarTutorDesdeEmpresa(practica, empresaId);
+        }
+        practicaRepository.save(practica);
+    }
+
+    private void asignarTutorDesdeEmpresa(InstanciaPractica practica, Long empresaId) {
+        tutorRepository.findByEmpresaIdAndActivoTrue(empresaId).stream()
+                .findFirst()
+                .or(() -> tutorRepository.findByEmpresaId(empresaId).stream().findFirst())
+                .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
+    }
+
+    private void vincularTutorFirmanteEnPractica(Convenio convenio) {
+        Long practicaId = convenio.getInstanciaPracticaId();
+        if (practicaId == null) {
+            return;
+        }
+
+        resolverTutorAutenticado().ifPresent(tutor -> {
+            InstanciaPractica practica = practicaRepository.findById(practicaId).orElse(null);
+            if (practica == null) {
+                return;
+            }
+            practica.setTutorId(tutor.getId());
+            if (practica.getEmpresaId() == null && convenio.getEmpresaId() != null) {
+                practica.setEmpresaId(convenio.getEmpresaId());
+            }
+            practicaRepository.save(practica);
+        });
     }
 
     private Long resolverVacanteId(Convenio convenio) {
@@ -573,6 +607,14 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (resolverTutorAutenticado().isPresent()) {
             throw new AccesoNoAutorizadoException(
                     "El tutor empresarial no puede subir documentos ni activar la práctica; solo puede firmar el convenio.");
+        }
+    }
+
+    private void validarSoloCoordPractica() {
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario == null || usuario.getRol() != Rol.COORD_PRACTICA) {
+            throw new AccesoNoAutorizadoException(
+                    "Solo Coordinación de Prácticas puede activar la práctica.");
         }
     }
 

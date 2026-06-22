@@ -72,7 +72,10 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
 
   const alExito = (mensaje) => async () => {
     await sincronizarDocumentos();
+    await queryClient.invalidateQueries({ queryKey: claveQueryDocumentos(asignacionId, false) });
+    await queryClient.refetchQueries({ queryKey: claveQueryDocumentos(asignacionId, false) });
     queryClient.invalidateQueries({ queryKey: ['vinculacion'] });
+    queryClient.invalidateQueries({ queryKey: ['seguimiento'] });
     toast.success(mensaje);
     onSuccess?.();
   };

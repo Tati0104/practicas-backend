@@ -55,6 +55,17 @@ export function useEmpresas() {
     onError: alError,
   });
 
+  const registrarTutor = useMutation({
+    mutationFn: (dto) => empresaService.registrarTutor(dto),
+    onSuccess: (_data, variables) => {
+      const empresaId = variables?.empresa?.id;
+      queryClient.invalidateQueries({ queryKey: ['empresa-tutores', empresaId] });
+      queryClient.invalidateQueries({ queryKey: ['empresa-tutores'] });
+      toast.success('Tutor empresarial registrado correctamente');
+    },
+    onError: alError,
+  });
+
   return {
     empresas: listado.items,
     totalElementos: listado.totalElementos,
@@ -70,5 +81,6 @@ export function useEmpresas() {
     editar,
     activar,
     inactivar,
+    registrarTutor,
   };
 }

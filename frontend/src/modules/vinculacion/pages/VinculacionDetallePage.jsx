@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Lock, Rocket } from 'lucide-react';
+import { Lock, Rocket, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
 import { useVinculacionDocumentos } from '../hooks/useVinculacionDocumentos';
@@ -20,6 +20,15 @@ const ROL_A_FIRMANTE = {
   TUTOR_EMPRESARIAL: 'TUTOR_EMPRESARIAL',
   ESTUDIANTE: 'ESTUDIANTE',
 };
+
+function formatearFecha(valor) {
+  if (!valor) return 'Pendiente';
+  try {
+    return new Date(valor).toLocaleDateString('es-CO');
+  } catch {
+    return valor;
+  }
+}
 
 function documentoCompleto(doc) {
   if (!doc || doc.estado === 'PENDIENTE') return false;
@@ -45,10 +54,7 @@ export default function VinculacionDetallePage() {
   const { canUploadDocumentos } = usePermisos();
   const rol = useAuthStore((state) => state.rol);
   const esTutor = rol === 'TUTOR_EMPRESARIAL';
-  // "Activar Práctica" sigue siendo exclusivo de Coordinación de Prácticas: se excluye
-  // explícitamente a COORD_ACADEMICA, que ahora también entra a esta pantalla pero solo
-  // para ver/cambiar el docente asesor (permiso separado, ver más abajo).
-  const puedeActivarPractica = !esTutor && rol !== 'COORD_ACADEMICA';
+  const puedeActivarPractica = rol === 'COORD_PRACTICA';
   const puedeAsignarDocenteAsesor = usePuedeAsignarDocenteAsesor();
 
   const { data: docentes = [] } = useQuery({
@@ -64,7 +70,10 @@ export default function VinculacionDetallePage() {
 
   const completos = documentosOrdenados.filter(documentoCompleto).length;
   const totalDocumentos = documentosOrdenados.length;
-  const puedeActivar = completos === totalDocumentos;
+  const practicaActivada =
+    detalle?.estadoPractica === 'EN_CURSO' ||
+    (detalle?.fechaInicio && detalle?.estadoVinculacion === 'VINCULADA');
+  const puedeActivar = completos === totalDocumentos && !practicaActivada;
 
   const estudiante = detalle?.estudiante;
   const vacante = detalle?.vacante;
@@ -158,12 +167,14 @@ export default function VinculacionDetallePage() {
           <div>
             <p className="text-sm font-medium text-gray-500">Fechas</p>
             <p className="text-sm font-semibold text-gray-900">
-              {detalle?.fechaInicio || 'Pendiente'} al {detalle?.fechaFin || 'Pendiente'}
+              {formatearFecha(detalle?.fechaInicio)} al {formatearFecha(detalle?.fechaFin)}
             </p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Estado de Vinculación</p>
-            <p className="text-sm font-semibold text-gray-900">{detalle?.estadoVinculacion || 'ASIGNADA'}</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {practicaActivada ? 'VINCULADA · EN CURSO' : detalle?.estadoVinculacion || 'ASIGNADA'}
+            </p>
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500 mb-1">Docente Asesor</p>
@@ -230,7 +241,30 @@ export default function VinculacionDetallePage() {
       </div>
 
       <div className="border-t border-gray-200 pt-5">
-        {puedeActivarPractica && (
+        {practicaActivada && (
+          <div className="mb-4 flex flex-wrap items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                Práctica activada correctamente
+              </p>
+              <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
+                Periodo: {formatearFecha(detalle?.fechaInicio)} — {formatearFecha(detalle?.fechaFin)}.
+                El seguimiento ya está disponible.
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-3"
+                onClick={() => navigate('/seguimiento')}
+              >
+                Ir a seguimiento
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {puedeActivarPractica && !practicaActivada && (
           <>
             {!puedeActivar && (
               <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -249,10 +283,12 @@ export default function VinculacionDetallePage() {
           </>
         )}
         {!puedeActivarPractica && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-slate-400">
             {esTutor
-              ? 'Como tutor empresarial puedes revisar los documentos y registrar tu firma en el convenio. La activación de la práctica la realiza el coordinador.'
-              : 'La activación de la práctica la realiza Coordinación de Prácticas. Desde aquí puedes ver y cambiar el docente asesor.'}
+              ? 'Como tutor empresarial puedes revisar los documentos y registrar tu firma en el convenio. La activación de la práctica la realiza Coordinación de Prácticas.'
+              : rol === 'COORD_ACADEMICA'
+                ? 'La activación de la práctica la realiza Coordinación de Prácticas. Desde aquí puedes ver y cambiar el docente asesor.'
+                : 'La activación de la práctica la realiza Coordinación de Prácticas.'}
           </p>
         )}
       </div>
@@ -277,6 +313,10 @@ export default function VinculacionDetallePage() {
         onClose={() => setModalActivarOpen(false)}
         isPending={activarPractica.isPending}
         onConfirmar={(payload) => {
+          if (!detalle?.practicaId) {
+            toast.error('No se encontró la práctica vinculada a esta asignación.');
+            return;
+          }
           activarPractica.mutate({ practicaId: detalle.practicaId, payload });
         }}
       />
