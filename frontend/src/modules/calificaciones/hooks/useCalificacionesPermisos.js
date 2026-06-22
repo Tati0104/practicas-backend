@@ -25,10 +25,8 @@ export default function useCalificacionesPermisos() {
       rol === 'TUTOR_EMPRESARIAL' || ROLES_GESTION.includes(rol),
     puedeRegistrarNotaFinal:
       rol === 'DOCENTE_ASESOR' || ROLES_GESTION.includes(rol),
-    puedeCompletarEncuestaTutor:
-      rol === 'TUTOR_EMPRESARIAL' || ROLES_GESTION.includes(rol),
-    puedeCompletarEncuestaEstudiante:
-      rol === 'ESTUDIANTE' || ROLES_GESTION.includes(rol),
+    puedeCompletarEncuestaTutor: rol === 'TUTOR_EMPRESARIAL' || rol === 'ADMIN',
+    puedeCompletarEncuestaEstudiante: rol === 'ESTUDIANTE' || rol === 'ADMIN',
     puedeEnviarRecordatorio: ROLES_GESTION.includes(rol),
     puedeEnviarInvitacion: ROLES_GESTION.includes(rol),
     puedeVerEncuestaTutor: ROLES_VER_ENCUESTA_TUTOR.includes(rol),
