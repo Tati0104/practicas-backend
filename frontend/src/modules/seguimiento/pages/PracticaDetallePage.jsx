@@ -16,8 +16,8 @@ import {
 } from '../utils/fechas';
 
 const BADGE = {
-  AL_DIA: { label: 'Al día', variant: 'success' },
-  PENDIENTE: { label: 'Pendiente', variant: 'warning' },
+  AL_DIA: { label: 'Revisado / Al día', variant: 'success' },
+  PENDIENTE: { label: 'Pendiente de revisión', variant: 'warning' },
   EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
@@ -80,16 +80,25 @@ export default function PracticaDetallePage() {
       : null;
   const programa =
     typeof practica.estudiante === 'object' ? practica.estudiante?.programa : null;
+  const esEstudiante = rol === 'ESTUDIANTE';
+  const tituloDetalle = esEstudiante
+    ? `Seguimiento — Práctica ${practica.numeroPractica ?? id}`
+    : nombreEstudiantePractica(practica);
+  const descripcionDetalle = esEstudiante
+    ? [practica.empresa, practica.cargo].filter(Boolean).join(' · ') || undefined
+    : [identificacion, programa].filter(Boolean).join(' — ') || undefined;
 
   return (
     <div className="mx-auto max-w-5xl">
       <PageBackHeader
-        titulo={nombreEstudiantePractica(practica)}
-        descripcion={[identificacion, programa].filter(Boolean).join(' — ') || undefined}
+        titulo={tituloDetalle}
+        descripcion={descripcionDetalle}
         onVolver={() => navigate('/seguimiento')}
         acciones={
           <Badge variant={badge.variant} className="px-3 py-1 text-sm">
-            {badge.label}
+            {esEstudiante && estadoClave === 'AL_DIA'
+              ? 'Revisado por docente'
+              : badge.label}
           </Badge>
         }
       />
@@ -141,20 +150,34 @@ export default function PracticaDetallePage() {
                 className="bg-violet-600 hover:bg-violet-700"
                 onClick={() => setModalBitacora(true)}
               >
-                + Nueva bitácora
+              {esEstudiante ? (
+            <>
+              + Nueva entrega de seguimiento
+            </>
+          ) : (
+            '+ Nueva bitácora'
+          )}
               </Button>
             )}
           </div>
 
           <Card padding="p-5">
             <h2 className="mb-4 text-base font-bold text-gray-900">Historial de actividades</h2>
+            {rol === 'ESTUDIANTE' && (
+              <p className="mb-4 text-sm text-gray-600">
+                Las observaciones del docente asesor aparecen como comentarios. El estado{' '}
+                <strong>Pendiente de revisión</strong> indica que tu entrega aún no fue revisada.
+              </p>
+            )}
             <TimelineSeguimiento timeline={timeline} />
           </Card>
         </div>
 
+        {rol !== 'ESTUDIANTE' && (
         <aside className="w-full shrink-0 xl:w-72">
           <AlertasPanel practicaId={Number(id)} />
         </aside>
+        )}
       </div>
 
       <ObservacionModal

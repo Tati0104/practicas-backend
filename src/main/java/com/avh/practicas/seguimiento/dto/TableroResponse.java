@@ -12,5 +12,7 @@ public record TableroResponse(
     String docente,
     Integer corte,
     String estadoSeguimiento,
-    LocalDateTime fechaUltimaActividad
+    java.time.LocalDateTime fechaUltimaActividad,
+    Integer numeroPractica,
+    String estadoPractica
 ) {}

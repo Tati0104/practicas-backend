@@ -36,7 +36,7 @@ export default function PracticasSelectorPage({
 }) {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
-  const { practicas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
+  const { practicas, practicasTodas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
     useSeguimiento();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function PracticasSelectorPage({
     <div>
       <PageHeader titulo={titulo} descripcion={descripcion} />
 
-      <FiltrosComponent filtros={filtros} setFiltros={setFiltros} />
+      <FiltrosComponent filtros={filtros} setFiltros={setFiltros} practicas={practicasTodas} />
 
       {isLoading && (
         <p className="py-10 text-center text-sm text-gray-500">Cargando prácticas...</p>
@@ -57,9 +57,10 @@ export default function PracticasSelectorPage({
 
       {!isLoading && practicas.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center text-gray-500">
-          <p>No hay prácticas en curso que coincidan con los filtros.</p>
+          <p>No hay prácticas que coincidan con los filtros.</p>
           <p className="mt-2 text-sm text-gray-400">
-            Las evaluaciones aplican a prácticas activas (estado EN CURSO) con estudiante vinculado.
+            Puedes filtrar por número de práctica (Práctica 1, Práctica 2, etc.) asignada por el
+            coordinador académico.
           </p>
         </div>
       )}

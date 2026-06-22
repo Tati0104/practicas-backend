@@ -11,21 +11,22 @@ const BADGE = {
   EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
-export default function SeguimientoTabla({ practicas = [], onVerDetalle, etiquetaAccion = 'Ver' }) {
+export default function SeguimientoTabla({
+  practicas = [],
+  onVerDetalle,
+  etiquetaAccion = 'Ver',
+  ocultarEstudiante = false,
+}) {
+  const columnas = ocultarEstudiante
+    ? ['Práctica', 'Empresa / Cargo', 'Docente', 'Corte', 'Estado', 'Última actividad', 'Acciones']
+    : ['Estudiante', 'Empresa / Cargo', 'Docente', 'Corte', 'Estado', 'Última actividad', 'Acciones'];
+
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200">
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-gray-200 bg-slate-50">
-            {[
-              'Estudiante',
-              'Empresa / Cargo',
-              'Docente',
-              'Corte',
-              'Estado',
-              'Última actividad',
-              'Acciones',
-            ].map((h) => (
+            {columnas.map((h) => (
               <th
                 key={h}
                 className="px-3.5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"
@@ -46,8 +47,17 @@ export default function SeguimientoTabla({ practicas = [], onVerDetalle, etiquet
             return (
               <tr key={p.id} className="border-b border-gray-100 bg-white">
                 <td className="px-3.5 py-3">
-                  <div className="font-semibold text-gray-900">{nombreEstudiantePractica(p)}</div>
-                  {codigo && <div className="text-xs text-gray-500">{codigo}</div>}
+                  <div className="font-semibold text-gray-900">
+                    {ocultarEstudiante
+                      ? `Práctica ${p.numeroPractica ?? '—'}`
+                      : nombreEstudiantePractica(p)}
+                  </div>
+                  {ocultarEstudiante && p.estadoPractica && (
+                    <div className="text-xs text-gray-500">{p.estadoPractica.replace(/_/g, ' ')}</div>
+                  )}
+                  {!ocultarEstudiante && codigo && (
+                    <div className="text-xs text-gray-500">{codigo}</div>
+                  )}
                 </td>
                 <td className="px-3.5 py-3">
                   <div className="font-medium text-gray-800">{p.cargo || '—'}</div>

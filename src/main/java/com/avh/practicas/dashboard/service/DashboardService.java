@@ -43,6 +43,9 @@ public class DashboardService {
     @Transactional(readOnly = true)
     public DashboardDto getDashboard() {
         Usuario usuario = obtenerUsuarioAutenticado();
+        if (usuario != null && usuario.getRol() == Rol.ESTUDIANTE) {
+            return DashboardDto.builder().build();
+        }
         if (usuario != null && usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
             return construirDashboardTutor(usuario);
         }

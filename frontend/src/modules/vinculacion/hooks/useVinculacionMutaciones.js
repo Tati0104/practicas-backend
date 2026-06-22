@@ -6,6 +6,7 @@ import {
   claveQueryDocumentos,
   fusionarDocumentoSubido,
   obtenerDocumentosAsignacion,
+  obtenerDocumentosPracticaDetalle,
 } from '../utils/vinculacionApi';
 
 const CATEGORIA_API = {
@@ -22,28 +23,38 @@ const MENSAJES = {
   CONVENIO: 'Convenio subido correctamente',
 };
 
-async function subirConFallback(asignacionId, tipo, archivo) {
+async function subirConFallback({ asignacionId, practicaId, tipo, archivo }) {
+  const categoria = CATEGORIA_API[tipo];
   try {
-    return await vinculacionService.subirDocumento(asignacionId, CATEGORIA_API[tipo], archivo);
+    if (asignacionId) {
+      return await vinculacionService.subirDocumento(asignacionId, categoria, archivo);
+    }
+    return await vinculacionService.subirDocumentoPractica(practicaId, categoria, archivo);
   } catch (err) {
     const status = err?.response?.status;
     if (status !== 404 && status !== 405 && status !== 501) throw err;
 
-    if (tipo === 'CARTA') return vinculacionService.subirCarta(asignacionId, archivo);
-    if (tipo === 'CONVENIO') return vinculacionService.subirConvenio(asignacionId, archivo);
+    if (asignacionId) {
+      if (tipo === 'CARTA') return vinculacionService.subirCarta(asignacionId, archivo);
+      if (tipo === 'CONVENIO') return vinculacionService.subirConvenio(asignacionId, archivo);
+    }
 
     throw err;
   }
 }
 
-export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = {}) {
+export function useVinculacionMutaciones({ asignacionId, practicaId, onSuccess, onError } = {}) {
   const queryClient = useQueryClient();
-  const queryKey = claveQueryDocumentos(asignacionId, usarMocks());
+  const idAsignacion = asignacionId || null;
+  const idPractica = practicaId || null;
+  const queryKey = claveQueryDocumentos(idAsignacion, idPractica, usarMocks());
 
   const sincronizarDocumentos = async () => {
-    if (usarMocks() || !asignacionId) return;
+    if (usarMocks() || (!idAsignacion && !idPractica)) return;
     try {
-      const data = await obtenerDocumentosAsignacion(asignacionId);
+      const data = idAsignacion
+        ? await obtenerDocumentosAsignacion(idAsignacion)
+        : await obtenerDocumentosPracticaDetalle(idPractica);
       queryClient.setQueryData(queryKey, (prev) => {
         if (!prev?.documentos?.length) return data;
 
@@ -72,8 +83,8 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
 
   const alExito = (mensaje) => async () => {
     await sincronizarDocumentos();
-    await queryClient.invalidateQueries({ queryKey: claveQueryDocumentos(asignacionId, false) });
-    await queryClient.refetchQueries({ queryKey: claveQueryDocumentos(asignacionId, false) });
+    await queryClient.invalidateQueries({ queryKey: claveQueryDocumentos(idAsignacion, idPractica, false) });
+    await queryClient.refetchQueries({ queryKey: claveQueryDocumentos(idAsignacion, idPractica, false) });
     queryClient.invalidateQueries({ queryKey: ['vinculacion'] });
     queryClient.invalidateQueries({ queryKey: ['seguimiento'] });
     toast.success(mensaje);
@@ -91,7 +102,8 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
   };
 
   const subirDocumento = useMutation({
-    mutationFn: ({ tipo, archivo }) => subirConFallback(asignacionId, tipo, archivo),
+    mutationFn: ({ tipo, archivo }) =>
+      subirConFallback({ asignacionId: idAsignacion, practicaId: idPractica, tipo, archivo }),
     onSuccess: (response, variables) =>
       alExitoSubida(MENSAJES[variables.tipo] ?? 'Documento subido')(response, variables),
     onError: alError,
@@ -105,14 +117,14 @@ export function useVinculacionMutaciones({ asignacionId, onSuccess, onError } = 
   });
 
   const activarPractica = useMutation({
-    mutationFn: ({ practicaId, payload }) => vinculacionService.activarPractica(practicaId, payload),
+    mutationFn: ({ practicaId: pid, payload }) => vinculacionService.activarPractica(pid, payload),
     onSuccess: alExito('Práctica activada y vinculada exitosamente'),
     onError: alError,
   });
 
   const asignarDocenteAsesor = useMutation({
-    mutationFn: ({ asignacionId, docenteAsesorId }) =>
-      vinculacionService.asignarDocenteAsesor(asignacionId, docenteAsesorId),
+    mutationFn: ({ asignacionId: aid, docenteAsesorId }) =>
+      vinculacionService.asignarDocenteAsesor(aid, docenteAsesorId),
     onSuccess: alExito('Docente Asesor asignado correctamente'),
     onError: alError,
   });

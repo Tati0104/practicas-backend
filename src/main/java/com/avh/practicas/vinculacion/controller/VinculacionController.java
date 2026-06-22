@@ -39,6 +39,26 @@ public class VinculacionController {
         return vinculacionService.listar(busqueda, programaId, empresaId, estado, pageable);
     }
 
+    @GetMapping("/vinculaciones/practicas/{practicaId}/documentos-detalle")
+    public ResponseEntity<ApiResponse<DocumentosAsignacionResponse>> obtenerDocumentosPractica(
+            @PathVariable Long practicaId
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(vinculacionService.obtenerDocumentosPractica(practicaId)));
+    }
+
+    @PostMapping(value = "/vinculaciones/practicas/{practicaId}/documentos/{categoria}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DocumentoCargadoResponse>> cargarDocumentoPorPractica(
+            @PathVariable Long practicaId,
+            @PathVariable CategoriaDocumento categoria,
+            @RequestParam("archivo") MultipartFile archivo
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                "Documento cargado correctamente",
+                vinculacionService.cargarDocumentoPorPractica(practicaId, categoria, archivo)
+        ));
+    }
+
     @GetMapping("/vinculaciones/asignaciones/{asignacionId}/documentos")
     public ResponseEntity<ApiResponse<DocumentosAsignacionResponse>> obtenerDocumentosAsignacion(
             @PathVariable Long asignacionId

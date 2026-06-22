@@ -43,8 +43,12 @@ export function useSeguimientoMutaciones({ onSuccess, onError } = {}) {
   });
 
   const registrarBitacora = useMutation({
-    mutationFn: ({ practicaId, corte, ...dto }) =>
-      seguimientoService.registrarBitacora(practicaId, dto, corte),
+    mutationFn: ({ practicaId, corte, descripcion, actividades, aprendizajes }) =>
+      seguimientoService.registrarBitacora(
+        practicaId,
+        { descripcion: descripcion ?? `${actividades}\n\n${aprendizajes}` },
+        corte
+      ),
     onSuccess: alExito('Entrada de bitácora guardada'),
     onError: alError,
   });

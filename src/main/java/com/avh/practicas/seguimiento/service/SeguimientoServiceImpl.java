@@ -378,7 +378,9 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                     nombreDocente,
                     corteActivo,
                     estadoSeguimiento,
-                    fechaUltimaActividad
+                    fechaUltimaActividad,
+                    p.getNumeroPractica(),
+                    p.getEstado() != null ? p.getEstado().name() : null
             );
 
             // Filtrado en memoria
@@ -399,9 +401,12 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Transactional(readOnly = true)
     public List<TableroResponse> obtenerPracticasSeguimiento(String busqueda, Long programaId, String estadoSeguimiento) {
         ScopePracticas scope = scopeResolver.resolver();
+        boolean esEstudiante = SecurityContextHolder.getContext().getAuthentication() != null
+                && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
 
         List<InstanciaPractica> practicas = practicaRepository.findAll().stream()
-                .filter(p -> p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO)
+                .filter(p -> esEstudiante || p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO)
                 .filter(scope::esVisible)
                 .filter(p -> programaId == null
                         || (p.getExpediente() != null
@@ -543,7 +548,9 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 nombreDocente,
                 corteActivo,
                 estadoSeguimiento,
-                fechaUltimaActividad
+                fechaUltimaActividad,
+                p.getNumeroPractica(),
+                p.getEstado() != null ? p.getEstado().name() : null
         );
     }
 
@@ -571,6 +578,7 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Override
     @Transactional(readOnly = true)
     public com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetallePractica(Long practicaId) {
+        validarVisiblePorId(practicaId);
         InstanciaPractica p = practicaRepository.findByIdWithExpedienteAndEstudiante(practicaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la práctica con ID: " + practicaId));
 

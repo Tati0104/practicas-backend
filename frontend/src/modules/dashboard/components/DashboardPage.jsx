@@ -1,6 +1,7 @@
 import { useResumen } from '../hooks/useDashboard';
 import TarjetaResumen from './TarjetaResumen';
 import CentroAlertas from './CentroAlertas';
+import EstudiantePanelPage from './EstudiantePanelPage';
 import useAuth from '../../../shared/hooks/useAuth';
 import {
   ContenedorGrafica,
@@ -63,6 +64,15 @@ function iconoKpi(icono) {
 
 export default function DashboardPage() {
   const { usuario } = useAuth();
+
+  if (usuario?.rol === 'ESTUDIANTE') {
+    return <EstudiantePanelPage />;
+  }
+
+  return <DashboardGeneralPage usuario={usuario} />;
+}
+
+function DashboardGeneralPage({ usuario }) {
   const { esOscuro } = useTheme();
   const paleta = getPaleta(esOscuro);
   const { data, isLoading, isError } = useResumen();

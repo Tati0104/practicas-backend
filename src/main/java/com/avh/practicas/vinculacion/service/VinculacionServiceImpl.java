@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,11 +45,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,9 +84,14 @@ public class VinculacionServiceImpl implements VinculacionService {
             EstadoAsignacion estado,
             Pageable pageable
     ) {
+        Optional<Estudiante> estudianteAutenticado = resolverEstudianteAutenticado();
+        if (estudianteAutenticado.isPresent()) {
+            return listarPorPracticasEstudiante(estudianteAutenticado.get(), pageable);
+        }
+
         String estadoParam = estado != null ? estado.name() : null;
         Long tutorId = resolverTutorAutenticado().map(TutorEmpresarial::getId).orElse(null);
-        Long estudianteId = resolverEstudianteAutenticado().map(Estudiante::getId).orElse(null);
+        Long estudianteId = null;
         Optional<Empresa> empresaAutenticada = resolverEmpresaAutenticada();
         if (empresaAutenticada.isPresent()) {
             empresaId = empresaAutenticada.get().getId();
@@ -90,6 +99,34 @@ public class VinculacionServiceImpl implements VinculacionService {
         return asignacionRepository.buscarVinculaciones(
                         busqueda, programaId, empresaId, estadoParam, tutorId, estudianteId, pageable)
                 .map(this::mapearListado);
+    }
+
+    private Page<VinculacionListadoResponse> listarPorPracticasEstudiante(Estudiante estudiante, Pageable pageable) {
+        Long estudianteId = estudiante.getId();
+        List<VinculacionListadoResponse> items = new ArrayList<>();
+        Set<Long> practicasIncluidas = new HashSet<>();
+
+        for (InstanciaPractica practica : practicaRepository.findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(estudianteId)) {
+            practicasIncluidas.add(practica.getId());
+            Optional<Asignacion> asignacion = asignacionRepository.findFirstByInstanciaPracticaIdAndEstadoNot(
+                    practica.getId(), EstadoAsignacion.CANCELADA);
+            items.add(asignacion.map(this::mapearListado).orElseGet(() -> mapearListadoDesdePractica(practica, estudiante)));
+        }
+
+        for (Asignacion asignacion : asignacionRepository.findByEstudianteId(estudianteId)) {
+            if (asignacion.getEstado() == EstadoAsignacion.CANCELADA) {
+                continue;
+            }
+            Long practicaId = asignacion.getInstanciaPracticaId();
+            if (practicaId == null || !practicasIncluidas.contains(practicaId)) {
+                items.add(mapearListado(asignacion));
+            }
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), items.size());
+        List<VinculacionListadoResponse> pageContent = start >= items.size() ? List.of() : items.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, items.size());
     }
 
     @Override
@@ -106,6 +143,9 @@ public class VinculacionServiceImpl implements VinculacionService {
         }
 
         Optional<Convenio> convenio = convenioRepository.findByAsignacionId(asignacionId);
+        if (convenio.isEmpty() && practicaId != null) {
+            convenio = convenioRepository.findByInstanciaPracticaId(practicaId);
+        }
         List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
 
         Long docenteAsesorId = null;
@@ -139,6 +179,47 @@ public class VinculacionServiceImpl implements VinculacionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public DocumentosAsignacionResponse obtenerDocumentosPractica(Long practicaId) {
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+        validarAccesoPractica(practicaId);
+
+        Optional<Asignacion> asignacionOpt = asignacionRepository.findFirstByInstanciaPracticaIdAndEstadoNot(
+                practicaId, EstadoAsignacion.CANCELADA);
+        if (asignacionOpt.isPresent()) {
+            return obtenerDocumentosAsignacion(asignacionOpt.get().getId());
+        }
+
+        Estudiante estudiante = practica.getExpediente().getEstudiante();
+        List<DocumentoPractica> documentos = documentoPracticaRepository.findByInstanciaPracticaIdOrderByFechaDesc(practicaId);
+        Optional<Convenio> convenio = convenioRepository.findByInstanciaPracticaId(practicaId);
+        List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
+
+        EstudianteVinculacionDto estudianteDto = new EstudianteVinculacionDto(
+                estudiante.getId(),
+                estudiante.getNombre(),
+                estudiante.getIdentificacion(),
+                estudiante.getPrograma() != null ? estudiante.getPrograma().getNombre() : null
+        );
+
+        return new DocumentosAsignacionResponse(
+                null,
+                practicaId,
+                convenio.map(Convenio::getId).orElse(null),
+                estudianteDto,
+                vacanteDesdePractica(practica),
+                resolverNombreTutorPractica(practica),
+                practica.getDocenteAsesorId(),
+                practica.getFechaInicio(),
+                practica.getFechaFin(),
+                EstadoAsignacion.ASIGNADA,
+                practica.getEstado(),
+                paneles
+        );
+    }
+
+    @Override
     @Transactional
     public DocumentoCargadoResponse cargarDocumento(Long asignacionId, CategoriaDocumento categoria, MultipartFile archivo) {
         validarNoEsTutorSubiendo();
@@ -149,6 +230,32 @@ public class VinculacionServiceImpl implements VinculacionService {
 
         if (categoria == CategoriaDocumento.CONVENIO_PRACTICA) {
             vincularConvenio(asignacionId, respuesta);
+        }
+        return respuesta;
+    }
+
+    @Override
+    @Transactional
+    public DocumentoCargadoResponse cargarDocumentoPorPractica(
+            Long practicaId,
+            CategoriaDocumento categoria,
+            MultipartFile archivo
+    ) {
+        validarNoEsTutorSubiendo();
+        validarAccesoPractica(practicaId);
+
+        Optional<Asignacion> asignacion = asignacionRepository.findFirstByInstanciaPracticaIdAndEstadoNot(
+                practicaId, EstadoAsignacion.CANCELADA);
+        if (asignacion.isPresent()) {
+            return cargarDocumento(asignacion.get().getId(), categoria, archivo);
+        }
+
+        DocumentoVinculacionSupport.AlmacenCategoria almacen = DocumentoVinculacionSupport.almacenPara(categoria);
+        DocumentoCargadoResponse respuesta = registrarDocumentoPorPractica(
+                practicaId, archivo, categoria, almacen.toPort());
+
+        if (categoria == CategoriaDocumento.CONVENIO_PRACTICA) {
+            vincularConvenioPorPractica(practicaId, respuesta);
         }
         return respuesta;
     }
@@ -338,6 +445,64 @@ public class VinculacionServiceImpl implements VinculacionService {
         );
     }
 
+    private DocumentoCargadoResponse registrarDocumentoPorPractica(
+            Long practicaId,
+            MultipartFile archivo,
+            CategoriaDocumento categoria,
+            AlmacenArchivosPort.CategoriaAlmacen almacenCategoria
+    ) {
+        validadorArchivo.validar(archivo);
+
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+
+        String url = almacenArchivos.guardar(practicaId, almacenCategoria, archivo);
+
+        DocumentoPractica documento = documentoPracticaRepository.save(DocumentoPractica.builder()
+                .instanciaPracticaId(practicaId)
+                .asignacionId(null)
+                .nombre(archivo.getOriginalFilename())
+                .url(url)
+                .tipo(validadorArchivo.resolverTipo(archivo))
+                .categoria(categoria)
+                .build());
+
+        return new DocumentoCargadoResponse(
+                documento.getId(),
+                null,
+                practicaId,
+                categoria,
+                url
+        );
+    }
+
+    private void vincularConvenioPorPractica(Long practicaId, DocumentoCargadoResponse respuesta) {
+        InstanciaPractica practica = practicaRepository.findByIdConExpediente(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
+
+        Long empresaId = practica.getEmpresaId();
+        if (empresaId == null) {
+            throw new NegocioException(
+                    "La práctica aún no tiene empresa asignada. Solicita al coordinador que complete la vinculación.");
+        }
+
+        LocalDate inicio = LocalDate.now();
+        LocalDate fin = inicio.plusWeeks(practica.getDuracionSemanas() != null ? practica.getDuracionSemanas() : 16);
+
+        Convenio convenio = convenioRepository.findByInstanciaPracticaId(practicaId)
+                .orElseGet(() -> Convenio.builder()
+                        .instanciaPracticaId(practicaId)
+                        .empresaId(empresaId)
+                        .fechaInicio(inicio)
+                        .fechaFin(fin)
+                        .estado("ACTIVO")
+                        .build());
+
+        convenio.setUrlDocumento(respuesta.url());
+        convenio.setInstanciaPracticaId(practicaId);
+        convenioRepository.save(convenio);
+    }
+
     private void vincularConvenio(Long asignacionId, DocumentoCargadoResponse respuesta) {
         Asignacion asignacion = obtenerAsignacion(asignacionId);
         Long practicaId = respuesta.practicaId();
@@ -361,7 +526,20 @@ public class VinculacionServiceImpl implements VinculacionService {
         }
 
         Optional<Convenio> convenio = convenioRepository.findByAsignacionId(asignacion.getId());
+        if (convenio.isEmpty() && practicaId != null) {
+            convenio = convenioRepository.findByInstanciaPracticaId(practicaId);
+        }
         List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
+
+        Integer numeroPractica = null;
+        EstadoPractica estadoPractica = null;
+        if (practicaId != null) {
+            Optional<InstanciaPractica> practicaOpt = practicaRepository.findById(practicaId);
+            if (practicaOpt.isPresent()) {
+                numeroPractica = practicaOpt.get().getNumeroPractica();
+                estadoPractica = practicaOpt.get().getEstado();
+            }
+        }
 
         return new VinculacionListadoResponse(
                 asignacion.getId(),
@@ -369,8 +547,56 @@ public class VinculacionServiceImpl implements VinculacionService {
                 asignacion.getEstado(),
                 contexto.estudiante(),
                 contexto.vacante(),
-                paneles
+                paneles,
+                numeroPractica,
+                estadoPractica,
+                convenio.map(c -> c.getFirmaEstudianteAt() != null).orElse(false)
         );
+    }
+
+    private VinculacionListadoResponse mapearListadoDesdePractica(InstanciaPractica practica, Estudiante estudiante) {
+        Long practicaId = practica.getId();
+        List<DocumentoPractica> documentos = documentoPracticaRepository.findByInstanciaPracticaIdOrderByFechaDesc(practicaId);
+        Optional<Convenio> convenio = convenioRepository.findByInstanciaPracticaId(practicaId);
+        List<DocumentoVinculacionDto> paneles = DocumentoVinculacionSupport.construirPaneles(documentos, convenio);
+
+        EstudianteVinculacionDto estudianteDto = new EstudianteVinculacionDto(
+                estudiante.getId(),
+                estudiante.getNombre(),
+                estudiante.getIdentificacion(),
+                estudiante.getPrograma() != null ? estudiante.getPrograma().getNombre() : null
+        );
+
+        return new VinculacionListadoResponse(
+                null,
+                practicaId,
+                EstadoAsignacion.ASIGNADA,
+                estudianteDto,
+                vacanteDesdePractica(practica),
+                paneles,
+                practica.getNumeroPractica(),
+                practica.getEstado(),
+                convenio.map(c -> c.getFirmaEstudianteAt() != null).orElse(false)
+        );
+    }
+
+    private VacanteVinculacionDto vacanteDesdePractica(InstanciaPractica practica) {
+        String empresa = null;
+        if (practica.getEmpresaId() != null) {
+            empresa = empresaRepository.findById(practica.getEmpresaId())
+                    .map(Empresa::getRazonSocial)
+                    .orElse(null);
+        }
+        return new VacanteVinculacionDto(null, practica.getNombre(), empresa);
+    }
+
+    private String resolverNombreTutorPractica(InstanciaPractica practica) {
+        if (practica.getTutorId() == null) {
+            return null;
+        }
+        return tutorRepository.findById(practica.getTutorId())
+                .map(TutorEmpresarial::getNombre)
+                .orElse(null);
     }
 
     private ContextoVinculacion cargarContexto(Asignacion asignacion) {
@@ -591,7 +817,8 @@ public class VinculacionServiceImpl implements VinculacionService {
         if (usuario == null || usuario.getRol() != Rol.ESTUDIANTE) {
             return Optional.empty();
         }
-        return estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo());
+        return estudianteRepository.findByCorreoIgnoreCase(usuario.getCorreo())
+                .or(() -> estudianteRepository.findByUsuario_Id(usuario.getId()));
     }
 
     private Usuario obtenerUsuarioActual() {

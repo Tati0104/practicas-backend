@@ -239,10 +239,19 @@ export default function AppRouter() {
           />
 
           <Route
+            path="/vinculacion/practica/:practicaId"
+            element={
+              <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
+                <VinculacionDetallePage modo="practica" />
+              </RutaPrivada>
+            }
+          />
+
+          <Route
             path="/vinculacion/:asignacionId"
             element={
               <RutaPrivada roles={['COORD_PRACTICA', 'TUTOR_EMPRESARIAL', 'ESTUDIANTE', 'ADMIN']}>
-                <VinculacionDetallePage />
+                <VinculacionDetallePage modo="asignacion" />
               </RutaPrivada>
             }
           />

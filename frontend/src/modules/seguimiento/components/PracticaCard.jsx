@@ -6,12 +6,12 @@ import {
 } from '../utils/fechas';
 
 const BADGE = {
-  AL_DIA: { label: 'Al día', variant: 'success' },
-  PENDIENTE: { label: 'Pendiente', variant: 'warning' },
+  AL_DIA: { label: 'Revisado / Al día', variant: 'success' },
+  PENDIENTE: { label: 'Pendiente de revisión', variant: 'warning' },
   EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
-export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 'Ver detalle' }) {
+export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 'Ver detalle', modoEstudiante = false }) {
   const estadoClave = estadoSeguimientoPractica(practica);
   const badge = BADGE[estadoClave] || { label: estadoClave, variant: 'neutral' };
   const fechaStr = formatearFechaSeguimiento(practica.fechaUltimaActividad);
@@ -24,8 +24,15 @@ export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 
     <Card padding="p-4">
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <div className="font-bold text-gray-900">{nombreEstudiantePractica(practica)}</div>
-          {(codigo || programa) && (
+          <div className="font-bold text-gray-900">
+            {modoEstudiante
+              ? `Práctica ${practica.numeroPractica ?? '—'}`
+              : nombreEstudiantePractica(practica)}
+          </div>
+          {modoEstudiante && practica.estadoPractica && (
+            <div className="text-xs text-gray-500">{practica.estadoPractica.replace(/_/g, ' ')}</div>
+          )}
+          {!modoEstudiante && (codigo || programa) && (
             <div className="text-xs text-gray-500">
               {[codigo, programa].filter(Boolean).join(' — ')}
             </div>

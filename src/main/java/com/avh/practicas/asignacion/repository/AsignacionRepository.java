@@ -11,11 +11,17 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, JpaSpecificationExecutor<Asignacion> {
     boolean existsByEstudianteIdAndEstadoIn(Long estudianteId, Collection<EstadoAsignacion> estados);
     List<Asignacion> findByEstudianteId(Long estudianteId);
     List<Asignacion> findByVacanteId(Long vacanteId);
+
+    Optional<Asignacion> findFirstByInstanciaPracticaIdAndEstadoNot(
+            Long instanciaPracticaId,
+            EstadoAsignacion estado
+    );
 
     @Query(value = """
             SELECT a.*

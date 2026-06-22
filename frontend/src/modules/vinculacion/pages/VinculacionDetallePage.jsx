@@ -36,16 +36,19 @@ function documentoCompleto(doc) {
   return doc.estado === 'SUBIDO' || doc.estado === 'FIRMADO';
 }
 
-export default function VinculacionDetallePage() {
-  const { asignacionId } = useParams();
+export default function VinculacionDetallePage({ modo = 'asignacion' }) {
+  const params = useParams();
+  const asignacionId = modo === 'asignacion' ? params.asignacionId : null;
+  const practicaId = modo === 'practica' ? params.practicaId : null;
   const navigate = useNavigate();
   const [firmaSeleccionada, setFirmaSeleccionada] = useState(null);
   const [modalActivarOpen, setModalActivarOpen] = useState(false);
 
   const { documentos, convenioId, detalle, isLoading, isError, refetch } =
-    useVinculacionDocumentos(asignacionId);
+    useVinculacionDocumentos({ asignacionId, practicaId });
   const { subirDocumento, confirmarFirma, activarPractica, asignarDocenteAsesor } = useVinculacionMutaciones({
     asignacionId,
+    practicaId,
     onSuccess: () => {
       setFirmaSeleccionada(null);
       setModalActivarOpen(false);

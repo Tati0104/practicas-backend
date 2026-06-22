@@ -11,7 +11,10 @@ const dashboardService = {
     http.patch(`/dashboard/alertas/${id}/leer`),
 
   obtenerFiltrosDisponibles: () =>
-    http.get('/dashboard/filtros-disponibles')
+    http.get('/dashboard/filtros-disponibles'),
+
+  obtenerPanelEstudiante: () =>
+    http.get('/dashboard/panel-estudiante'),
 };
 
 export default dashboardService;
