@@ -147,10 +147,6 @@ export default function CalificacionesPage() {
         <section className="space-y-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Encuestas de cierre</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Requisito para el cierre formal (RF-08-05, RF-08-06, RF-09-01). El tutor puede guardar
-              borrador; el estudiante debe completar la suya antes del cierre.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
