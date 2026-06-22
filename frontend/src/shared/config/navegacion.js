@@ -119,10 +119,10 @@ export const GRUPOS_NAVEGACION = [
       },
       {
         id: 'vacantes',
-        nombre: 'Vacantes',
+        nombre: 'Vacantes y postulaciones',
         ruta: '/vacantes',
         icono: 'ClipboardList',
-        roles: ROLES_VACANTES,
+        roles: [ROLES.EMPRESA, ROLES.TUTOR_EMPRESARIAL],
       },
       {
         // Entrada propia para Coordinacion Academica: solo necesita ver la lista de
