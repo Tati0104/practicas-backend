@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,6 +24,7 @@ public class BitacoraServiceImpl implements BitacoraService {
                 .accion(accion)
                 .usuarioId(usuario != null ? usuario.getId() : null)
                 .detalle(detalle)
+                .fecha(LocalDateTime.now())
                 .build();
         repository.save(bitacora);
     }
