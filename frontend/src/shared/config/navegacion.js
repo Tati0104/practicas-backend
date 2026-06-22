@@ -58,6 +58,13 @@ export const GRUPOS_NAVEGACION = [
         icono: 'BookOpen',
         roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
       },
+      {
+        id: 'catalogo-practicas',
+        nombre: 'Catálogo de prácticas',
+        ruta: '/configuracion/catalogo-practicas',
+        icono: 'BookMarked',
+        roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
+      },
     ],
   },
   {
