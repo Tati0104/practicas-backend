@@ -25,14 +25,24 @@ import com.avh.practicas.notificacion.service.NotificacionService;
 import com.avh.practicas.shared.scope.ScopePracticaResolver;
 import com.avh.practicas.shared.scope.ScopePracticas;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
+import com.avh.practicas.shared.exception.NegocioException;
+import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.UUID;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,6 +59,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class SeguimientoServiceImpl implements SeguimientoService {
+
+    private static final String DIRECTORIO_SEGUIMIENTO = "uploads/seguimiento";
+    private static final long TAMANO_MAXIMO_BYTES = 10L * 1024 * 1024;
+    private static final List<String> MIMES_PERMITIDOS = List.of(
+            "application/pdf",
+            "image/jpeg", "image/jpg", "image/png",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
 
     private final InstanciaPracticaRepository practicaRepository;
     private final DocenteAsesorRepository docenteRepository;
@@ -236,6 +255,74 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 .build();
 
         return bitacoraEstudianteRepository.save(bitacora);
+    }
+
+    @Override
+    public BitacoraEstudiante adjuntarArchivoBitacora(Long bitacoraId, MultipartFile archivo) {
+        BitacoraEstudiante bitacora = bitacoraEstudianteRepository.findById(bitacoraId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Bitácora no encontrada: " + bitacoraId));
+
+        if (archivo == null || archivo.isEmpty()) {
+            throw new NegocioException("El archivo no puede estar vacío.");
+        }
+        if (archivo.getSize() > TAMANO_MAXIMO_BYTES) {
+            throw new NegocioException("El archivo supera el tamaño máximo permitido de 10 MB.");
+        }
+        String mime = archivo.getContentType();
+        if (mime == null || !MIMES_PERMITIDOS.contains(mime.toLowerCase())) {
+            throw new NegocioException("Tipo de archivo no permitido. Se aceptan PDF, Word e imágenes (JPG, PNG).");
+        }
+
+        Long practicaId = bitacora.getInstanciaPractica().getId();
+        try {
+            Path directorio = Paths.get(DIRECTORIO_SEGUIMIENTO, "bitacora", String.valueOf(practicaId));
+            Files.createDirectories(directorio);
+            String nombreSeguro = UUID.randomUUID() + "_" + archivo.getOriginalFilename();
+            Path destino = directorio.resolve(nombreSeguro);
+            archivo.transferTo(destino);
+            bitacora.setNombreArchivo(archivo.getOriginalFilename());
+            bitacora.setUrlArchivo(destino.toString().replace('\\', '/'));
+        } catch (IOException ex) {
+            throw new NegocioException("No se pudo guardar el archivo: " + ex.getMessage());
+        }
+
+        return bitacoraEstudianteRepository.save(bitacora);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Resource descargarArchivoBitacora(Long bitacoraId) {
+        BitacoraEstudiante bitacora = bitacoraEstudianteRepository.findById(bitacoraId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Bitácora no encontrada: " + bitacoraId));
+        if (bitacora.getUrlArchivo() == null) {
+            throw new RecursoNoEncontradoException("Esta bitácora no tiene archivo adjunto.");
+        }
+        try {
+            Path base = Paths.get(DIRECTORIO_SEGUIMIENTO).toAbsolutePath().normalize();
+            Path archivo = Paths.get(bitacora.getUrlArchivo()).toAbsolutePath().normalize();
+            if (!archivo.startsWith(base)) {
+                throw new NegocioException("Ruta de archivo no permitida.");
+            }
+            Resource resource = new UrlResource(archivo.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RecursoNoEncontradoException("No se pudo leer el archivo solicitado.");
+            }
+            return resource;
+        } catch (NegocioException | RecursoNoEncontradoException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new NegocioException("No se pudo descargar el archivo: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String nombreArchivoBitacora(Long bitacoraId) {
+        BitacoraEstudiante bitacora = bitacoraEstudianteRepository.findById(bitacoraId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Bitácora no encontrada: " + bitacoraId));
+        return bitacora.getNombreArchivo() != null
+                ? bitacora.getNombreArchivo()
+                : "archivo_bitacora_" + bitacoraId;
     }
 
     @Override
