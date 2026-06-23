@@ -16,15 +16,7 @@ export default function BitacoraModal({ isOpen, practicaId, onClose, onGuardar, 
 
   const handleGuardar = () => {
     if (!actividades.trim() || !aprendizajes.trim()) return;
-    const descripcion = [
-      'Actividades realizadas:',
-      actividades.trim(),
-      '',
-      'Aprendizajes obtenidos:',
-      aprendizajes.trim(),
-      archivo ? `\n\nArchivo adjunto: ${archivo.name}` : '',
-    ].join('\n');
-    onGuardar({ practicaId, actividades, aprendizajes, descripcion, archivo });
+    onGuardar({ practicaId, actividades, aprendizajes, archivo });
     setActividades('');
     setAprendizajes('');
     setArchivo(null);

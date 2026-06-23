@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { Download, Paperclip } from 'lucide-react';
 import { usePracticaSeguimiento } from '../hooks/usePracticaSeguimiento';
 import { useSeguimientoMutaciones } from '../hooks/useSeguimientoMutaciones';
+import { useBitacorasEstudiante } from '../hooks/useBitacorasEstudiante';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import TimelineSeguimiento from '../components/TimelineSeguimiento';
 import ObservacionModal from '../components/ObservacionModal';
 import AvanceTutorModal from '../components/AvanceTutorModal';
 import BitacoraModal from '../components/BitacoraModal';
 import { Badge, Button, Card, LoadingState, PageBackHeader } from '@/shared/components/ui';
+import seguimientoService from '../services/seguimientoService';
 import {
   estadoSeguimientoPractica,
   formatearFechaSeguimiento,
+  formatearFechaHoraSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
 
@@ -44,10 +49,25 @@ export default function PracticaDetallePage() {
   const { practica, timeline, isLoading, isError } = usePracticaSeguimiento(id);
   const { usuario } = usePermisos();
   const rol = usuario?.rol;
+  const { bitacoras } = useBitacorasEstudiante(id, { enabled: rol === 'DOCENTE_ASESOR' });
 
   const [modalObservacion, setModalObservacion] = useState(false);
   const [modalAvance, setModalAvance] = useState(false);
   const [modalBitacora, setModalBitacora] = useState(false);
+
+  const handleDescargarArchivo = async (bitacoraId, nombreArchivo) => {
+    try {
+      const resp = await seguimientoService.descargarArchivoBitacora(bitacoraId);
+      const url = URL.createObjectURL(resp.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nombreArchivo || `bitacora_${bitacoraId}`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('No se pudo descargar el archivo');
+    }
+  };
 
   const { registrarObservacion, registrarAvance, registrarBitacora } =
     useSeguimientoMutaciones({
@@ -130,6 +150,51 @@ export default function PracticaDetallePage() {
             </div>
           </Card>
 
+          {rol === 'DOCENTE_ASESOR' && (
+            <Card className="mb-5" padding="p-5">
+              <h2 className="mb-4 text-base font-bold text-gray-900">Seguimientos del estudiante</h2>
+              {bitacoras.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-400">
+                  El estudiante aún no ha registrado bitácoras.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-4">
+                  {[...bitacoras]
+                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                    .map((entrada) => (
+                      <li key={entrada.id} className="rounded-lg border border-violet-100 bg-violet-50 p-4">
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                          {entrada.corte != null && (
+                            <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-800">
+                              Corte {entrada.corte}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400">
+                            {formatearFechaHoraSeguimiento(entrada.fecha)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{entrada.descripcion}</p>
+                        {entrada.nombreArchivo && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <Paperclip className="h-3.5 w-3.5 shrink-0 text-violet-500" aria-hidden="true" />
+                            <span className="truncate text-xs text-gray-500">{entrada.nombreArchivo}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDescargarArchivo(entrada.id, entrada.nombreArchivo)}
+                              className="ml-auto flex items-center gap-1 rounded-md bg-violet-100 px-2 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-200"
+                            >
+                              <Download className="h-3 w-3" aria-hidden="true" />
+                              Descargar
+                            </button>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </Card>
+          )}
+
           <div className="mb-5">
             {rol === 'DOCENTE_ASESOR' && (
               <Button onClick={() => setModalObservacion(true)}>+ Registrar observación</Button>
@@ -176,6 +241,7 @@ export default function PracticaDetallePage() {
       <ObservacionModal
         isOpen={modalObservacion}
         practicaId={Number(id)}
+        numCortes={practica?.numCortes ?? 3}
         onClose={() => setModalObservacion(false)}
         onGuardar={(dto) => registrarObservacion.mutate(dto)}
         isPending={registrarObservacion.isPending}

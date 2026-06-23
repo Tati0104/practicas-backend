@@ -36,6 +36,12 @@ public class BitacoraEstudiante {
     @Column(name = "descripcion", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(name = "nombre_archivo")
+    private String nombreArchivo;
+
+    @Column(name = "url_archivo")
+    private String urlArchivo;
+
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime fecha = LocalDateTime.now();

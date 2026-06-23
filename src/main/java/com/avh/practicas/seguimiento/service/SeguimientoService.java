@@ -8,6 +8,8 @@ import com.avh.practicas.seguimiento.entity.AlertaSistema;
 import com.avh.practicas.seguimiento.entity.AvanceTutor;
 import com.avh.practicas.seguimiento.entity.BitacoraEstudiante;
 import com.avh.practicas.seguimiento.entity.ObservacionDocente;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -68,6 +70,22 @@ public interface SeguimientoService {
      * Obtiene el detalle unificado de una práctica.
      */
     com.avh.practicas.seguimiento.dto.PracticaDetalleResponse obtenerDetallePractica(Long practicaId);
+
+    /**
+     * Adjunta un archivo de soporte a una entrada de bitácora ya creada.
+     * Guarda el archivo en disco y actualiza nombre_archivo / url_archivo en la entidad.
+     */
+    BitacoraEstudiante adjuntarArchivoBitacora(Long bitacoraId, MultipartFile archivo);
+
+    /**
+     * Devuelve el recurso (stream del archivo) para descarga.
+     */
+    Resource descargarArchivoBitacora(Long bitacoraId);
+
+    /**
+     * Devuelve el nombre original del archivo adjunto de la bitácora.
+     */
+    String nombreArchivoBitacora(Long bitacoraId);
 
     /**
      * Obtiene todas las alertas activas del sistema.

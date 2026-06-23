@@ -17,9 +17,14 @@ import com.avh.practicas.seguimiento.entity.ObservacionDocente;
 import com.avh.practicas.seguimiento.service.SeguimientoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -117,18 +122,38 @@ public class SeguimientoController {
 
     /**
      * Registra una bitácora de actividades para un corte de práctica.
-     * Solo permitido para el Estudiante propietario de la práctica.
+     * Acepta multipart/form-data: campo 'descripcion' (texto) y 'archivo' (opcional).
      */
-    @PostMapping("/{practicaId}/bitacora")
+    @PostMapping(value = "/{practicaId}/bitacora", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ESTUDIANTE', 'ADMIN')")
     public BitacoraEstudiante registrarBitacora(
             @PathVariable Long practicaId,
             @RequestParam Integer corte,
-            @Valid @RequestBody BitacoraRequest request) {
+            @RequestParam String descripcion,
+            @RequestParam(required = false) MultipartFile archivo) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Estudiante estudiante = estudianteRepository.findByCorreo(email)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró estudiante asociado al correo: " + email));
-        return service.registrarBitacoraEstudiante(practicaId, estudiante.getId(), corte, request);
+        BitacoraEstudiante bitacora = service.registrarBitacoraEstudiante(
+                practicaId, estudiante.getId(), corte, new BitacoraRequest(descripcion));
+        if (archivo != null && !archivo.isEmpty()) {
+            bitacora = service.adjuntarArchivoBitacora(bitacora.getId(), archivo);
+        }
+        return bitacora;
+    }
+
+    /**
+     * Descarga el archivo de soporte adjunto a una entrada de bitácora.
+     */
+    @GetMapping("/bitacora/{bitacoraId}/archivo")
+    @PreAuthorize("hasAnyRole('ESTUDIANTE', 'DOCENTE_ASESOR', 'ADMIN')")
+    public ResponseEntity<Resource> descargarArchivoBitacora(@PathVariable Long bitacoraId) {
+        Resource resource = service.descargarArchivoBitacora(bitacoraId);
+        String nombre = service.nombreArchivoBitacora(bitacoraId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nombre + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     /**

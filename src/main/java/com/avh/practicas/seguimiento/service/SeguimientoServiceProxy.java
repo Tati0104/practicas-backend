@@ -13,9 +13,11 @@ import com.avh.practicas.seguimiento.entity.ObservacionDocente;
 import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -98,6 +100,21 @@ public class SeguimientoServiceProxy implements SeguimientoService {
     @Override
     public List<BitacoraEstudiante> obtenerBitacorasPorPractica(Long practicaId) {
         return realService.obtenerBitacorasPorPractica(practicaId);
+    }
+
+    @Override
+    public BitacoraEstudiante adjuntarArchivoBitacora(Long bitacoraId, MultipartFile archivo) {
+        return realService.adjuntarArchivoBitacora(bitacoraId, archivo);
+    }
+
+    @Override
+    public Resource descargarArchivoBitacora(Long bitacoraId) {
+        return realService.descargarArchivoBitacora(bitacoraId);
+    }
+
+    @Override
+    public String nombreArchivoBitacora(Long bitacoraId) {
+        return realService.nombreArchivoBitacora(bitacoraId);
     }
 
     @Override
