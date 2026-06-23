@@ -108,7 +108,24 @@ public class EncuestaServiceProxy implements EncuestaService {
     @Override
     public Optional<Encuesta> obtenerPorPracticaYTipo(Long practicaId, TipoEncuesta tipo) {
         validarConsultaEncuesta(practicaId, tipo);
-        return realService.obtenerPorPracticaYTipo(practicaId, tipo);
+        Optional<Encuesta> encuesta = realService.obtenerPorPracticaYTipo(practicaId, tipo);
+        if (encuesta.isPresent()) {
+            return encuesta;
+        }
+
+        Usuario usuario = obtenerUsuarioActual();
+        if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL
+                && tipo == TipoEncuesta.TUTOR
+                && esTutorAsignado(usuario, obtenerPractica(practicaId))) {
+            return Optional.of(realService.crearEncuestaPendiente(practicaId, tipo));
+        }
+        if (usuario.getRol() == Rol.ESTUDIANTE
+                && tipo == TipoEncuesta.ESTUDIANTE
+                && esEstudiantePropio(usuario, obtenerPractica(practicaId))) {
+            return Optional.of(realService.crearEncuestaPendiente(practicaId, tipo));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -202,8 +219,15 @@ public class EncuestaServiceProxy implements EncuestaService {
     private boolean esTutorAsignado(Usuario usuario, InstanciaPractica practica) {
         return tutorRepository.findByUsuarioId(usuario.getId())
                 .or(() -> tutorRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
-                .map(TutorEmpresarial::getId)
-                .map(id -> id.equals(practica.getTutorId()))
+                .map(tutor -> {
+                    if (tutor.getId() == null || !tutor.getId().equals(practica.getTutorId())) {
+                        return false;
+                    }
+                    if (tutor.getEmpresa() == null || practica.getEmpresaId() == null) {
+                        return false;
+                    }
+                    return tutor.getEmpresa().getId().equals(practica.getEmpresaId());
+                })
                 .orElse(false);
     }
 

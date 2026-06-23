@@ -46,6 +46,7 @@ export default function EncuestaForm({
   preguntas = [],
   soloLectura = false,
   esEstudiante = false,
+  esTutor = false,
   puedeEnviarRecordatorio = false,
   puedeEnviarInvitacion = false,
   onGuardarBorrador,
@@ -126,6 +127,19 @@ export default function EncuestaForm({
         <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Debes completar esta encuesta para el cierre formal. Una vez enviada, no podrás modificar
           las respuestas.
+        </p>
+      )}
+
+      {esTutor && encuesta.estado !== 'COMPLETADA' && !soloLectura && (
+        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Completa tu encuesta de cierre sobre el practicante. Puedes guardar borrador y enviarla
+          cuando estés listo.
+        </p>
+      )}
+
+      {encuesta.estado === 'COMPLETADA' && (
+        <p className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-800">
+          Encuesta realizada. Tus respuestas quedaron registradas y no se pueden modificar.
         </p>
       )}
 
@@ -222,7 +236,7 @@ export default function EncuestaForm({
         </div>
       )}
 
-      {bloqueada && encuesta.estado === 'COMPLETADA' && (
+      {bloqueada && encuesta.estado === 'COMPLETADA' && !esEstudiante && !esTutor && (
         <p className="mt-4 text-sm text-green-700">Encuesta completada. Solo lectura.</p>
       )}
 

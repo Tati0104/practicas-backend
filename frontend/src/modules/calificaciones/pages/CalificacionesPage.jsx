@@ -17,6 +17,7 @@ function EncuestaPanel({
   titulo,
   soloLectura,
   esEstudiante,
+  esTutor = false,
   puedeEnviarRecordatorio,
   puedeEnviarInvitacion,
 }) {
@@ -40,6 +41,7 @@ function EncuestaPanel({
       preguntas={encuestaHook.data?.preguntas}
       soloLectura={soloLectura}
       esEstudiante={esEstudiante}
+      esTutor={esTutor}
       puedeEnviarRecordatorio={puedeEnviarRecordatorio}
       puedeEnviarInvitacion={puedeEnviarInvitacion}
       isGuardando={encuestaHook.guardarBorrador.isPending}
@@ -93,8 +95,12 @@ export default function CalificacionesPage() {
     permisos.puedeVerEncuestaEstudiante
   );
 
+  const esEstudiante = permisos.rol === 'ESTUDIANTE';
+  const esTutor = permisos.rol === 'TUTOR_EMPRESARIAL';
+
   const muestraEncuestas =
     permisos.puedeVerEncuestaTutor || permisos.puedeVerEncuestaEstudiante;
+  const muestraEncuestaTutor = permisos.puedeVerEncuestaTutor && (esTutor || !esEstudiante);
 
   if (!permisos.puedeVerResumen) {
     return (
@@ -138,9 +144,6 @@ export default function CalificacionesPage() {
     permisos.puedeRegistrarNotaTutor ||
     permisos.puedeRegistrarNotaFinal;
 
-  const esEstudiante = permisos.rol === 'ESTUDIANTE';
-  const esTutor = permisos.rol === 'TUTOR_EMPRESARIAL';
-
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <PageBackHeader
@@ -161,17 +164,21 @@ export default function CalificacionesPage() {
         <section className="space-y-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
-              {esEstudiante ? 'Mi encuesta de cierre' : 'Encuestas de cierre'}
+              {esEstudiante
+                ? 'Mi encuesta de cierre'
+                : esTutor
+                  ? 'Mi encuesta de cierre'
+                  : 'Encuestas de cierre'}
             </h2>
             <p className="mt-1 text-sm text-gray-600">
-              {esEstudiante
-                ? 'Completa tu autoevaluación. Si ya la enviaste verás el estado "Encuesta realizada".'
+              {esEstudiante || esTutor
+                ? 'Completa tu encuesta de cierre. Si ya la enviaste verás el estado "Encuesta realizada".'
                 : 'Requisito para el cierre formal (RF-08-05, RF-08-06, RF-09-01). El tutor puede guardar borrador; el estudiante debe completar la suya antes del cierre.'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {permisos.puedeVerEncuestaTutor && (
+          <div className={`grid grid-cols-1 gap-4 ${esTutor ? '' : 'xl:grid-cols-2'}`}>
+            {muestraEncuestaTutor && (
               <EncuestaPanel
                 titulo="Encuesta — Tutor empresarial"
                 encuestaHook={encuestaTutor}
@@ -180,12 +187,13 @@ export default function CalificacionesPage() {
                 refetch={encuestaTutor.refetch}
                 soloLectura={!permisos.puedeCompletarEncuestaTutor}
                 esEstudiante={false}
+                esTutor={esTutor}
                 puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
                 puedeEnviarInvitacion={permisos.puedeEnviarInvitacion}
               />
             )}
 
-            {permisos.puedeVerEncuestaEstudiante && (
+            {!esTutor && permisos.puedeVerEncuestaEstudiante && (
               <EncuestaPanel
                 titulo="Autoevaluación — Estudiante"
                 encuestaHook={encuestaEstudiante}

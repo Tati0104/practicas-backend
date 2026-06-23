@@ -73,7 +73,9 @@ public class ScopePracticaResolver {
         if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
             return tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
                     .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
-                    .map(t -> ScopePracticas.deTutor(t.getId()))
+                    .map(t -> ScopePracticas.deTutor(
+                            t.getId(),
+                            t.getEmpresa() != null ? t.getEmpresa().getId() : null))
                     .orElse(ScopePracticas.ninguna());
         }
 
