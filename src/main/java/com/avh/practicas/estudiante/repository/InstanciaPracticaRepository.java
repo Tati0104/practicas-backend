@@ -27,6 +27,18 @@ public interface InstanciaPracticaRepository extends JpaRepository<InstanciaPrac
             EstadoPractica estado
     );
 
+    @Query("""
+            SELECT ip FROM InstanciaPractica ip
+            JOIN FETCH ip.expediente e
+            JOIN FETCH e.estudiante est
+            JOIN FETCH est.programa
+            WHERE est.id = :estudianteId
+            ORDER BY ip.numeroPractica DESC
+            """)
+    List<InstanciaPractica> findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(
+            @Param("estudianteId") Long estudianteId
+    );
+
     boolean existsByExpedienteEstudianteProgramaIdAndEstadoIn(Long programaId, List<EstadoPractica> estados);
     boolean existsByExpedienteEstudianteProgramaIdAndNumeroPracticaAndEstadoIn(Long programaId, Integer numeroPractica, List<EstadoPractica> estados);
 

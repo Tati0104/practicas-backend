@@ -25,7 +25,11 @@ public interface VinculacionService {
 
     DocumentosAsignacionResponse obtenerDocumentosAsignacion(Long asignacionId);
 
+    DocumentosAsignacionResponse obtenerDocumentosPractica(Long practicaId);
+
     DocumentoCargadoResponse cargarDocumento(Long asignacionId, CategoriaDocumento categoria, MultipartFile archivo);
+
+    DocumentoCargadoResponse cargarDocumentoPorPractica(Long practicaId, CategoriaDocumento categoria, MultipartFile archivo);
 
     DocumentoCargadoResponse cargarCarta(Long asignacionId, MultipartFile archivo);
 

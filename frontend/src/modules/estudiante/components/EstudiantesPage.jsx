@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import useEstudiantes from '../hooks/useEstudiantes';
+import { extraerMensajeError } from '@/modules/auth/utils/schemas';
 import FiltrosEstudiante from './FiltrosEstudiante';
 import ModalRegistroEstudiante from './ModalRegistroEstudiante';
 import ImportarExcel from './ImportarExcel';
@@ -40,6 +42,7 @@ export default function EstudiantesPage() {
     editar,
     marcarApto,
     marcarNoApto,
+    eliminar,
   } = useEstudiantes();
   const [modalRegistro, setModalRegistro] = useState(false);
   const [editando, setEditando] = useState(null);
@@ -61,6 +64,19 @@ export default function EstudiantesPage() {
   };
 
   const guardando = registrar.isPending || editar.isPending;
+
+  const confirmarEliminar = (estudiante) => {
+    if (
+      !window.confirm(
+        `¿Eliminar al estudiante ${estudiante.nombre}? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      return;
+    }
+    eliminar.mutate(estudiante.id, {
+      onError: (error) => toast.error(extraerMensajeError(error)),
+    });
+  };
 
   const columnas = [
     { key: 'nombre', titulo: 'Nombre' },
@@ -93,10 +109,15 @@ export default function EstudiantesPage() {
     {
       key: 'acciones',
       titulo: 'Acciones',
+      sticky: true,
+      className: 'min-w-[240px] whitespace-nowrap',
       render: (e) => (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-nowrap items-center gap-1.5">
           <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
             Editar
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => confirmarEliminar(e)}>
+            Eliminar
           </Button>
           {e.estadoAptitud !== 'APTO' && (
             <Button variant="success" size="sm" title="Marcar como Apto" onClick={() => marcarApto.mutate(e.id)}>
@@ -105,7 +126,7 @@ export default function EstudiantesPage() {
           )}
           {e.estadoAptitud !== 'NO_APTO' && (
             <Button
-              variant="danger"
+              variant="ghost"
               size="sm"
               title="Marcar como No Apto"
               onClick={() => marcarNoApto.mutate({ id: e.id, motivo: 'Sin requisitos' })}

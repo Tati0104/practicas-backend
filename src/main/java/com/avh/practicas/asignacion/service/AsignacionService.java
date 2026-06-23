@@ -16,6 +16,7 @@ import com.avh.practicas.auth.repository.AuthUsuarioRepository;
 import com.avh.practicas.bitacora.entity.TipoAccion;
 import com.avh.practicas.bitacora.service.BitacoraService;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
+import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
 import com.avh.practicas.estudiante.entity.EstadoAptitud;
@@ -299,6 +300,7 @@ public class AsignacionService {
         practica.setEmpresaId(vacante.getEmpresaId());
         tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
                 .findFirst()
+                .or(() -> tutorEmpresarialRepository.findByEmpresaId(vacante.getEmpresaId()).stream().findFirst())
                 .ifPresent(tutor -> practica.setTutorId(tutor.getId()));
         instanciaPracticaRepository.save(practica);
 
@@ -350,13 +352,16 @@ public class AsignacionService {
             return;
         }
         if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
-            Long tutorId = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+            TutorEmpresarial tutor = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
                     .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
-                    .map(t -> t.getId())
                     .orElseThrow(() -> new AccesoNoAutorizadoException("Tutor empresarial no encontrado."));
-            boolean permitido = asignacion.getInstanciaPracticaId() != null
-                    ? instanciaPracticaRepository.existsByIdAndTutorId(asignacion.getInstanciaPracticaId(), tutorId)
-                    : instanciaPracticaRepository.findEstudianteIdsByTutorId(tutorId).contains(asignacion.getEstudianteId());
+            Vacante vacante = vacanteRepository.findById(asignacion.getVacanteId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Vacante no encontrada"));
+            if (tutor.getEmpresa() == null || !tutor.getEmpresa().getId().equals(vacante.getEmpresaId())) {
+                throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera de su empresa.");
+            }
+            boolean permitido = asignacion.getInstanciaPracticaId() == null
+                    || instanciaPracticaRepository.existsByIdAndTutorId(asignacion.getInstanciaPracticaId(), tutor.getId());
             if (!permitido) {
                 throw new AccesoNoAutorizadoException("Acceso denegado: asignación fuera de su empresa.");
             }

@@ -4,33 +4,39 @@ import {
   ejecutarConsulta,
   usarMocks,
 } from '@/shared/config/dataSource';
-import { claveQueryDocumentos, obtenerDocumentosAsignacion } from '../utils/vinculacionApi';
+import {
+  claveQueryDocumentos,
+  obtenerDocumentosAsignacion,
+  obtenerDocumentosPracticaDetalle,
+} from '../utils/vinculacionApi';
 
-async function cargarDocumentosCompletos(asignacionId) {
-  return obtenerDocumentosAsignacion(asignacionId);
-}
-
-export function useVinculacionDocumentos(asignacionId) {
+export function useVinculacionDocumentos({ asignacionId, practicaId } = {}) {
   const useMocks = usarMocks();
+  const idAsignacion = asignacionId || null;
+  const idPractica = practicaId || null;
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: claveQueryDocumentos(asignacionId, useMocks),
+    queryKey: claveQueryDocumentos(idAsignacion, idPractica, useMocks),
     queryFn: () =>
       ejecutarConsulta({
         mock: () => MOCK_DOCUMENTOS_DETALLE,
-        api: () => cargarDocumentosCompletos(asignacionId),
+        api: () =>
+          idAsignacion
+            ? obtenerDocumentosAsignacion(idAsignacion)
+            : obtenerDocumentosPracticaDetalle(idPractica),
       }),
-    enabled: Boolean(asignacionId),
-    staleTime: 60_000,
+    enabled: Boolean(idAsignacion || idPractica),
+    staleTime: 0,
     gcTime: 10 * 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     placeholderData: useMocks ? MOCK_DOCUMENTOS_DETALLE : keepPreviousData,
   });
 
   return {
     documentos: data?.documentos ?? [],
     convenioId: data?.convenioId ?? null,
-    practicaId: data?.practicaId ?? null,
+    practicaId: data?.practicaId ?? idPractica,
     detalle: data?.detalle ?? null,
     isLoading,
     isError,

@@ -107,39 +107,6 @@ export default function ResumenNotas({ resumen }) {
           )}
         </div>
       </div>
-
-      {resumen?.notasCortes?.length > 1 && (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="bg-blue-700 text-left text-white">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  Corte
-                </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  Docente
-                </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
-                  Tutor
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {resumen.notasCortes.map((corte) => (
-                <tr key={corte.corte}>
-                  <td className="px-4 py-3 font-medium text-gray-900">{corte.corte}</td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {corte.notaDocente != null ? corte.notaDocente.toFixed(1) : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">
-                    {corte.notaTutor != null ? corte.notaTutor.toFixed(1) : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </section>
   );
 }

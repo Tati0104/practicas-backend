@@ -146,8 +146,8 @@ export function mapaTipoDesdeCategoria(categoria) {
   return mapa[categoria] ?? categoria;
 }
 
-export function claveQueryDocumentos(asignacionId, useMocks = false) {
-  return ['vinculacion-documentos', asignacionId, useMocks];
+export function claveQueryDocumentos(asignacionId, practicaId, useMocks = false) {
+  return ['vinculacion-documentos', asignacionId, practicaId, useMocks];
 }
 
 export function fusionarDocumentoSubido(cache, { tipo, archivo }, respuesta) {
@@ -250,6 +250,34 @@ export async function obtenerDocumentosAsignacion(asignacionId) {
       });
     } catch {
       return normalizarRespuestaDocumentos({ asignacionId, practicaId, documentos: [] });
+    }
+  }
+}
+
+export async function obtenerDocumentosPracticaDetalle(practicaId) {
+  try {
+    const resp = await vinculacionService.obtenerDocumentosPracticaDetalle(practicaId);
+    const payload = resp.data?.data ?? resp.data;
+    return normalizarRespuestaDocumentos({
+      asignacionId: payload?.asignacionId ?? null,
+      practicaId: payload?.practicaId ?? practicaId,
+      convenioId: payload?.convenioId ?? null,
+      detalle: payload,
+      documentos: payload?.documentos,
+      documentosPorCategoria: payload?.documentosPorCategoria ?? payload?.documentos_por_categoria,
+    });
+  } catch (err) {
+    if (!esErrorEndpointNuevo(err)) throw err;
+
+    try {
+      const docsResp = await vinculacionService.obtenerDocumentosPractica(practicaId);
+      const payload = docsResp.data?.data ?? docsResp.data;
+      return normalizarRespuestaDocumentos({
+        practicaId,
+        documentosPorCategoria: payload?.documentosPorCategoria ?? payload?.documentos_por_categoria,
+      });
+    } catch {
+      return normalizarRespuestaDocumentos({ practicaId, documentos: [] });
     }
   }
 }

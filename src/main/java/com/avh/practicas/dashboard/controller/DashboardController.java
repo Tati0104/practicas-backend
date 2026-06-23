@@ -4,8 +4,10 @@ import com.avh.practicas.dashboard.dto.AlertaDto;
 import com.avh.practicas.dashboard.dto.DashboardDto;
 import com.avh.practicas.dashboard.dto.DashboardGerencialDto;
 import com.avh.practicas.dashboard.dto.FiltrosResponse;
+import com.avh.practicas.dashboard.dto.PanelEstudianteDto;
 import com.avh.practicas.dashboard.service.DashboardGerencialService;
 import com.avh.practicas.dashboard.service.DashboardService;
+import com.avh.practicas.dashboard.service.EstudiantePanelService;
 import com.avh.practicas.shared.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
     private final DashboardGerencialService dashboardGerencialService;
+    private final EstudiantePanelService estudiantePanelService;
 
     /**
      * Indicadores gerenciales para Dirección (PE-45).
@@ -37,6 +40,13 @@ public class DashboardController {
     @GetMapping
     public ResponseEntity<ApiResponse<DashboardDto>> getDashboard() {
         return ResponseEntity.ok(ApiResponse.ok(dashboardService.getDashboard()));
+    }
+
+    /** Panel de inicio exclusivo del estudiante (solo su información y prácticas). */
+    @GetMapping("/panel-estudiante")
+    @PreAuthorize("hasRole('ESTUDIANTE')")
+    public ResponseEntity<ApiResponse<PanelEstudianteDto>> getPanelEstudiante() {
+        return ResponseEntity.ok(ApiResponse.ok(estudiantePanelService.obtenerPanelEstudiante()));
     }
 
     @GetMapping("/alertas")

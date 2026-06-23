@@ -13,6 +13,7 @@ const estudianteService = {
   obtenerPorId:    (id)       => http.get(`/estudiantes/${id}`),
   registrar:       (dto)      => http.post('/estudiantes', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editar:          (id, dto)  => http.put(`/estudiantes/${id}`, dto),
+  eliminar:        (id)       => http.delete(`/estudiantes/${id}`),
   marcarApto:      (id)         => http.patch(`/estudiantes/${id}/aptitud`, { aptitud: 'APTO' }),
   marcarNoApto:    (id, motivo) => http.patch(`/estudiantes/${id}/aptitud`, { aptitud: 'NO_APTO', motivo }),
   obtenerExpediente: (id)     => http.get(`/expedientes/${id}`),

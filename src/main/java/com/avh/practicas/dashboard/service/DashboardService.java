@@ -43,6 +43,9 @@ public class DashboardService {
     @Transactional(readOnly = true)
     public DashboardDto getDashboard() {
         Usuario usuario = obtenerUsuarioAutenticado();
+        if (usuario != null && usuario.getRol() == Rol.ESTUDIANTE) {
+            return DashboardDto.builder().build();
+        }
         if (usuario != null && usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
             return construirDashboardTutor(usuario);
         }
@@ -89,7 +92,9 @@ public class DashboardService {
     }
 
     private DashboardDto construirDashboardTutor(Usuario usuario) {
-        TutorEmpresarial tutor = tutorEmpresarialRepository.findByCorreo(usuario.getCorreo()).orElse(null);
+        TutorEmpresarial tutor = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                .orElse(null);
         if (tutor == null) {
             return DashboardDto.builder()
                     .estudiantesAsignados(0L)
@@ -98,7 +103,9 @@ public class DashboardService {
         }
 
         long practicantes = instanciaPracticaRepository.countByTutorIdAndEstado(
-                tutor.getId(), EstadoPractica.EN_CURSO);
+                tutor.getId(), EstadoPractica.EN_CURSO)
+                + instanciaPracticaRepository.countByTutorIdAndEstado(
+                tutor.getId(), EstadoPractica.ASIGNADA_PENDIENTE_INICIO);
         long firmasPendientes = convenioRepository.countPendienteFirmaTutor(tutor.getId());
 
         return DashboardDto.builder()

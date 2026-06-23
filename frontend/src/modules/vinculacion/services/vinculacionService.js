@@ -9,6 +9,9 @@ const vinculacionService = {
   obtenerDocumentos: (asignacionId) =>
     http.get(`/vinculaciones/asignaciones/${asignacionId}/documentos`),
 
+  obtenerDocumentosPracticaDetalle: (practicaId) =>
+    http.get(`/vinculaciones/practicas/${practicaId}/documentos-detalle`),
+
   obtenerDocumentosPractica: (practicaId) =>
     http.get(`/practicas/${practicaId}/documentos`),
 
@@ -20,6 +23,16 @@ const vinculacionService = {
     form.append('archivo', archivo);
     return http.post(
       `/vinculaciones/asignaciones/${asignacionId}/documentos/${categoria}`,
+      form,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+  },
+
+  subirDocumentoPractica: (practicaId, categoria, archivo) => {
+    const form = new FormData();
+    form.append('archivo', archivo);
+    return http.post(
+      `/vinculaciones/practicas/${practicaId}/documentos/${categoria}`,
       form,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );

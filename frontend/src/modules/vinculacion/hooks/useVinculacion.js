@@ -17,6 +17,8 @@ export function useVinculacion() {
     empresaId: '',
     estado: '',
     busqueda: '',
+    numeroPractica: '',
+    estadoPractica: '',
   });
 
   const { data, isLoading, isFetching, isError } = useQuery({

@@ -26,18 +26,38 @@ export function useSeguimiento() {
     docenteId: '',
     estado: '',
     busqueda: '',
+    numeroPractica: '',
+    estadoPractica: '',
   });
 
   const { data, isLoading, isError, isFetching } = useQuery({
     queryKey: ['seguimiento-practicas', filtros, usarMocks()],
     queryFn: () =>
       ejecutarConsulta({
-        mock: () => paginarEnCliente(MOCK_PRACTICAS, filtros),
+        mock: () => {
+          let items = MOCK_PRACTICAS;
+          if (filtros.numeroPractica) {
+            items = items.filter(
+              (p) => String(p.numeroPractica) === String(filtros.numeroPractica)
+            );
+          }
+          return paginarEnCliente(items, filtros);
+        },
         api: async () => {
           const resp = await seguimientoService.practicas(filtros);
           const lista = resp.data?.data ?? resp.data ?? [];
-          const items = Array.isArray(lista) ? lista : (lista.content ?? []);
-          return paginarEnCliente(items, filtros);
+          const allItems = Array.isArray(lista) ? lista : (lista.content ?? []);
+          let items = allItems;
+          if (filtros.numeroPractica) {
+            items = items.filter(
+              (p) => String(p.numeroPractica) === String(filtros.numeroPractica)
+            );
+          }
+          if (filtros.estadoPractica) {
+            items = items.filter((p) => p.estadoPractica === filtros.estadoPractica);
+          }
+          const paginado = paginarEnCliente(items, filtros);
+          return { ...paginado, allItems };
         },
       }),
     placeholderData: placeholderDesdeMock(MOCK_PRACTICAS),
@@ -49,6 +69,7 @@ export function useSeguimiento() {
 
   return {
     practicas: data?.content ?? [],
+    practicasTodas: data?.allItems ?? data?.content ?? [],
     totalElementos: data?.totalElements ?? 0,
     totalPaginas: data?.totalPages ?? 1,
     isLoading,

@@ -8,7 +8,7 @@ const ESTADOS = {
     className: 'bg-blue-100 text-blue-800',
   },
   COMPLETADA: {
-    label: 'Completada',
+    label: 'Encuesta realizada',
     className: 'bg-green-100 text-green-800',
   },
 };

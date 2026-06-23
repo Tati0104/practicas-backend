@@ -64,6 +64,13 @@ public class EstudianteController {
         return ResponseEntity.ok(estudianteActualizado);
     }
 
+    @DeleteMapping("/{id}")
+    @ScopeGuard("ESTUDIANTE_EDITAR")
+    public ResponseEntity<Map<String, String>> eliminar(@PathVariable Long id) {
+        estudianteService.eliminar(id);
+        return ResponseEntity.ok(Map.of("mensaje", "Estudiante eliminado correctamente"));
+    }
+
     @PatchMapping("/{id}/aptitud")
     @ScopeGuard("ESTUDIANTE_APTITUD")
     public ResponseEntity<Estudiante> actualizarAptitud(

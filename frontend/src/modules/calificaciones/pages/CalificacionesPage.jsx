@@ -17,6 +17,7 @@ function EncuestaPanel({
   titulo,
   soloLectura,
   esEstudiante,
+  esTutor = false,
   puedeEnviarRecordatorio,
   puedeEnviarInvitacion,
 }) {
@@ -40,6 +41,7 @@ function EncuestaPanel({
       preguntas={encuestaHook.data?.preguntas}
       soloLectura={soloLectura}
       esEstudiante={esEstudiante}
+      esTutor={esTutor}
       puedeEnviarRecordatorio={puedeEnviarRecordatorio}
       puedeEnviarInvitacion={puedeEnviarInvitacion}
       isGuardando={encuestaHook.guardarBorrador.isPending}
@@ -93,8 +95,12 @@ export default function CalificacionesPage() {
     permisos.puedeVerEncuestaEstudiante
   );
 
+  const esEstudiante = permisos.rol === 'ESTUDIANTE';
+  const esTutor = permisos.rol === 'TUTOR_EMPRESARIAL';
+
   const muestraEncuestas =
     permisos.puedeVerEncuestaTutor || permisos.puedeVerEncuestaEstudiante;
+  const muestraEncuestaTutor = permisos.puedeVerEncuestaTutor && (esTutor || !esEstudiante);
 
   if (!permisos.puedeVerResumen) {
     return (
@@ -133,11 +139,22 @@ export default function CalificacionesPage() {
   const referenciasCompletas =
     referencia.notaDocente != null && referencia.notaTutor != null;
 
+  const puedeRegistrarAlgunaNota =
+    permisos.puedeRegistrarNotaDocente ||
+    permisos.puedeRegistrarNotaTutor ||
+    permisos.puedeRegistrarNotaFinal;
+
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <PageBackHeader
         titulo="Evaluaciones"
-        descripcion={`Práctica #${practicaId} — notas de referencia, nota final y encuestas de cierre`}
+        descripcion={
+          esEstudiante
+            ? 'Consulta tus notas de referencia, nota final y encuesta de cierre'
+            : esTutor
+              ? 'Consulta las notas de referencia, registra tu calificación y revisa la nota final'
+              : `Práctica #${practicaId} — notas de referencia, nota final y encuestas de cierre`
+        }
         onVolver={() => navigate(-1)}
       />
 
@@ -146,11 +163,22 @@ export default function CalificacionesPage() {
       {muestraEncuestas && (
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Encuestas de cierre</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {esEstudiante
+                ? 'Mi encuesta de cierre'
+                : esTutor
+                  ? 'Mi encuesta de cierre'
+                  : 'Encuestas de cierre'}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              {esEstudiante || esTutor
+                ? 'Completa tu encuesta de cierre. Si ya la enviaste verás el estado "Encuesta realizada".'
+                : 'Requisito para el cierre formal (RF-08-05, RF-08-06, RF-09-01). El tutor puede guardar borrador; el estudiante debe completar la suya antes del cierre.'}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {permisos.puedeVerEncuestaTutor && (
+          <div className={`grid grid-cols-1 gap-4 ${esTutor ? '' : 'xl:grid-cols-2'}`}>
+            {muestraEncuestaTutor && (
               <EncuestaPanel
                 titulo="Encuesta — Tutor empresarial"
                 encuestaHook={encuestaTutor}
@@ -159,12 +187,13 @@ export default function CalificacionesPage() {
                 refetch={encuestaTutor.refetch}
                 soloLectura={!permisos.puedeCompletarEncuestaTutor}
                 esEstudiante={false}
+                esTutor={esTutor}
                 puedeEnviarRecordatorio={permisos.puedeEnviarRecordatorio}
                 puedeEnviarInvitacion={permisos.puedeEnviarInvitacion}
               />
             )}
 
-            {permisos.puedeVerEncuestaEstudiante && (
+            {!esTutor && permisos.puedeVerEncuestaEstudiante && (
               <EncuestaPanel
                 titulo="Autoevaluación — Estudiante"
                 encuestaHook={encuestaEstudiante}
@@ -181,16 +210,20 @@ export default function CalificacionesPage() {
         </section>
       )}
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Registro de notas</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            El docente asesor y el tutor registran notas de referencia. El docente asesor registra
-            la nota final definitiva.
-          </p>
-        </div>
+      {puedeRegistrarAlgunaNota && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {esTutor ? 'Mi nota de referencia' : 'Registro de notas'}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              {esTutor
+                ? 'Registra una única nota de referencia sobre el desempeño del practicante. La nota final la registra el docente asesor.'
+                : 'El docente asesor y el tutor registran notas de referencia. El docente asesor registra la nota final definitiva.'}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {permisos.puedeRegistrarNotaDocente && (
             <NotaForm
               titulo="Nota de referencia — Docente asesor"
@@ -245,8 +278,9 @@ export default function CalificacionesPage() {
               )}
             </div>
           )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

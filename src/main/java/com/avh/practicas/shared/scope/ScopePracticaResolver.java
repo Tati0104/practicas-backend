@@ -43,7 +43,7 @@ public class ScopePracticaResolver {
         boolean esEstudiante = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
         if (esEstudiante) {
-            return estudianteRepository.findByCorreo(auth.getName())
+            return resolverEstudiantePorCorreo(auth.getName())
                     .map(e -> ScopePracticas.deEstudiante(e.getId()))
                     .orElse(ScopePracticas.ninguna());
         }
@@ -73,7 +73,9 @@ public class ScopePracticaResolver {
         if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
             return tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
                     .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
-                    .map(t -> ScopePracticas.deTutor(t.getId()))
+                    .map(t -> ScopePracticas.deTutor(
+                            t.getId(),
+                            t.getEmpresa() != null ? t.getEmpresa().getId() : null))
                     .orElse(ScopePracticas.ninguna());
         }
 
@@ -96,5 +98,11 @@ public class ScopePracticaResolver {
 
         // GLOBAL (ADMIN, DIRECCION, o cualquier coordinador con scope GLOBAL asignado manualmente).
         return ScopePracticas.todas();
+    }
+
+    private java.util.Optional<com.avh.practicas.estudiante.entity.Estudiante> resolverEstudiantePorCorreo(String correo) {
+        return estudianteRepository.findByCorreoIgnoreCase(correo)
+                .or(() -> usuarioRepository.findByCorreoIgnoreCase(correo)
+                        .flatMap(u -> estudianteRepository.findByUsuario_Id(u.getId())));
     }
 }

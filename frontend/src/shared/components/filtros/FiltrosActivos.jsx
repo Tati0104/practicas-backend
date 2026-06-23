@@ -1,208 +1,119 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronLeft, Filter, X } from 'lucide-react';
-import { Button, Input, Select } from '@/shared/components/ui';
+import { useEffect, useMemo, useState } from 'react';
+import { Filter, Search, X } from 'lucide-react';
+import { Button, Input, Modal, Select } from '@/shared/components/ui';
 import {
   chipsDesdeFiltros,
   limpiarCamposFiltro,
   valorActivo,
 } from './filtrosActivosUtils';
 
+const CLAVE_BUSQUEDA = 'busqueda';
+
 /**
- * Filtros con UX unificada:
- * - Un solo campo/botón abre un panel para elegir tipo y valor
- * - Al elegir valor se aplica al instante (sin botón Agregar)
- * - Chips activos debajo, cada uno con X para quitar
+ * Filtros unificados: búsqueda inline + botón que abre modal con todas las opciones.
  */
-export default function FiltrosActivos({ campos, filtros, onChange }) {
-  const contenedorRef = useRef(null);
+export default function FiltrosActivos({ campos, filtros, onChange, tituloModal = 'Filtros' }) {
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [borrador, setBorrador] = useState({});
 
-  const [panelAbierto, setPanelAbierto] = useState(false);
-  const [paso, setPaso] = useState('tipo');
-  const [campoKey, setCampoKey] = useState('');
-  const [valorTexto, setValorTexto] = useState('');
+  const campoBusqueda = useMemo(
+    () => campos.find((c) => c.key === CLAVE_BUSQUEDA && c.type === 'text'),
+    [campos]
+  );
 
-  const camposDisponibles = useMemo(
-    () => campos.filter((c) => !valorActivo(filtros[c.key])),
-    [campos, filtros]
+  const camposModal = useMemo(
+    () => campos.filter((c) => !(c.key === CLAVE_BUSQUEDA && c.type === 'text')),
+    [campos]
   );
 
   const chips = useMemo(() => chipsDesdeFiltros(filtros, campos), [filtros, campos]);
-  const campoActivo = campos.find((c) => c.key === campoKey);
+  const chipsModal = useMemo(
+    () => chips.filter((chip) => chip.key !== CLAVE_BUSQUEDA),
+    [chips]
+  );
 
-  const cerrarPanel = () => {
-    setPanelAbierto(false);
-    setPaso('tipo');
-    setCampoKey('');
-    setValorTexto('');
+  const abrirModal = () => {
+    const valores = Object.fromEntries(camposModal.map((c) => [c.key, filtros[c.key] ?? '']));
+    setBorrador(valores);
+    setModalAbierto(true);
   };
 
-  const abrirPanel = () => {
-    if (camposDisponibles.length === 0) return;
-    setPanelAbierto(true);
-    setPaso('tipo');
-    setCampoKey('');
-    setValorTexto('');
+  const cerrarModal = () => setModalAbierto(false);
+
+  const aplicarModal = () => {
+    onChange({ ...filtros, ...borrador, page: 0 });
+    cerrarModal();
   };
 
-  const elegirTipo = (key) => {
-    setCampoKey(key);
-    setPaso('valor');
-    setValorTexto('');
+  const limpiarModal = () => {
+    setBorrador(Object.fromEntries(camposModal.map((c) => [c.key, ''])));
   };
 
-  const aplicarFiltro = (key, valor) => {
-    if (!valorActivo(valor)) return;
-    onChange({ ...filtros, [key]: valor, page: 0 });
-    cerrarPanel();
-  };
-
-  const aplicarSelect = (value) => {
-    if (!campoActivo || !valorActivo(value)) return;
-    aplicarFiltro(campoActivo.key, value);
-  };
-
-  const aplicarTexto = (e) => {
-    e?.preventDefault?.();
-    if (!campoActivo || !valorTexto.trim()) return;
-    aplicarFiltro(campoActivo.key, valorTexto.trim());
+  const limpiarTodos = () => {
+    onChange(limpiarCamposFiltro(filtros, campos));
+    cerrarModal();
   };
 
   const quitarFiltro = (key) => {
     onChange({ ...filtros, [key]: '', page: 0 });
   };
 
-  const limpiarTodos = () => {
-    onChange(limpiarCamposFiltro(filtros, campos));
-    cerrarPanel();
+  const actualizarBusqueda = (valor) => {
+    onChange({ ...filtros, [CLAVE_BUSQUEDA]: valor, page: 0 });
   };
 
   useEffect(() => {
-    if (!panelAbierto) return;
+    if (!modalAbierto) return;
+    setBorrador(Object.fromEntries(camposModal.map((c) => [c.key, filtros[c.key] ?? ''])));
+  }, [modalAbierto, filtros, camposModal]);
 
-    const handleClickFuera = (event) => {
-      if (contenedorRef.current && !contenedorRef.current.contains(event.target)) {
-        cerrarPanel();
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') cerrarPanel();
-    };
-
-    document.addEventListener('mousedown', handleClickFuera);
-    document.addEventListener('keydown', handleEscape);
-    return () => {
-      document.removeEventListener('mousedown', handleClickFuera);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [panelAbierto]);
-
-  const textoBoton =
-    chips.length > 0
-      ? `${chips.length} filtro${chips.length > 1 ? 's' : ''} activo${chips.length > 1 ? 's' : ''}`
-      : 'Agregar filtros…';
+  const totalActivos = chips.length;
+  const activosModal = chipsModal.length;
 
   return (
     <div className="mb-4">
-      <div ref={contenedorRef} className="relative max-w-md">
-        <button
-          type="button"
-          onClick={() => (panelAbierto ? cerrarPanel() : abrirPanel())}
-          disabled={!panelAbierto && camposDisponibles.length === 0 && chips.length === 0}
-          className={[
-            'flex w-full items-center gap-2 rounded-lg border bg-white px-3 py-2.5 text-left text-sm shadow-sm transition-colors',
-            panelAbierto
-              ? 'border-primary ring-2 ring-primary/20'
-              : 'border-gray-300 hover:border-gray-400',
-            !panelAbierto && camposDisponibles.length === 0 && chips.length > 0
-              ? 'cursor-default opacity-70'
-              : 'cursor-pointer',
-          ].join(' ')}
-        >
-          <Filter className="h-4 w-4 shrink-0 text-primary" />
-          <span className={`flex-1 truncate ${chips.length ? 'font-medium text-gray-800' : 'text-gray-500'}`}>
-            {textoBoton}
-          </span>
-          {camposDisponibles.length > 0 && (
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${panelAbierto ? 'rotate-180' : ''}`}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        {campoBusqueda && (
+          <div className="relative min-w-0 flex-1">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              aria-hidden="true"
             />
-          )}
-        </button>
-
-        {panelAbierto && camposDisponibles.length > 0 && (
-          <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-            {paso === 'tipo' ? (
-              <div className="p-1">
-                <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Filtrar por
-                </p>
-                {camposDisponibles.map((campo) => (
-                  <button
-                    key={campo.key}
-                    type="button"
-                    onClick={() => elegirTipo(campo.key)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-gray-800 hover:bg-slate-50"
-                  >
-                    {campo.label}
-                    <ChevronDown className="-rotate-90 h-4 w-4 text-gray-400" />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4">
-                <button
-                  type="button"
-                  onClick={() => setPaso('tipo')}
-                  className="mb-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                  Volver
-                </button>
-
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {campoActivo?.label}
-                </p>
-
-                {campoActivo?.type === 'select' ? (
-                  <Select
-                    autoFocus
-                    defaultValue=""
-                    onChange={(e) => aplicarSelect(e.target.value)}
-                    className="w-full"
-                  >
-                    <option value="" disabled>
-                      Seleccionar…
-                    </option>
-                    {(campoActivo.opciones ?? []).map((op) => (
-                      <option key={op.value} value={op.value}>
-                        {op.label}
-                      </option>
-                    ))}
-                  </Select>
-                ) : (
-                  <form onSubmit={aplicarTexto} className="space-y-2">
-                    <Input
-                      autoFocus
-                      value={valorTexto}
-                      onChange={(e) => setValorTexto(e.target.value)}
-                      placeholder={campoActivo?.placeholder ?? 'Escribir valor…'}
-                    />
-                    <p className="text-xs text-gray-500">Presiona Enter para aplicar</p>
-                  </form>
-                )}
-              </div>
-            )}
+            <Input
+              type="search"
+              value={filtros[CLAVE_BUSQUEDA] ?? ''}
+              onChange={(e) => actualizarBusqueda(e.target.value)}
+              placeholder={campoBusqueda.placeholder ?? 'Buscar…'}
+              className="pl-9"
+              aria-label={campoBusqueda.label}
+            />
           </div>
+        )}
+
+        {camposModal.length > 0 && (
+          <Button
+            type="button"
+            variant="primary"
+            onClick={abrirModal}
+            className="relative shrink-0 px-3.5 sm:min-w-[3rem]"
+            aria-label="Abrir filtros"
+          >
+            <Filter className="h-4 w-4" />
+            {activosModal > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-primary">
+                {activosModal}
+              </span>
+            )}
+          </Button>
         )}
       </div>
 
-      {chips.length > 0 && (
-        <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-slate-50 px-3 py-2.5">
+      {totalActivos > 0 && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-slate-50/80 px-3 py-2.5 dark:border-dark-border dark:bg-dark-elevated/50">
           {chips.map((chip) => (
             <span
               key={chip.key}
-              className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-medium text-gray-800 shadow-sm"
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-medium text-gray-800 shadow-sm dark:bg-dark-card"
             >
               <span className="text-gray-500">{chip.label}:</span>
               <span>{chip.texto.split(': ')[1] ?? chip.texto}</span>
@@ -220,6 +131,71 @@ export default function FiltrosActivos({ campos, filtros, onChange }) {
             Limpiar todo
           </Button>
         </div>
+      )}
+
+      {modalAbierto && (
+        <Modal
+          titulo={tituloModal}
+          onCerrar={cerrarModal}
+          ancho="max-w-lg"
+          acciones={
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="ghost" size="sm" onClick={limpiarModal}>
+                Limpiar
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={cerrarModal}>
+                Cancelar
+              </Button>
+              <Button type="button" size="sm" onClick={aplicarModal}>
+                Aplicar filtros
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            {camposModal.map((campo) => (
+              <div key={campo.key}>
+                <label
+                  htmlFor={`filtro-modal-${campo.key}`}
+                  className="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-slate-200"
+                >
+                  {campo.label}
+                </label>
+                {campo.type === 'select' ? (
+                  <Select
+                    id={`filtro-modal-${campo.key}`}
+                    value={borrador[campo.key] ?? ''}
+                    onChange={(e) =>
+                      setBorrador((prev) => ({ ...prev, [campo.key]: e.target.value }))
+                    }
+                    className="w-full"
+                  >
+                    <option value="">
+                      {campo.placeholder ?? `Filtrar por ${campo.label.toLowerCase()}…`}
+                    </option>
+                    {(campo.opciones ?? [])
+                      .filter((op) => op.value !== '')
+                      .map((op) => (
+                        <option key={op.value} value={op.value}>
+                          {op.label}
+                        </option>
+                      ))}
+                  </Select>
+                ) : (
+                  <Input
+                    id={`filtro-modal-${campo.key}`}
+                    type={campo.inputType ?? 'text'}
+                    value={borrador[campo.key] ?? ''}
+                    onChange={(e) =>
+                      setBorrador((prev) => ({ ...prev, [campo.key]: e.target.value }))
+                    }
+                    placeholder={campo.placeholder ?? `Filtrar por ${campo.label.toLowerCase()}…`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </Modal>
       )}
     </div>
   );

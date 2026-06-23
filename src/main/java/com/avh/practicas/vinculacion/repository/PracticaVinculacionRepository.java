@@ -31,6 +31,18 @@ public interface PracticaVinculacionRepository extends JpaRepository<InstanciaPr
     List<InstanciaPractica> findByEstado(EstadoPractica estado);
 
     @Query("""
+            SELECT ip FROM InstanciaPractica ip
+            JOIN FETCH ip.expediente e
+            JOIN FETCH e.estudiante est
+            JOIN FETCH est.programa
+            WHERE est.id = :estudianteId
+            ORDER BY ip.numeroPractica DESC
+            """)
+    List<InstanciaPractica> findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(
+            @Param("estudianteId") Long estudianteId
+    );
+
+    @Query("""
             SELECT CASE WHEN COUNT(ip) > 0 THEN true ELSE false END
             FROM InstanciaPractica ip
             JOIN ip.expediente e

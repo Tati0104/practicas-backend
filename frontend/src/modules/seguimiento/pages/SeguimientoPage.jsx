@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import useAuthStore from '@/store/authStore';
 import { useSeguimiento } from '../hooks/useSeguimiento';
-import IndicadoresSeguimiento from '../components/IndicadoresSeguimiento';
 import SeguimientoFiltros from '../components/SeguimientoFiltros';
+import SeguimientoFiltrosEstudiante from '../components/SeguimientoFiltrosEstudiante';
 import SeguimientoTabla from '../components/SeguimientoTabla';
 import PracticaCard from '../components/PracticaCard';
-import AlertasPanel from '../components/AlertasPanel';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
 
@@ -28,7 +28,8 @@ function useEsDesktop() {
 export default function SeguimientoPage() {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
-  const { practicas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
+  const esEstudiante = useAuthStore((state) => state.rol) === 'ESTUDIANTE';
+  const { practicas, practicasTodas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
     useSeguimiento();
 
   useEffect(() => {
@@ -40,15 +41,25 @@ export default function SeguimientoPage() {
   return (
     <div>
       <PageHeader
-        titulo="Seguimiento"
-        descripcion="Tablero de seguimiento de prácticas"
+        titulo={esEstudiante ? 'Mis seguimientos' : 'Seguimiento'}
+        descripcion={
+          esEstudiante
+            ? 'Entregas de bitácora, comentarios del docente y estado de revisión'
+            : 'Tablero de seguimiento de prácticas'
+        }
       />
-
-      <IndicadoresSeguimiento practicas={practicas} />
 
       <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1">
-          <SeguimientoFiltros filtros={filtros} setFiltros={setFiltros} />
+          {esEstudiante ? (
+            <SeguimientoFiltrosEstudiante
+              filtros={filtros}
+              setFiltros={setFiltros}
+              practicas={practicasTodas}
+            />
+          ) : (
+            <SeguimientoFiltros filtros={filtros} setFiltros={setFiltros} />
+          )}
 
           {isLoading && (
             <p className="py-10 text-center text-sm text-gray-500">Cargando prácticas...</p>
@@ -61,13 +72,22 @@ export default function SeguimientoPage() {
           )}
 
           {!isLoading && practicas.length > 0 && esDesktop && (
-            <SeguimientoTabla practicas={practicas} onVerDetalle={verDetalle} />
+            <SeguimientoTabla
+              practicas={practicas}
+              onVerDetalle={verDetalle}
+              ocultarEstudiante={esEstudiante}
+            />
           )}
 
           {!isLoading && practicas.length > 0 && !esDesktop && (
             <div className="flex flex-col gap-3">
               {practicas.map((p) => (
-                <PracticaCard key={p.id} practica={p} onVerDetalle={verDetalle} />
+                <PracticaCard
+                  key={p.id}
+                  practica={p}
+                  onVerDetalle={verDetalle}
+                  modoEstudiante={esEstudiante}
+                />
               ))}
             </div>
           )}
@@ -78,12 +98,6 @@ export default function SeguimientoPage() {
             onCambiarPagina={irAPagina}
           />
         </div>
-
-        {esDesktop && (
-          <div className="w-full shrink-0 xl:w-72">
-            <AlertasPanel />
-          </div>
-        )}
       </div>
     </div>
   );

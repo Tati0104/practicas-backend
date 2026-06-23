@@ -211,6 +211,16 @@ public class ScopeGuard {
                 registrarAccesoDenegado(usuario, recurso, accion, "empresa asignada");
                 throw new AccesoNoAutorizadoException("Acceso denegado: práctica fuera de su empresa.");
             }
+            if (usuario.getRol() == Rol.TUTOR_EMPRESARIAL) {
+                Long tutorId = tutorEmpresarialRepository.findByUsuarioId(usuario.getId())
+                        .or(() -> tutorEmpresarialRepository.findByCorreoIgnoreCase(usuario.getCorreo()))
+                        .map(t -> t.getId())
+                        .orElse(null);
+                if (tutorId == null || !tutorId.equals(practica.getTutorId())) {
+                    registrarAccesoDenegado(usuario, recurso, accion, "tutor asignado");
+                    throw new AccesoNoAutorizadoException("Acceso denegado: práctica no asignada a este tutor.");
+                }
+            }
             return;
         }
 

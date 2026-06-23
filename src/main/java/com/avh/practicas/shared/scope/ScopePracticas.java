@@ -48,7 +48,11 @@ public class ScopePracticas {
     }
 
     public static ScopePracticas deTutor(Long tutorId) {
-        return new ScopePracticas(false, null, null, null, null, tutorId);
+        return deTutor(tutorId, null);
+    }
+
+    public static ScopePracticas deTutor(Long tutorId, Long empresaId) {
+        return new ScopePracticas(false, null, null, null, empresaId, tutorId);
     }
 
     public static ScopePracticas ninguna() {
@@ -73,7 +77,13 @@ public class ScopePracticas {
         }
 
         if (tutorId != null) {
-            return tutorId.equals(practica.getTutorId());
+            if (!tutorId.equals(practica.getTutorId())) {
+                return false;
+            }
+            if (empresaId != null && practica.getEmpresaId() != null) {
+                return empresaId.equals(practica.getEmpresaId());
+            }
+            return true;
         }
 
         if (todas) {

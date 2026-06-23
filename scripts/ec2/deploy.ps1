@@ -19,7 +19,12 @@ if (-not $Pem) {
 $JarLocal = Join-Path $RepoRoot "target\practicas-0.0.1-SNAPSHOT.jar"
 $FrontendDist = Join-Path $RepoRoot "frontend\dist"
 $SshTarget = "${User}@${Ec2Host}"
-$SshArgs = @("-i", (Resolve-Path $Pem), "-o", "ConnectTimeout=20", "-o", "StrictHostKeyChecking=accept-new")
+$SshArgs = @(
+    "-i", (Resolve-Path $Pem),
+    "-o", "ConnectTimeout=20",
+    "-o", "ServerAliveInterval=15",
+    "-o", "StrictHostKeyChecking=accept-new"
+)
 
 function Invoke-Ssh([string]$Command) {
     & ssh @SshArgs $SshTarget $Command
@@ -40,8 +45,9 @@ Invoke-Scp (Join-Path $PSScriptRoot "start-backend.sh") "~/start-backend.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "deploy-frontend.sh") "~/deploy-frontend.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "setup-nginx.sh") "~/setup-nginx.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "nginx-practicas.conf") "~/nginx-practicas.conf"
-Invoke-Ssh "chmod +x ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh && sed -i 's/\r$//' ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh"
-Invoke-Ssh "bash ~/setup-nginx.sh ~/nginx-practicas.conf"
+Write-Host "    Configurando permisos y nginx..." -ForegroundColor DarkGray
+Invoke-Ssh 'chmod +x ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh && sed -i ''s/\r$//'' ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh'
+Invoke-Ssh 'bash ~/setup-nginx.sh ~/nginx-practicas.conf'
 
 if (-not $FrontendOnly) {
     if (-not $SkipBuild) {
@@ -56,9 +62,12 @@ if (-not $FrontendOnly) {
     Invoke-Scp $JarLocal "~/app.jar"
 
     Write-Host "==> Reiniciando backend..." -ForegroundColor Cyan
-    Invoke-Ssh "bash ~/start-backend.sh"
+    Invoke-Ssh 'bash ~/start-backend.sh'
+    Write-Host "    Esperando arranque (20s)..." -ForegroundColor DarkGray
     Start-Sleep -Seconds 20
-    Invoke-Ssh "grep 'Started PracticasApplication' ~/app.log | tail -n 1 || (tail -n 20 ~/app.log; exit 1)"
+    Write-Host "    Verificando log del backend..." -ForegroundColor DarkGray
+    Invoke-Ssh 'grep -q Started ~/app.log || { tail -n 20 ~/app.log; exit 1; }'
+    Invoke-Ssh 'grep Started ~/app.log | tail -n 1'
 }
 
 if (-not $BackendOnly) {
@@ -75,11 +84,11 @@ if (-not $BackendOnly) {
     }
 
     Write-Host "==> Subiendo frontend..." -ForegroundColor Cyan
-    Invoke-Ssh "rm -rf ~/frontend-dist && mkdir -p ~/frontend-dist"
+    Invoke-Ssh 'rm -rf ~/frontend-dist && mkdir -p ~/frontend-dist'
     & scp @SshArgs -r (Join-Path $FrontendDist "*") "${SshTarget}:~/frontend-dist/"
 
     Write-Host "==> Publicando en nginx..." -ForegroundColor Cyan
-    Invoke-Ssh "bash ~/deploy-frontend.sh ~/frontend-dist"
+    Invoke-Ssh 'bash ~/deploy-frontend.sh ~/frontend-dist'
 }
 
 Write-Host ""

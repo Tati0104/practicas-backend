@@ -19,4 +19,5 @@ public interface EstudianteService {
     Page<Estudiante> listar(String programa, String facultad, EstadoAptitud aptitud, String estadoPractica, String busqueda, Pageable pageable);
     void importar(List<Estudiante> estudiantes);
     Estudiante guardar(Estudiante estudiante);
+    void eliminar(Long id);
 }

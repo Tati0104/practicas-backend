@@ -44,9 +44,9 @@ export const RUTAS_POR_ROL = {
   COORD_ACADEMICA: '/dashboard',
   COORD_PRACTICA: '/dashboard',
   DOCENTE_ASESOR: '/seguimiento',
-  ESTUDIANTE: '/vinculacion',
+  ESTUDIANTE: '/dashboard',
   EMPRESA: '/vacantes',
-  TUTOR_EMPRESARIAL: '/seguimiento',
+  TUTOR_EMPRESARIAL: '/dashboard',
   COMITE_PRACTICAS: '/dashboard',
 };
 
@@ -54,8 +54,8 @@ export const RUTAS_POR_ROL = {
  * @param {string|null|undefined} rol
  * @returns {string}
  */
-export function obtenerRutaPorRol(rol) {
-  return RUTAS_POR_ROL[rol] ?? '/dashboard';
+export function obtenerRutaPorRol() {
+  return '/dashboard';
 }
 
 /**

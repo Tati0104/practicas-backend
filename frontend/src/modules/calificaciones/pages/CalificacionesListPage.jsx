@@ -1,14 +1,26 @@
+import useAuthStore from '@/store/authStore';
 import PracticasSelectorPage from '@/shared/components/PracticasSelectorPage';
+import SeguimientoFiltrosEstudiante from '@/modules/seguimiento/components/SeguimientoFiltrosEstudiante';
 import CalificacionesFiltros from '../components/CalificacionesFiltros';
 
 export default function CalificacionesListPage() {
+  const rol = useAuthStore((state) => state.rol);
+  const esEstudiante = rol === 'ESTUDIANTE';
+  const esTutor = rol === 'TUTOR_EMPRESARIAL';
+
   return (
     <PracticasSelectorPage
       titulo="Evaluaciones"
-      descripcion="Selecciona una práctica para registrar notas, consultar calificaciones y gestionar encuestas de cierre."
-      accionLabel="Evaluar"
+      descripcion={
+        esEstudiante
+          ? 'Consulta tus notas, resultado final y estado de la encuesta de cierre'
+          : esTutor
+            ? 'Selecciona un practicante de tu empresa para registrar tu nota de referencia y ver la nota final'
+            : 'Selecciona una práctica para registrar notas, consultar calificaciones y gestionar encuestas de cierre.'
+      }
+      accionLabel={esEstudiante ? 'Ver evaluaciones' : 'Evaluar'}
       construirRuta={(id) => `/calificaciones/${id}`}
-      FiltrosComponent={CalificacionesFiltros}
+      FiltrosComponent={esEstudiante ? SeguimientoFiltrosEstudiante : CalificacionesFiltros}
     />
   );
 }

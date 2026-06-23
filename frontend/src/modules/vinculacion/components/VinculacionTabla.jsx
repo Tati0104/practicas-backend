@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import TablaBase from '../../../shared/components/TablaBase';
 import BadgeDocumento from './BadgeDocumento';
-import { Button } from '@/shared/components/ui';
+import { Button, Badge } from '@/shared/components/ui';
 
 const COLUMNAS_DOC = [
   { key: 'HOJA_VIDA', titulo: 'Hoja de vida' },
@@ -22,22 +22,43 @@ function contarCompletos(docs = []) {
   }).length;
 }
 
-export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar }) {
+export default function VinculacionTabla({ vinculaciones, isLoading, onGestionar, ocultarEstudiante = false }) {
   const navigate = useNavigate();
 
   const columnas = [
-    {
-      key: 'estudiante',
-      titulo: 'Estudiante',
-      render: (fila) => (
-        <div>
-          <div className="text-sm font-semibold text-gray-900">{fila.estudiante?.nombre || '—'}</div>
-          <div className="text-xs text-gray-500">
-            {fila.estudiante?.codigo} · {fila.estudiante?.programa}
-          </div>
-        </div>
-      ),
-    },
+    ...(ocultarEstudiante
+      ? [
+          {
+            key: 'practica',
+            titulo: 'Práctica',
+            render: (fila) => (
+              <div>
+                <div className="text-sm font-semibold text-gray-900">
+                  Práctica {fila.numeroPractica ?? '—'}
+                </div>
+                {fila.estadoPractica && (
+                  <Badge variant={fila.estadoPractica === 'COMPLETADA' ? 'success' : 'neutral'}>
+                    {fila.estadoPractica.replace(/_/g, ' ')}
+                  </Badge>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : [
+          {
+            key: 'estudiante',
+            titulo: 'Estudiante',
+            render: (fila) => (
+              <div>
+                <div className="text-sm font-semibold text-gray-900">{fila.estudiante?.nombre || '—'}</div>
+                <div className="text-xs text-gray-500">
+                  {fila.estudiante?.codigo} · {fila.estudiante?.programa}
+                </div>
+              </div>
+            ),
+          },
+        ]),
     {
       key: 'vacante',
       titulo: 'Cargo / Empresa',
