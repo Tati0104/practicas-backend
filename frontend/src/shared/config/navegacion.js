@@ -176,7 +176,7 @@ export const GRUPOS_NAVEGACION = [
       {
         id: 'calificaciones',
         nombre: 'Evaluaciones',
-        ruta: '/calificaciones',
+        ruta: '/evaluaciones',
         icono: 'Star',
         roles: [
           ROLES.ADMIN,

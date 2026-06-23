@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
 import { tokenExpirado, obtenerTokenAlmacenado } from '@/modules/auth/utils/jwt';
 import { sesionInactivaExpirada } from '@/modules/auth/utils/sesion';
@@ -30,6 +30,21 @@ import VacanteDetallePage from '@/modules/vacantes/pages/VacanteDetallePage';
 import VacantesYAsignacionesPage from '@/modules/vacantes/pages/VacantesYAsignacionesPage';
 import AsignacionesPage from '@/modules/asignaciones/pages/AsignacionesPage';
 import AsignacionDetallePage from '@/modules/asignaciones/pages/AsignacionDetallePage';
+
+const ROLES_EVALUACIONES = [
+  'DOCENTE_ASESOR',
+  'TUTOR_EMPRESARIAL',
+  'COORD_PRACTICA',
+  'COORD_ACADEMICA',
+  'ESTUDIANTE',
+  'ADMIN',
+];
+
+function RedirectCalificacionesADevaluaciones() {
+  const { practicaId } = useParams();
+  const { search } = useLocation();
+  return <Navigate to={`/evaluaciones/${practicaId}${search}`} replace />;
+}
 
 function RutaPrivada({ children, roles }) {
   const token = useAuthStore((state) => state.token);
@@ -181,40 +196,25 @@ export default function AppRouter() {
           />
 
           <Route
-            path="/calificaciones"
+            path="/evaluaciones"
             element={
-              <RutaPrivada
-                roles={[
-                  'DOCENTE_ASESOR',
-                  'TUTOR_EMPRESARIAL',
-                  'COORD_PRACTICA',
-                  'COORD_ACADEMICA',
-                  'ESTUDIANTE',
-                  'ADMIN',
-                ]}
-              >
+              <RutaPrivada roles={ROLES_EVALUACIONES}>
                 <CalificacionesListPage />
               </RutaPrivada>
             }
           />
 
           <Route
-            path="/calificaciones/:practicaId"
+            path="/evaluaciones/:practicaId"
             element={
-              <RutaPrivada
-                roles={[
-                  'DOCENTE_ASESOR',
-                  'TUTOR_EMPRESARIAL',
-                  'COORD_PRACTICA',
-                  'COORD_ACADEMICA',
-                  'ESTUDIANTE',
-                  'ADMIN',
-                ]}
-              >
+              <RutaPrivada roles={ROLES_EVALUACIONES}>
                 <CalificacionesPage />
               </RutaPrivada>
             }
           />
+
+          <Route path="/calificaciones" element={<Navigate to="/evaluaciones" replace />} />
+          <Route path="/calificaciones/:practicaId" element={<RedirectCalificacionesADevaluaciones />} />
 
           <Route
             path="/seguimiento"

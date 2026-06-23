@@ -23,6 +23,6 @@ public class EncuestaEnlaceService {
         String base = frontendBaseUrl.endsWith("/")
                 ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
                 : frontendBaseUrl;
-        return base + "/calificaciones/" + practicaId;
+        return base + "/evaluaciones/" + practicaId;
     }
 }

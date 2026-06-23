@@ -72,7 +72,7 @@ export default function CierrePage() {
       onSuccess: (response) => {
         setModalAbierto(false);
         const resultado = response?.data?.data;
-        navigate(`/calificaciones/${practicaId}?activa=false&archivada=true`, {
+        navigate(`/evaluaciones/${practicaId}?activa=false&archivada=true`, {
           replace: true,
           state: {
             cierreEjecutado: true,

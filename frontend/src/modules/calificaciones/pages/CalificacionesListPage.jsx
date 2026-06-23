@@ -19,7 +19,7 @@ export default function CalificacionesListPage() {
             : 'Selecciona una práctica para registrar notas, consultar calificaciones y gestionar encuestas de cierre.'
       }
       accionLabel={esEstudiante ? 'Ver evaluaciones' : 'Evaluar'}
-      construirRuta={(id) => `/calificaciones/${id}`}
+      construirRuta={(id) => `/evaluaciones/${id}`}
       FiltrosComponent={esEstudiante ? SeguimientoFiltrosEstudiante : CalificacionesFiltros}
     />
   );
