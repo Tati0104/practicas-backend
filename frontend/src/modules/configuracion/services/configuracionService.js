@@ -22,7 +22,15 @@ const configuracionService = {
 
   // Configuración de parámetros
   obtenerConfig:    (programaId) => http.get(`/configuracion/programas/${programaId}`),
-  guardarConfig:    (programaId, dto) => http.put(`/configuracion/programas/${programaId}`, dto)
+  guardarConfig:    (programaId, dto) => http.put(`/configuracion/programas/${programaId}`, dto),
+
+  // Catálogo de prácticas
+  listarCatalogoPracticas: (programaId) =>
+    http.get('/configuracion/catalogo', programaId ? { params: { programaId } } : {}),
+  crearCatalogoPractica:     (dto)      => http.post('/configuracion/catalogo', dto),
+  editarCatalogoPractica:    (id, dto)  => http.put(`/configuracion/catalogo/${id}`, dto),
+  activarCatalogoPractica:   (id)       => http.patch(`/configuracion/catalogo/${id}/activar`),
+  desactivarCatalogoPractica:(id)       => http.patch(`/configuracion/catalogo/${id}/desactivar`),
 };
 
 export default configuracionService;

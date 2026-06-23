@@ -62,6 +62,7 @@ export default function EncuestaForm({
 
   const bloqueada = encuesta?.estado === 'COMPLETADA' || soloLectura;
   const permiteBorrador = !esEstudiante && encuesta?.estado !== 'COMPLETADA' && !soloLectura;
+  const mostrarPreguntas = !soloLectura || encuesta?.estado === 'COMPLETADA';
 
   useEffect(() => {
     if (encuesta?.respuestas) {
@@ -134,61 +135,63 @@ export default function EncuestaForm({
         </p>
       )}
 
-      <div className="space-y-5">
-        {preguntasVisibles.map((pregunta) => (
-          <div key={pregunta.id}>
-            <label
-              htmlFor={`pregunta-${pregunta.id}`}
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              {pregunta.texto}
-              {pregunta.requerida && <span className="text-red-600"> *</span>}
-            </label>
+      {mostrarPreguntas && (
+        <div className="space-y-5">
+          {preguntasVisibles.map((pregunta) => (
+            <div key={pregunta.id}>
+              <label
+                htmlFor={`pregunta-${pregunta.id}`}
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                {pregunta.texto}
+                {pregunta.requerida && <span className="text-red-600"> *</span>}
+              </label>
 
-            {pregunta.tipo === 'ESCALA' ? (
-              <fieldset id={`pregunta-${pregunta.id}`} className="flex flex-wrap gap-2">
-                <legend className="sr-only">{pregunta.texto}</legend>
-                {ESCALA_OPCIONES.map((opcion) => (
-                  <label
-                    key={opcion}
-                    className={`flex min-w-[2.75rem] cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                      respuestas[pregunta.id] === opcion
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 text-gray-700 hover:border-blue-400'
-                    } ${bloqueada ? 'cursor-not-allowed opacity-70' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name={pregunta.id}
-                      value={opcion}
-                      checked={respuestas[pregunta.id] === opcion}
-                      disabled={bloqueada}
-                      onChange={() => actualizarRespuesta(pregunta.id, opcion)}
-                      className="sr-only"
-                    />
-                    {opcion}
-                  </label>
-                ))}
-              </fieldset>
-            ) : (
-              <textarea
-                id={`pregunta-${pregunta.id}`}
-                rows={3}
-                disabled={bloqueada}
-                value={respuestas[pregunta.id] ?? ''}
-                onChange={(e) => actualizarRespuesta(pregunta.id, e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50"
-              />
-            )}
+              {pregunta.tipo === 'ESCALA' ? (
+                <fieldset id={`pregunta-${pregunta.id}`} className="flex flex-wrap gap-2">
+                  <legend className="sr-only">{pregunta.texto}</legend>
+                  {ESCALA_OPCIONES.map((opcion) => (
+                    <label
+                      key={opcion}
+                      className={`flex min-w-[2.75rem] cursor-pointer items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        respuestas[pregunta.id] === opcion
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 text-gray-700 hover:border-blue-400'
+                      } ${bloqueada ? 'cursor-not-allowed opacity-70' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name={pregunta.id}
+                        value={opcion}
+                        checked={respuestas[pregunta.id] === opcion}
+                        disabled={bloqueada}
+                        onChange={() => actualizarRespuesta(pregunta.id, opcion)}
+                        className="sr-only"
+                      />
+                      {opcion}
+                    </label>
+                  ))}
+                </fieldset>
+              ) : (
+                <textarea
+                  id={`pregunta-${pregunta.id}`}
+                  rows={3}
+                  disabled={bloqueada}
+                  value={respuestas[pregunta.id] ?? ''}
+                  onChange={(e) => actualizarRespuesta(pregunta.id, e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50"
+                />
+              )}
 
-            {errores[pregunta.id] && (
-              <p className="mt-1 text-sm text-red-600" role="alert">
-                {errores[pregunta.id]}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+              {errores[pregunta.id] && (
+                <p className="mt-1 text-sm text-red-600" role="alert">
+                  {errores[pregunta.id]}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {!bloqueada && (
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">

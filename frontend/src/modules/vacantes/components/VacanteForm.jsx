@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import useAuthStore from '@/store/authStore';
 import { useVacantesMutaciones } from '../hooks/useVacantesMutaciones';
 import empresaService from '../../empresa/services/empresaService';
+import configuracionService from '../../configuracion/services/configuracionService';
 import http from '../../../shared/services/http';
 
 const vacanteSchema = z.object({
@@ -21,6 +22,10 @@ const vacanteSchema = z.object({
     errorMap: () => ({ message: 'Modalidad es requerida' }),
   }),
   cuposTotales: z.coerce.number().int().min(1, 'Debe ser al menos 1'),
+  catalogoPracticaId: z.preprocess(
+    (v) => (v === '' || v == null ? null : v),
+    z.coerce.number().int().positive().nullable().optional()
+  ),
   area: z.string().optional(),
   requisitos: z.string().optional(),
   fechaInicioDisponibilidad: z.string().optional(),
@@ -31,6 +36,7 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
   const isEdit = !!vacante?.id;
   const rol = useAuthStore((state) => state.rol);
   const esEmpresa = rol === 'EMPRESA';
+  const puedeVerCatalogo = rol === 'COORD_PRACTICA' || rol === 'ADMIN';
 
   const { data: empresas = [] } = useQuery({
     queryKey: ['empresas-select-vacante'],
@@ -48,9 +54,20 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     enabled: isOpen,
   });
 
-  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, reset, setError, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(vacanteSchema),
     defaultValues: vacante ?? {},
+  });
+
+  const programaIdActual = watch('programaId');
+  const { data: catalogoPracticas = [] } = useQuery({
+    queryKey: ['catalogo-practicas-select', programaIdActual],
+    queryFn: () =>
+      configuracionService
+        .listarCatalogoPracticas(programaIdActual)
+        .then((r) => (r.data ?? []).filter((p) => p.activo)),
+    enabled: isOpen && !!programaIdActual && puedeVerCatalogo,
+    staleTime: 60_000,
   });
 
   const { crear, editar } = useVacantesMutaciones({
@@ -78,7 +95,7 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
 
     const payload = {
       ...data,
-      catalogoPracticaId: null,
+      catalogoPracticaId: data.catalogoPracticaId ? Number(data.catalogoPracticaId) : null,
       fechaInicioDisponibilidad: data.fechaInicioDisponibilidad || null,
       fechaFinDisponibilidad: data.fechaFinDisponibilidad || null,
       ...(esEmpresa && empresas[0] ? { empresaId: empresas[0].id } : {}),
@@ -136,6 +153,29 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
             </select>
             {fldError('programaId')}
           </div>
+
+          {puedeVerCatalogo && (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Práctica <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <select
+                {...register('catalogoPracticaId')}
+                disabled={!programaIdActual}
+                className="w-full border rounded px-3 py-2 disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">- Selecciona práctica -</option>
+                {catalogoPracticas.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    Práctica {p.numeroPractica} — {p.nombre}
+                  </option>
+                ))}
+              </select>
+              {!programaIdActual && (
+                <p className="text-gray-400 text-xs mt-1">Selecciona un programa primero</p>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1">Cargo</label>

@@ -1,7 +1,7 @@
 import useAuthStore from '@/store/authStore';
 
-const ROLES_VER_ENCUESTA_TUTOR = ['TUTOR_EMPRESARIAL', 'DOCENTE_ASESOR', 'COORD_PRACTICA', 'COORD_ACADEMICA', 'ADMIN'];
-const ROLES_VER_ENCUESTA_ESTUDIANTE = ['ESTUDIANTE', 'DOCENTE_ASESOR', 'COORD_PRACTICA', 'COORD_ACADEMICA', 'ADMIN'];
+const ROLES_VER_ENCUESTA_TUTOR = ['TUTOR_EMPRESARIAL', 'DOCENTE_ASESOR', 'COORD_PRACTICA', 'ADMIN'];
+const ROLES_VER_ENCUESTA_ESTUDIANTE = ['ESTUDIANTE', 'DOCENTE_ASESOR', 'COORD_PRACTICA', 'ADMIN'];
 const ROLES_GESTION = ['COORD_PRACTICA', 'ADMIN'];
 
 /**
@@ -19,16 +19,11 @@ export default function useCalificacionesPermisos() {
       'ESTUDIANTE',
       'ADMIN',
     ].includes(rol),
-    puedeRegistrarNotaDocente:
-      rol === 'DOCENTE_ASESOR' || ROLES_GESTION.includes(rol),
-    puedeRegistrarNotaTutor:
-      rol === 'TUTOR_EMPRESARIAL' || ROLES_GESTION.includes(rol),
-    puedeRegistrarNotaFinal:
-      rol === 'DOCENTE_ASESOR' || ROLES_GESTION.includes(rol),
-    puedeCompletarEncuestaTutor:
-      rol === 'TUTOR_EMPRESARIAL' || ROLES_GESTION.includes(rol),
-    puedeCompletarEncuestaEstudiante:
-      rol === 'ESTUDIANTE' || ROLES_GESTION.includes(rol),
+    puedeRegistrarNotaDocente: rol === 'DOCENTE_ASESOR' || rol === 'ADMIN',
+    puedeRegistrarNotaTutor: rol === 'TUTOR_EMPRESARIAL' || rol === 'ADMIN',
+    puedeRegistrarNotaFinal: rol === 'DOCENTE_ASESOR' || rol === 'ADMIN',
+    puedeCompletarEncuestaTutor: rol === 'TUTOR_EMPRESARIAL' || rol === 'ADMIN',
+    puedeCompletarEncuestaEstudiante: rol === 'ESTUDIANTE' || rol === 'ADMIN',
     puedeEnviarRecordatorio: ROLES_GESTION.includes(rol),
     puedeEnviarInvitacion: ROLES_GESTION.includes(rol),
     puedeVerEncuestaTutor: ROLES_VER_ENCUESTA_TUTOR.includes(rol),

@@ -58,6 +58,13 @@ export const GRUPOS_NAVEGACION = [
         icono: 'BookOpen',
         roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
       },
+      {
+        id: 'catalogo-practicas',
+        nombre: 'Catálogo de prácticas',
+        ruta: '/configuracion/catalogo-practicas',
+        icono: 'BookMarked',
+        roles: [ROLES.ADMIN, ROLES.COORD_ACADEMICA],
+      },
     ],
   },
   {
@@ -112,10 +119,10 @@ export const GRUPOS_NAVEGACION = [
       },
       {
         id: 'vacantes',
-        nombre: 'Vacantes',
+        nombre: 'Vacantes y postulaciones',
         ruta: '/vacantes',
         icono: 'ClipboardList',
-        roles: ROLES_VACANTES,
+        roles: [ROLES.EMPRESA, ROLES.TUTOR_EMPRESARIAL],
       },
       {
         // Entrada propia para Coordinacion Academica: solo necesita ver la lista de

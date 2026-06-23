@@ -126,6 +126,12 @@ export const MOCK_PROGRAMAS = [
   { id: 3, nombre: 'Administración', facultad: 'Facultad de Económicas', activo: false },
 ];
 
+export const MOCK_CATALOGO_PRACTICAS = [
+  { id: 1, numeroPractica: 1, nombre: 'Práctica I', materiaNucleo: 'Ingeniería de Software', codigoMateria: 'INS001', numCortes: 3, duracionSemanas: 12, programa: { id: 1, nombre: 'Ingeniería de Sistemas' }, activo: true },
+  { id: 2, numeroPractica: 2, nombre: 'Práctica II', materiaNucleo: 'Proyectos de Software', codigoMateria: 'PSW002', numCortes: 3, duracionSemanas: 12, programa: { id: 1, nombre: 'Ingeniería de Sistemas' }, activo: true },
+  { id: 3, numeroPractica: 1, nombre: 'Práctica I', materiaNucleo: 'Gerencia de Proyectos', codigoMateria: 'GPR001', numCortes: 2, duracionSemanas: 12, programa: { id: 3, nombre: 'Administración' }, activo: false },
+];
+
 export const MOCK_DETALLE_PRACTICA = {
   id: 1,
   estudiante: { nombre: 'Ana García', codigo: '2021001', programa: 'Ing. Sistemas' },

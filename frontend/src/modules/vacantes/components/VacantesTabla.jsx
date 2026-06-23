@@ -11,19 +11,19 @@ export default function VacantesTabla({ vacantes, acciones }) {
     {
       key: 'empresa',
       titulo: 'Empresa',
-      render: (v) => v.empresaNombre ?? (v.empresaId ? `Empresa #${v.empresaId}` : '—'),
+      render: (v) => v.empresaNombre ?? (v.empresaId ? `Empresa #${v.empresaId}` : '-'),
     },
     { key: 'cargo', titulo: 'Cargo' },
     {
       key: 'nivelPractica',
       titulo: 'Nivel',
-      render: (v) => v.catalogoPracticaNombre ?? (v.numeroPractica ? `PrÃ¡ctica ${v.numeroPractica}` : 'â€”'),
+      render: (v) => v.catalogoPracticaNombre ?? (v.numeroPractica ? `Práctica ${v.numeroPractica}` : '-'),
     },
     { key: 'modalidad', titulo: 'Modalidad' },
     {
       key: 'cupos',
       titulo: 'Cupos',
-      render: (v) => `${v.cuposDisponibles ?? 0} / ${v.cuposTotales ?? '—'}`,
+      render: (v) => `${v.cuposDisponibles ?? 0} / ${v.cuposTotales ?? '-'}`,
     },
     {
       key: 'estado',
