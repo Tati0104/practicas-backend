@@ -54,8 +54,8 @@ export const RUTAS_POR_ROL = {
  * @param {string|null|undefined} rol
  * @returns {string}
  */
-export function obtenerRutaPorRol(rol) {
-  return RUTAS_POR_ROL[rol] ?? '/dashboard';
+export function obtenerRutaPorRol() {
+  return '/dashboard';
 }
 
 /**

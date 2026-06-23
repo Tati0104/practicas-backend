@@ -1,22 +1,23 @@
-import { Navigate } from 'react-router-dom';
+import { useLayoutEffect, useState } from 'react';
 import AuthLayout from '@/modules/auth/components/AuthLayout';
 import LoginForm from '@/modules/auth/components/LoginForm';
 import useAuthStore from '@/store/authStore';
-import { obtenerRutaPorRol } from '@/modules/auth/utils/schemas';
 
 export default function LoginPage() {
-  const token = useAuthStore((state) => state.token);
-  const rol = useAuthStore((state) => state.rol);
+  const cerrarSesion = useAuthStore((state) => state.cerrarSesion);
+  const [listo, setListo] = useState(false);
 
-  if (token) {
-    return <Navigate to={obtenerRutaPorRol(rol)} replace />;
+  useLayoutEffect(() => {
+    cerrarSesion();
+    setListo(true);
+  }, [cerrarSesion]);
+
+  if (!listo) {
+    return null;
   }
 
   return (
-    <AuthLayout
-      titulo="PracTI"
-      subtitulo="Universidad Alexander Von Humboldt"
-    >
+    <AuthLayout titulo="PracTI" subtitulo="Universidad Alexander Von Humboldt">
       <LoginForm />
     </AuthLayout>
   );

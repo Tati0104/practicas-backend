@@ -1,50 +1,37 @@
-import { FiltrosBar, FiltroInput, FiltroSelect } from '@/shared/components/filtros';
-import { Button } from '@/shared/components/ui';
+import { useMemo } from 'react';
+import { FiltrosActivos } from '@/shared/components/filtros';
 
 const ESTADOS = [
-  { value: '', label: 'Todos los estados' },
   { value: 'AL_DIA', label: 'Al día' },
   { value: 'PENDIENTE', label: 'Pendiente' },
   { value: 'EN_ALERTA', label: 'En alerta' },
 ];
 
 export default function SeguimientoFiltros({ filtros, setFiltros }) {
-  const actualizar = (campo, valor) =>
-    setFiltros((f) => ({ ...f, [campo]: valor, page: 0 }));
-
-  const limpiar = () =>
-    setFiltros((f) => ({
-      ...f,
-      busqueda: '',
-      estado: '',
-      docenteId: '',
-      page: 0,
-    }));
-
-  return (
-    <FiltrosBar variant="inline">
-      <FiltroInput
-        compacto
-        placeholder="Buscar estudiante, empresa, cargo..."
-        value={filtros.busqueda}
-        onChange={(e) => actualizar('busqueda', e.target.value)}
-      />
-      <FiltroInput
-        compacto
-        placeholder="ID Programa"
-        value={filtros.programaId}
-        onChange={(e) => actualizar('programaId', e.target.value)}
-        className="max-w-[130px]"
-      />
-      <FiltroSelect
-        compacto
-        opciones={ESTADOS}
-        value={filtros.estado}
-        onChange={(e) => actualizar('estado', e.target.value)}
-      />
-      <Button type="button" variant="secondary" size="sm" onClick={limpiar}>
-        Limpiar
-      </Button>
-    </FiltrosBar>
+  const campos = useMemo(
+    () => [
+      {
+        key: 'busqueda',
+        label: 'Búsqueda',
+        type: 'text',
+        placeholder: 'Buscar estudiante, empresa, cargo…',
+      },
+      {
+        key: 'programaId',
+        label: 'Programa',
+        type: 'text',
+        placeholder: 'ID del programa',
+      },
+      {
+        key: 'estado',
+        label: 'Estado de seguimiento',
+        type: 'select',
+        placeholder: 'Filtrar por estado…',
+        opciones: ESTADOS,
+      },
+    ],
+    []
   );
+
+  return <FiltrosActivos campos={campos} filtros={filtros} onChange={setFiltros} />;
 }

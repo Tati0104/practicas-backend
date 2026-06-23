@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
+import { tokenExpirado } from '@/modules/auth/utils/jwt';
 import Layout from '@/shared/components/Layout';
 import ThemeSync from '@/shared/components/ThemeSync';
 import {
@@ -32,7 +33,13 @@ function RutaPrivada({ children, roles }) {
   const token = useAuthStore((state) => state.token);
   const rol = useAuthStore((state) => state.rol);
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token || tokenExpirado(token)) {
+    if (token && tokenExpirado(token)) {
+      useAuthStore.getState().cerrarSesion();
+    }
+    return <Navigate to="/login" replace />;
+  }
+
   if (roles && !roles.includes(rol)) return <Navigate to="/dashboard" replace />;
 
   return <Layout>{children}</Layout>;
@@ -40,6 +47,13 @@ function RutaPrivada({ children, roles }) {
 
 function InicializadorSesion({ children }) {
   useEffect(() => {
+    const path = window.location.pathname;
+
+    if (path === '/login') {
+      useAuthStore.getState().cerrarSesion();
+      return;
+    }
+
     useAuthStore.getState().rehidratarDesdeToken();
   }, []);
 

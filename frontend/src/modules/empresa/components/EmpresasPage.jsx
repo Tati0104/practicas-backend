@@ -6,7 +6,8 @@ import ModalInactivarEmpresa from './ModalInactivarEmpresa';
 import TablaBase from '../../../shared/components/TablaBase';
 import BadgeEstado from '../../../shared/components/BadgeEstado';
 import Paginacion from '../../../shared/components/Paginacion';
-import { Badge, Button, Input, PageHeader } from '@/shared/components/ui';
+import { Badge, Button, PageHeader } from '@/shared/components/ui';
+import FiltrosEmpresa from './FiltrosEmpresa';
 
 export default function EmpresasPage() {
   const {
@@ -81,14 +82,6 @@ export default function EmpresasPage() {
 
   const guardando = registrar.isPending || editar.isPending;
 
-  const actualizarBusqueda = (busqueda) => {
-    setFiltros((prev) => ({
-      ...prev,
-      busqueda: busqueda || undefined,
-      page: 0,
-    }));
-  };
-
   const columnas = [
     { key: 'nit', titulo: 'NIT' },
     { key: 'razonSocial', titulo: 'Razón social' },
@@ -131,12 +124,7 @@ export default function EmpresasPage() {
         acciones={<Button onClick={abrirRegistrar}>+ Registrar empresa</Button>}
       />
 
-      <Input
-        className="mb-4 max-w-xs"
-        placeholder="Buscar por nombre o NIT..."
-        value={filtros.busqueda || ''}
-        onChange={(e) => actualizarBusqueda(e.target.value)}
-      />
+      <FiltrosEmpresa filtros={filtros} onChange={setFiltros} />
 
       <TablaBase columnas={columnas} datos={empresas} cargando={isLoading} />
       <Paginacion pagina={filtros.page} totalPaginas={totalPaginas} onCambiarPagina={irAPagina} />
