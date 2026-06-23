@@ -160,7 +160,7 @@ export default function CalificacionesPage() {
 
       <ResumenNotas resumen={resumen} />
 
-      {muestraEncuestas && (
+      {muestraEncuestas && permisos.rol !== 'DOCENTE_ASESOR' && (
         <section className="space-y-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
