@@ -4,26 +4,24 @@ import com.avh.practicas.cierre.checklist.EstadoItem;
 import com.avh.practicas.cierre.checklist.ItemChecklist;
 
 /**
- * Hoja del Composite: notas del tutor registradas en todos los cortes.
+ * Hoja del Composite: al menos una nota registrada por el tutor empresarial.
  */
 public class ItemNotaTutor implements ItemChecklist {
 
-    private final int numCortes;
     private final int notasRegistradas;
 
-    public ItemNotaTutor(int numCortes, int notasRegistradas) {
-        this.numCortes = Math.max(numCortes, 0);
+    public ItemNotaTutor(int notasRegistradas) {
         this.notasRegistradas = Math.max(notasRegistradas, 0);
     }
 
     @Override
     public boolean verificar() {
-        return numCortes > 0 && notasRegistradas >= numCortes;
+        return notasRegistradas >= 1;
     }
 
     @Override
     public String getNombre() {
-        return "Notas del tutor por corte";
+        return "Nota del tutor empresarial";
     }
 
     @Override
@@ -33,12 +31,6 @@ public class ItemNotaTutor implements ItemChecklist {
 
     @Override
     public EstadoItem getEstado() {
-        if (notasRegistradas <= 0) {
-            return EstadoItem.PENDIENTE;
-        }
-        if (notasRegistradas < numCortes) {
-            return EstadoItem.EN_BORRADOR;
-        }
-        return EstadoItem.COMPLETADO;
+        return notasRegistradas >= 1 ? EstadoItem.COMPLETADO : EstadoItem.PENDIENTE;
     }
 }

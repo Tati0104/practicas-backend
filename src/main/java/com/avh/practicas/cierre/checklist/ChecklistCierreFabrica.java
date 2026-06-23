@@ -42,7 +42,6 @@ public class ChecklistCierreFabrica {
         InstanciaPractica practica = practicaRepository.findById(practicaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada: " + practicaId));
 
-        int numCortes = practica.getNumCortes() != null ? practica.getNumCortes() : 0;
         int notasDocente = notaDocenteRepository.findByInstanciaPracticaId(practicaId).size();
         int notasTutor = notaTutorRepository.findByInstanciaPracticaId(practicaId).size();
         boolean tieneNotaFinal = notaFinalRepository.findByInstanciaPracticaId(practicaId).isPresent();
@@ -53,8 +52,8 @@ public class ChecklistCierreFabrica {
                 "Calificaciones",
                 true,
                 List.of(
-                        new ItemNotaDocente(numCortes, notasDocente),
-                        new ItemNotaTutor(numCortes, notasTutor),
+                        new ItemNotaDocente(notasDocente),
+                        new ItemNotaTutor(notasTutor),
                         new ItemNotaFinal(tieneNotaFinal)
                 )
         ));

@@ -21,14 +21,14 @@ class ChecklistCierreCompositeTest {
                 "Calificaciones",
                 true,
                 List.of(
-                        new ItemNotaDocente(2, 2),
-                        new ItemNotaTutor(2, 1),
+                        new ItemNotaDocente(1),
+                        new ItemNotaTutor(0),
                         new ItemNotaFinal(false)
                 )
         );
 
         assertFalse(grupo.verificar());
-        assertEquals(EstadoItem.EN_BORRADOR, grupo.getEstado());
+        assertEquals(EstadoItem.PENDIENTE, grupo.getEstado());
         assertEquals(1.0 / 3.0, grupo.getProgreso(), 0.001);
     }
 
@@ -37,7 +37,7 @@ class ChecklistCierreCompositeTest {
         GrupoRequisitos calificacionesOk = new GrupoRequisitos(
                 "Calificaciones",
                 true,
-                List.of(new ItemNotaDocente(1, 1), new ItemNotaTutor(1, 1), new ItemNotaFinal(true))
+                List.of(new ItemNotaDocente(1), new ItemNotaTutor(1), new ItemNotaFinal(true))
         );
         GrupoRequisitos encuestasPendientes = new GrupoRequisitos(
                 "Encuestas",
@@ -53,8 +53,8 @@ class ChecklistCierreCompositeTest {
     }
 
     @Test
-    void itemNotaDocente_SinCortesQuedaPendiente() {
-        ItemNotaDocente item = new ItemNotaDocente(0, 0);
+    void itemNotaDocente_SinNotaQuedaPendiente() {
+        ItemNotaDocente item = new ItemNotaDocente(0);
 
         assertFalse(item.verificar());
         assertEquals(EstadoItem.PENDIENTE, item.getEstado());
@@ -62,16 +62,16 @@ class ChecklistCierreCompositeTest {
     }
 
     @Test
-    void itemNotaDocente_ParcialQuedaEnBorrador() {
-        ItemNotaDocente item = new ItemNotaDocente(3, 1);
+    void itemNotaDocente_ConUnaNotaQuedaCompletado() {
+        ItemNotaDocente item = new ItemNotaDocente(1);
 
-        assertFalse(item.verificar());
-        assertEquals(EstadoItem.EN_BORRADOR, item.getEstado());
+        assertTrue(item.verificar());
+        assertEquals(EstadoItem.COMPLETADO, item.getEstado());
     }
 
     @Test
-    void itemNotaTutor_ConTodasLasNotasQuedaCompletado() {
-        ItemNotaTutor item = new ItemNotaTutor(2, 2);
+    void itemNotaTutor_ConUnaNotaQuedaCompletado() {
+        ItemNotaTutor item = new ItemNotaTutor(1);
 
         assertTrue(item.verificar());
         assertEquals(EstadoItem.COMPLETADO, item.getEstado());
@@ -79,7 +79,7 @@ class ChecklistCierreCompositeTest {
 
     @Test
     void itemNotaTutor_ValoresNegativosSeNormalizanComoPendiente() {
-        ItemNotaTutor item = new ItemNotaTutor(-1, -5);
+        ItemNotaTutor item = new ItemNotaTutor(-5);
 
         assertFalse(item.verificar());
         assertEquals(EstadoItem.PENDIENTE, item.getEstado());
@@ -111,7 +111,7 @@ class ChecklistCierreCompositeTest {
     @Test
     void grupoRequisitos_ObtieneHojasDeGruposAnidados() {
         GrupoRequisitos interno = new GrupoRequisitos("Interno", true, List.of(new ItemNotaFinal(true)));
-        GrupoRequisitos externo = new GrupoRequisitos("Externo", true, List.of(interno, new ItemNotaTutor(1, 1)));
+        GrupoRequisitos externo = new GrupoRequisitos("Externo", true, List.of(interno, new ItemNotaTutor(1)));
 
         assertEquals(2, externo.getItemsHoja().size());
     }
@@ -137,7 +137,7 @@ class ChecklistCierreCompositeTest {
     @Test
     void checklistCierre_TodosLosGruposObligatoriosCompletosHabilitaCierre() {
         ChecklistCierre checklist = new ChecklistCierre(10L, List.of(
-                new GrupoRequisitos("Calificaciones", true, List.of(new ItemNotaDocente(1, 1), new ItemNotaTutor(1, 1))),
+                new GrupoRequisitos("Calificaciones", true, List.of(new ItemNotaDocente(1), new ItemNotaTutor(1))),
                 new GrupoRequisitos("Final", true, List.of(new ItemNotaFinal(true)))
         ));
 
