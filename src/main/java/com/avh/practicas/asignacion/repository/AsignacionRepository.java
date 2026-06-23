@@ -42,11 +42,16 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                   )
               AND (
                     :tutorId IS NULL
-                    OR EXISTS (
-                        SELECT 1 FROM instancias_practica ip
-                        JOIN expedientes exp ON exp.id = ip.expediente_id
-                        WHERE ip.tutor_id = :tutorId
-                          AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
+                    OR (
+                        v.empresa_id = (SELECT empresa_id FROM tutores_empresariales WHERE id = :tutorId)
+                        AND (
+                            a.instancia_practica_id IS NULL
+                            OR EXISTS (
+                                SELECT 1 FROM instancias_practica ip
+                                WHERE ip.id = a.instancia_practica_id
+                                  AND ip.tutor_id = :tutorId
+                            )
+                        )
                     )
                   )
               AND (:estudianteId IS NULL OR a.estudiante_id = :estudianteId)
@@ -71,11 +76,16 @@ public interface AsignacionRepository extends JpaRepository<Asignacion, Long>, J
                   )
               AND (
                     :tutorId IS NULL
-                    OR EXISTS (
-                        SELECT 1 FROM instancias_practica ip
-                        JOIN expedientes exp ON exp.id = ip.expediente_id
-                        WHERE ip.tutor_id = :tutorId
-                          AND (ip.id = a.instancia_practica_id OR exp.estudiante_id = a.estudiante_id)
+                    OR (
+                        v.empresa_id = (SELECT empresa_id FROM tutores_empresariales WHERE id = :tutorId)
+                        AND (
+                            a.instancia_practica_id IS NULL
+                            OR EXISTS (
+                                SELECT 1 FROM instancias_practica ip
+                                WHERE ip.id = a.instancia_practica_id
+                                  AND ip.tutor_id = :tutorId
+                            )
+                        )
                     )
                   )
               AND (:estudianteId IS NULL OR a.estudiante_id = :estudianteId)

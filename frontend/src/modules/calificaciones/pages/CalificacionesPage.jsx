@@ -139,6 +139,7 @@ export default function CalificacionesPage() {
     permisos.puedeRegistrarNotaFinal;
 
   const esEstudiante = permisos.rol === 'ESTUDIANTE';
+  const esTutor = permisos.rol === 'TUTOR_EMPRESARIAL';
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -147,7 +148,9 @@ export default function CalificacionesPage() {
         descripcion={
           esEstudiante
             ? 'Consulta tus notas de referencia, nota final y encuesta de cierre'
-            : `Práctica #${practicaId} — notas de referencia, nota final y encuestas de cierre`
+            : esTutor
+              ? 'Consulta las notas de referencia, registra tu calificación y revisa la nota final'
+              : `Práctica #${practicaId} — notas de referencia, nota final y encuestas de cierre`
         }
         onVolver={() => navigate(-1)}
       />
@@ -202,10 +205,13 @@ export default function CalificacionesPage() {
       {puedeRegistrarAlgunaNota && (
         <section className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Registro de notas</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {esTutor ? 'Mi nota de referencia' : 'Registro de notas'}
+            </h2>
             <p className="mt-1 text-sm text-gray-600">
-              El docente asesor y el tutor registran notas de referencia. El docente asesor registra
-              la nota final definitiva.
+              {esTutor
+                ? 'Registra una única nota de referencia sobre el desempeño del practicante. La nota final la registra el docente asesor.'
+                : 'El docente asesor y el tutor registran notas de referencia. El docente asesor registra la nota final definitiva.'}
             </p>
           </div>
 

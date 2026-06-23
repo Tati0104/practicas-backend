@@ -4,7 +4,6 @@ import { usePracticaSeguimiento } from '../hooks/usePracticaSeguimiento';
 import { useSeguimientoMutaciones } from '../hooks/useSeguimientoMutaciones';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import TimelineSeguimiento from '../components/TimelineSeguimiento';
-import AlertasPanel from '../components/AlertasPanel';
 import ObservacionModal from '../components/ObservacionModal';
 import AvanceTutorModal from '../components/AvanceTutorModal';
 import BitacoraModal from '../components/BitacoraModal';
@@ -172,12 +171,6 @@ export default function PracticaDetallePage() {
             <TimelineSeguimiento timeline={timeline} />
           </Card>
         </div>
-
-        {rol !== 'ESTUDIANTE' && (
-        <aside className="w-full shrink-0 xl:w-72">
-          <AlertasPanel practicaId={Number(id)} />
-        </aside>
-        )}
       </div>
 
       <ObservacionModal

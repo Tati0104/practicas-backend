@@ -5,12 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '@/store/authStore';
 import { useSeguimiento } from '../hooks/useSeguimiento';
-import IndicadoresSeguimiento from '../components/IndicadoresSeguimiento';
 import SeguimientoFiltros from '../components/SeguimientoFiltros';
 import SeguimientoFiltrosEstudiante from '../components/SeguimientoFiltrosEstudiante';
 import SeguimientoTabla from '../components/SeguimientoTabla';
 import PracticaCard from '../components/PracticaCard';
-import AlertasPanel from '../components/AlertasPanel';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
 
@@ -50,8 +48,6 @@ export default function SeguimientoPage() {
             : 'Tablero de seguimiento de prácticas'
         }
       />
-
-      {!esEstudiante && <IndicadoresSeguimiento practicas={practicas} />}
 
       <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1">
@@ -102,12 +98,6 @@ export default function SeguimientoPage() {
             onCambiarPagina={irAPagina}
           />
         </div>
-
-        {!esEstudiante && esDesktop && (
-          <div className="w-full shrink-0 xl:w-72">
-            <AlertasPanel />
-          </div>
-        )}
       </div>
     </div>
   );

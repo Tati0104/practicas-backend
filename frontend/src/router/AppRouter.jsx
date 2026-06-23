@@ -211,7 +211,6 @@ export default function AppRouter() {
                   'COORD_PRACTICA',
                   'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
-                  'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}
@@ -229,7 +228,6 @@ export default function AppRouter() {
                   'COORD_PRACTICA',
                   'COORD_ACADEMICA',
                   'DOCENTE_ASESOR',
-                  'TUTOR_EMPRESARIAL',
                   'ESTUDIANTE',
                   'ADMIN',
                 ]}

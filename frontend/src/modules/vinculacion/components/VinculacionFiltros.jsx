@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FiltrosActivos } from '@/shared/components/filtros';
 import empresaService from '../../empresa/services/empresaService';
 import http from '../../../shared/services/http';
+import useAuthStore from '@/store/authStore';
 
 const ESTADOS = [
   { value: 'ASIGNADA', label: 'Asignada' },
@@ -11,6 +12,7 @@ const ESTADOS = [
 ];
 
 export default function VinculacionFiltros({ filtros, setFiltros }) {
+  const esTutor = useAuthStore((state) => state.rol) === 'TUTOR_EMPRESARIAL';
   const { data: empresas = [] } = useQuery({
     queryKey: ['empresas-filtro-vinculacion'],
     queryFn: () =>
@@ -25,39 +27,49 @@ export default function VinculacionFiltros({ filtros, setFiltros }) {
   });
 
   const campos = useMemo(
-    () => [
-      {
-        key: 'busqueda',
-        label: 'Búsqueda',
-        type: 'text',
-        placeholder: 'Estudiante, empresa, cargo…',
-      },
-      {
-        key: 'empresaId',
-        label: 'Empresa',
-        type: 'select',
-        opciones: empresas.map((e) => ({
-          value: String(e.id),
-          label: e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`,
-        })),
-      },
-      {
-        key: 'programaId',
-        label: 'Programa',
-        type: 'select',
-        opciones: programas.map((p) => ({
-          value: String(p.id),
-          label: p.nombre,
-        })),
-      },
-      {
-        key: 'estado',
-        label: 'Estado',
-        type: 'select',
-        opciones: ESTADOS,
-      },
-    ],
-    [empresas, programas]
+    () => {
+      const base = [
+        {
+          key: 'busqueda',
+          label: 'Búsqueda',
+          type: 'text',
+          placeholder: 'Estudiante, empresa, cargo…',
+        },
+      ];
+
+      if (!esTutor) {
+        base.push({
+          key: 'empresaId',
+          label: 'Empresa',
+          type: 'select',
+          opciones: empresas.map((e) => ({
+            value: String(e.id),
+            label: e.razonSocial ?? e.nombre ?? `Empresa ${e.id}`,
+          })),
+        });
+      }
+
+      base.push(
+        {
+          key: 'programaId',
+          label: 'Programa',
+          type: 'select',
+          opciones: programas.map((p) => ({
+            value: String(p.id),
+            label: p.nombre,
+          })),
+        },
+        {
+          key: 'estado',
+          label: 'Estado',
+          type: 'select',
+          opciones: ESTADOS,
+        },
+      );
+
+      return base;
+    },
+    [empresas, programas, esTutor]
   );
 
   return <FiltrosActivos campos={campos} filtros={filtros} onChange={setFiltros} />;

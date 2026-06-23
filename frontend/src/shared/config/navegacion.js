@@ -163,7 +163,6 @@ export const GRUPOS_NAVEGACION = [
           ROLES.COORD_PRACTICA,
           ROLES.COORD_ACADEMICA,
           ROLES.DOCENTE_ASESOR,
-          ROLES.TUTOR_EMPRESARIAL,
           ROLES.ESTUDIANTE,
         ],
         prefijo: true,

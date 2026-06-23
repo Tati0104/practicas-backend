@@ -13,7 +13,6 @@ import AsignacionCard from '../components/AsignacionCard';
 import AsignacionForm from '../components/AsignacionForm';
 import CancelarAsignacionModal from '../components/CancelarAsignacionModal';
 import AsignarDocenteModal from '../components/AsignarDocenteModal';
-import IndicadoresAsignaciones from '../components/IndicadoresAsignaciones';
 import Paginacion from '../../../shared/components/Paginacion';
 import { Button, PageHeader } from '@/shared/components/ui';
 
@@ -65,7 +64,6 @@ export default function AsignacionesPage() {
         }
       />
 
-      <IndicadoresAsignaciones asignaciones={asignaciones} />
       <AsignacionesFiltros filtros={filtros} setFiltros={setFiltros} />
 
       {isLoading && (

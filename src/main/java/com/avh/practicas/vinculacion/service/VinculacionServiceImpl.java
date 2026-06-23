@@ -90,11 +90,17 @@ public class VinculacionServiceImpl implements VinculacionService {
         }
 
         String estadoParam = estado != null ? estado.name() : null;
-        Long tutorId = resolverTutorAutenticado().map(TutorEmpresarial::getId).orElse(null);
+        Optional<TutorEmpresarial> tutorAutenticado = resolverTutorAutenticado();
+        Long tutorId = tutorAutenticado.map(TutorEmpresarial::getId).orElse(null);
         Long estudianteId = null;
         Optional<Empresa> empresaAutenticada = resolverEmpresaAutenticada();
         if (empresaAutenticada.isPresent()) {
             empresaId = empresaAutenticada.get().getId();
+        } else if (tutorAutenticado.isPresent()) {
+            Empresa empresaTutor = tutorAutenticado.get().getEmpresa();
+            if (empresaTutor != null) {
+                empresaId = empresaTutor.getId();
+            }
         }
         return asignacionRepository.buscarVinculaciones(
                         busqueda, programaId, empresaId, estadoParam, tutorId, estudianteId, pageable)
@@ -965,12 +971,24 @@ public class VinculacionServiceImpl implements VinculacionService {
     }
 
     private boolean tieneAccesoTutorAsignacion(Asignacion asignacion, Long tutorId) {
+        TutorEmpresarial tutor = tutorRepository.findById(tutorId).orElse(null);
+        if (tutor == null || tutor.getEmpresa() == null) {
+            return false;
+        }
+        Long empresaTutorId = tutor.getEmpresa().getId();
+
+        Vacante vacante = vacanteRepository.findById(asignacion.getVacanteId()).orElse(null);
+        if (vacante == null || !empresaTutorId.equals(vacante.getEmpresaId())) {
+            return false;
+        }
+
         if (asignacion.getInstanciaPracticaId() != null) {
             return practicaRepository.findById(asignacion.getInstanciaPracticaId())
                     .map(practica -> tutorId.equals(practica.getTutorId()))
                     .orElse(false);
         }
-        return practicaRepository.existsByExpedienteEstudianteIdAndTutorId(asignacion.getEstudianteId(), tutorId);
+
+        return true;
     }
 
     private boolean tieneAccesoEstudianteConvenio(Convenio convenio, Long estudianteId) {

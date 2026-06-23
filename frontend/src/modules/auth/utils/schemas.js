@@ -46,7 +46,7 @@ export const RUTAS_POR_ROL = {
   DOCENTE_ASESOR: '/seguimiento',
   ESTUDIANTE: '/dashboard',
   EMPRESA: '/vacantes',
-  TUTOR_EMPRESARIAL: '/seguimiento',
+  TUTOR_EMPRESARIAL: '/dashboard',
   COMITE_PRACTICAS: '/dashboard',
 };
 

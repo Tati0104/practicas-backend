@@ -3,6 +3,7 @@ package com.avh.practicas.seguimiento.service;
 import com.avh.practicas.empresa.entity.TutorEmpresarial;
 import com.avh.practicas.empresa.repository.TutorEmpresarialRepository;
 import com.avh.practicas.estudiante.entity.DocenteAsesor;
+import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
 import com.avh.practicas.estudiante.repository.DocenteAsesorRepository;
@@ -401,12 +402,14 @@ public class SeguimientoServiceImpl implements SeguimientoService {
     @Transactional(readOnly = true)
     public List<TableroResponse> obtenerPracticasSeguimiento(String busqueda, Long programaId, String estadoSeguimiento) {
         ScopePracticas scope = scopeResolver.resolver();
-        boolean esEstudiante = SecurityContextHolder.getContext().getAuthentication() != null
-                && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean esEstudiante = auth != null
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
+        boolean esTutor = auth != null
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("TUTOR_EMPRESARIAL"));
 
         List<InstanciaPractica> practicas = practicaRepository.findAll().stream()
-                .filter(p -> esEstudiante || p.getEstado() == com.avh.practicas.estudiante.entity.EstadoPractica.EN_CURSO)
+                .filter(p -> practicaVisibleEnListado(p, esEstudiante, esTutor))
                 .filter(scope::esVisible)
                 .filter(p -> programaId == null
                         || (p.getExpediente() != null
@@ -430,6 +433,17 @@ public class SeguimientoServiceImpl implements SeguimientoService {
             }
         }
         return resultado;
+    }
+
+    private boolean practicaVisibleEnListado(InstanciaPractica practica, boolean esEstudiante, boolean esTutor) {
+        if (esEstudiante) {
+            return true;
+        }
+        if (esTutor) {
+            EstadoPractica estado = practica.getEstado();
+            return estado == EstadoPractica.EN_CURSO || estado == EstadoPractica.ASIGNADA_PENDIENTE_INICIO;
+        }
+        return practica.getEstado() == EstadoPractica.EN_CURSO;
     }
 
     /**
