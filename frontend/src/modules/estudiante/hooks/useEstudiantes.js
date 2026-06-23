@@ -59,6 +59,15 @@ export default function useEstudiantes() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estudiantes'] }),
   });
 
+  const eliminar = useMutation({
+    mutationFn: (id) => estudianteService.eliminar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      toast.success('Estudiante eliminado correctamente');
+    },
+    onError: alError,
+  });
+
   return {
     estudiantes: listado.items,
     totalElementos: listado.totalElementos,
@@ -75,5 +84,6 @@ export default function useEstudiantes() {
     marcarApto,
     marcarNoApto,
     importarExcel,
+    eliminar,
   };
 }

@@ -12,6 +12,7 @@ import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.shared.enums.Rol;
 import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
+import com.avh.practicas.shared.exception.RecursoNoEncontradoException;
 import com.avh.practicas.shared.security.ScopeGuard;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -169,5 +170,14 @@ public class EstudianteServiceProxy implements EstudianteService {
         Usuario usuario = obtenerUsuarioActual();
         scopeGuard.verificarScope(usuario, estudiante, "GUARDAR");
         return realService.guardar(estudiante);
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        Usuario usuario = obtenerUsuarioActual();
+        Estudiante estudiante = realService.obtenerPorId(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
+        scopeGuard.verificarScope(usuario, estudiante, "EDITAR");
+        realService.eliminar(id);
     }
 }

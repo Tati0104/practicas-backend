@@ -10,6 +10,9 @@ import com.avh.practicas.estudiante.entity.EstadoPractica;
 import com.avh.practicas.estudiante.entity.Estudiante;
 import com.avh.practicas.estudiante.entity.Expediente;
 import com.avh.practicas.estudiante.entity.InstanciaPractica;
+import com.avh.practicas.asignacion.entity.Asignacion;
+import com.avh.practicas.asignacion.repository.AsignacionRepository;
+import com.avh.practicas.asignacion.repository.HistorialAsignacionRepository;
 import com.avh.practicas.estudiante.repository.EstudianteRepository;
 import com.avh.practicas.estudiante.repository.EstudianteSpecification;
 import com.avh.practicas.estudiante.repository.ExpedienteRepository;
@@ -40,6 +43,8 @@ public class EstudianteServiceImpl implements EstudianteService {
     private final EstudianteRepository estudianteRepository;
     private final ExpedienteRepository expedienteRepository;
     private final InstanciaPracticaRepository instanciaPracticaRepository;
+    private final AsignacionRepository asignacionRepository;
+    private final HistorialAsignacionRepository historialAsignacionRepository;
     private final ProgramaRepository programaRepository;
     private final CatalogoPracticaRepository catalogoPracticaRepository;
     private final CorreoPersonaService correoPersonaService;
@@ -276,5 +281,33 @@ public class EstudianteServiceImpl implements EstudianteService {
     @Transactional
     public Estudiante guardar(Estudiante estudiante) {
         return estudianteRepository.save(estudiante);
+    }
+
+    @Override
+    @Transactional
+    public void eliminar(Long id) {
+        Estudiante estudiante = estudianteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
+
+        if (instanciaPracticaRepository.existsByExpedienteEstudianteId(id)) {
+            throw new NegocioException(
+                    "No se puede eliminar el estudiante: tiene prácticas registradas en su expediente.");
+        }
+
+        for (Asignacion asignacion : asignacionRepository.findByEstudianteId(id)) {
+            historialAsignacionRepository.findByAsignacionIdOrderByFechaAsc(asignacion.getId())
+                    .forEach(historialAsignacionRepository::delete);
+            asignacionRepository.delete(asignacion);
+        }
+
+        Expediente expediente = estudiante.getExpediente();
+        if (expediente == null) {
+            expediente = expedienteRepository.findByEstudianteId(id).orElse(null);
+        }
+        if (expediente != null) {
+            expedienteRepository.delete(expediente);
+        }
+
+        estudianteRepository.delete(estudiante);
     }
 }
