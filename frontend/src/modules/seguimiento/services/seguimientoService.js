@@ -58,6 +58,9 @@ const seguimientoService = {
 
   /** GET /seguimiento/{practicaId} */
   obtenerDetallePractica: (id) => http.get(`/seguimiento/${id}`),
+
+  /** GET /seguimiento/{practicaId}/bitacora */
+  obtenerBitacoras: (practicaId) => http.get(`/seguimiento/${practicaId}/bitacora`),
 };
 
 export default seguimientoService;
