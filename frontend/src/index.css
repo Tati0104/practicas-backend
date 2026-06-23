@@ -62,6 +62,30 @@
     @apply dark:placeholder:text-slate-500 dark:focus:border-primary-accent dark:focus:ring-primary-accent/25;
   }
 
+  .ui-input[type='date'],
+  .ui-input[type='datetime-local'],
+  .ui-input[type='time'] {
+    min-height: 2.5rem;
+    appearance: auto;
+    -webkit-appearance: auto;
+  }
+
+  .ui-input[type='date']::-webkit-calendar-picker-indicator,
+  .ui-input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.85;
+  }
+
+  :root .ui-input[type='date'],
+  :root .ui-input[type='datetime-local'] {
+    color-scheme: light;
+  }
+
+  .dark .ui-input[type='date'],
+  .dark .ui-input[type='datetime-local'] {
+    color-scheme: dark;
+  }
+
   /* Contenedor scroll del sidebar */
   .sidebar-nav {
     min-height: 0;

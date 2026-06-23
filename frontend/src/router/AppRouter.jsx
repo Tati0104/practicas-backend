@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
-import { tokenExpirado, limpiarAlmacenamientoSesion } from '@/modules/auth/utils/jwt';
+import { tokenExpirado, obtenerTokenAlmacenado } from '@/modules/auth/utils/jwt';
+import { sesionInactivaExpirada } from '@/modules/auth/utils/sesion';
+import VigilanteSesion from '@/modules/auth/components/VigilanteSesion';
 import Layout from '@/shared/components/Layout';
 import ThemeSync from '@/shared/components/ThemeSync';
 import {
@@ -33,10 +35,8 @@ function RutaPrivada({ children, roles }) {
   const token = useAuthStore((state) => state.token);
   const rol = useAuthStore((state) => state.rol);
 
-  if (!token || tokenExpirado(token)) {
-    if (token && tokenExpirado(token)) {
-      useAuthStore.getState().cerrarSesion();
-    }
+  if (!token || tokenExpirado(token) || sesionInactivaExpirada()) {
+    useAuthStore.getState().cerrarSesion();
     return <Navigate to="/login" replace />;
   }
 
@@ -45,9 +45,14 @@ function RutaPrivada({ children, roles }) {
   return <Layout>{children}</Layout>;
 }
 
+function RutaInicio() {
+  const sesionValida = useAuthStore((state) => state.sesionValida());
+  return <Navigate to={sesionValida ? '/dashboard' : '/login'} replace />;
+}
+
 function InicializadorSesion({ children }) {
   useEffect(() => {
-    limpiarAlmacenamientoSesion();
+    useAuthStore.getState().rehidratarDesdeToken();
   }, []);
 
   return children;
@@ -57,6 +62,7 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <ThemeSync />
+      <VigilanteSesion />
       <InicializadorSesion>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -307,8 +313,8 @@ export default function AppRouter() {
             }
           />
 
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<RutaInicio />} />
+          <Route path="*" element={<RutaInicio />} />
         </Routes>
       </InicializadorSesion>
     </BrowserRouter>

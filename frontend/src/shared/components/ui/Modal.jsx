@@ -47,7 +47,7 @@ export default function Modal({
 
       <div
         className={[
-          'relative z-10 flex max-h-[min(90vh,920px)] w-full flex-col overflow-hidden',
+          'relative z-10 flex max-h-[min(90vh,920px)] w-full flex-col',
           'rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-dark-card dark:ring-white/[0.06]',
           ancho,
         ].join(' ')}
