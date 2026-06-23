@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePracticaSeguimiento } from '../hooks/usePracticaSeguimiento';
 import { useSeguimientoMutaciones } from '../hooks/useSeguimientoMutaciones';
+import { useBitacorasEstudiante } from '../hooks/useBitacorasEstudiante';
 import { usePermisos } from '../../../shared/hooks/usePermisos';
 import TimelineSeguimiento from '../components/TimelineSeguimiento';
 import AlertasPanel from '../components/AlertasPanel';
@@ -12,6 +13,7 @@ import { Badge, Button, Card, LoadingState, PageBackHeader } from '@/shared/comp
 import {
   estadoSeguimientoPractica,
   formatearFechaSeguimiento,
+  formatearFechaHoraSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
 
@@ -45,6 +47,7 @@ export default function PracticaDetallePage() {
   const { practica, timeline, isLoading, isError } = usePracticaSeguimiento(id);
   const { usuario } = usePermisos();
   const rol = usuario?.rol;
+  const { bitacoras } = useBitacorasEstudiante(id, { enabled: rol === 'DOCENTE_ASESOR' });
 
   const [modalObservacion, setModalObservacion] = useState(false);
   const [modalAvance, setModalAvance] = useState(false);
@@ -121,6 +124,37 @@ export default function PracticaDetallePage() {
               </div>
             </div>
           </Card>
+
+          {rol === 'DOCENTE_ASESOR' && (
+            <Card className="mb-5" padding="p-5">
+              <h2 className="mb-4 text-base font-bold text-gray-900">Seguimientos del estudiante</h2>
+              {bitacoras.length === 0 ? (
+                <p className="py-4 text-center text-sm text-gray-400">
+                  El estudiante aún no ha registrado bitácoras.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-4">
+                  {[...bitacoras]
+                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                    .map((entrada) => (
+                      <li key={entrada.id} className="rounded-lg border border-violet-100 bg-violet-50 p-4">
+                        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                          {entrada.corte != null && (
+                            <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-800">
+                              Corte {entrada.corte}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400">
+                            {formatearFechaHoraSeguimiento(entrada.fecha)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{entrada.descripcion}</p>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </Card>
+          )}
 
           <div className="mb-5">
             {rol === 'DOCENTE_ASESOR' && (
