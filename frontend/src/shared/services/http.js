@@ -1,6 +1,5 @@
 import axios from 'axios';
 import useAuthStore from '@/store/authStore';
-import { obtenerTokenAlmacenado } from '@/modules/auth/utils/jwt';
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
@@ -8,10 +7,7 @@ const http = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  const token =
-    obtenerTokenAlmacenado()
-    || localStorage.getItem('token')
-    || useAuthStore.getState().token;
+  const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -69,4 +69,12 @@ export function eliminarToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+/** Elimina cualquier rastro de sesión persistida en el navegador. */
+export function limpiarAlmacenamientoSesion() {
+  eliminarToken();
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('auth-storage');
+}
+
 export { TOKEN_KEY };
