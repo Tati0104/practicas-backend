@@ -15,5 +15,9 @@ public record PracticaDetalleResponse(
         LocalDate fechaInicio,
         LocalDate fechaFin,
         Integer porcentajeAvance,
-        List<TimelineEventDto> timeline
+        List<TimelineEventDto> timeline,
+        String estadoPractica,
+        Integer numeroPractica,
+        String programaNombre,
+        Double notaFinal
 ) {}

@@ -65,8 +65,9 @@ public class SeguimientoController {
     public List<TableroResponse> obtenerPracticasVisibles(
             @RequestParam(required = false) String busqueda,
             @RequestParam(required = false) Long programaId,
-            @RequestParam(required = false) String estadoSeguimiento) {
-        return service.obtenerPracticasSeguimiento(busqueda, programaId, estadoSeguimiento);
+            @RequestParam(required = false) String estadoSeguimiento,
+            @RequestParam(required = false) String estadoPractica) {
+        return service.obtenerPracticasSeguimiento(busqueda, programaId, estadoSeguimiento, estadoPractica);
     }
 
     /**

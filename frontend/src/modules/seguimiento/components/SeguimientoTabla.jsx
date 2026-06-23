@@ -4,6 +4,7 @@ import {
   formatearFechaSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
+import { badgeEstadoPractica } from '../utils/estadosPractica';
 
 const BADGE = {
   AL_DIA: { label: 'Al día', variant: 'success' },
@@ -16,10 +17,22 @@ export default function SeguimientoTabla({
   onVerDetalle,
   etiquetaAccion = 'Ver',
   ocultarEstudiante = false,
+  mostrarEstadoPractica = false,
 }) {
   const columnas = ocultarEstudiante
     ? ['Práctica', 'Empresa / Cargo', 'Docente', 'Corte', 'Estado', 'Última actividad', 'Acciones']
-    : ['Estudiante', 'Empresa / Cargo', 'Docente', 'Corte', 'Estado', 'Última actividad', 'Acciones'];
+    : mostrarEstadoPractica
+      ? [
+          'Estudiante',
+          'Empresa / Cargo',
+          'Docente',
+          'Práctica',
+          'Estado práctica',
+          'Seguimiento',
+          'Última actividad',
+          'Acciones',
+        ]
+      : ['Estudiante', 'Empresa / Cargo', 'Docente', 'Corte', 'Estado', 'Última actividad', 'Acciones'];
 
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -40,6 +53,7 @@ export default function SeguimientoTabla({
           {practicas.map((p) => {
             const estadoClave = estadoSeguimientoPractica(p);
             const badge = BADGE[estadoClave] || { label: estadoClave, variant: 'neutral' };
+            const estadoPracticaBadge = badgeEstadoPractica(p.estadoPractica);
             const fechaStr = formatearFechaSeguimiento(p.fechaUltimaActividad);
             const codigo =
               typeof p.estudiante === 'object' ? p.estudiante?.codigo : null;
@@ -64,10 +78,28 @@ export default function SeguimientoTabla({
                   <div className="text-xs text-gray-500">{p.empresa || '—'}</div>
                 </td>
                 <td className="px-3.5 py-3 text-gray-700">{p.docente || '—'}</td>
-                <td className="px-3.5 py-3 text-center text-gray-700">{p.corte ?? '—'}</td>
-                <td className="px-3.5 py-3">
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                </td>
+                {mostrarEstadoPractica ? (
+                  <>
+                    <td className="px-3.5 py-3 text-center text-gray-700">
+                      {p.numeroPractica ?? '—'}
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <Badge variant={estadoPracticaBadge.variant}>
+                        {estadoPracticaBadge.label}
+                      </Badge>
+                    </td>
+                    <td className="px-3.5 py-3">
+                      <Badge variant={badge.variant}>{badge.label}</Badge>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-3.5 py-3 text-center text-gray-700">{p.corte ?? '—'}</td>
+                    <td className="px-3.5 py-3">
+                      <Badge variant={badge.variant}>{badge.label}</Badge>
+                    </td>
+                  </>
+                )}
                 <td className="px-3.5 py-3 text-xs text-gray-500">{fechaStr}</td>
                 <td className="px-3.5 py-3">
                   <Button size="sm" onClick={() => onVerDetalle(p.id)}>

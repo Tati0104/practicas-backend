@@ -4,6 +4,7 @@ import {
   formatearFechaSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
+import { badgeEstadoPractica } from '../utils/estadosPractica';
 
 const BADGE = {
   AL_DIA: { label: 'Revisado / Al día', variant: 'success' },
@@ -11,9 +12,16 @@ const BADGE = {
   EN_ALERTA: { label: 'En alerta', variant: 'danger' },
 };
 
-export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 'Ver detalle', modoEstudiante = false }) {
+export default function PracticaCard({
+  practica,
+  onVerDetalle,
+  etiquetaAccion = 'Ver detalle',
+  modoEstudiante = false,
+  mostrarEstadoPractica = false,
+}) {
   const estadoClave = estadoSeguimientoPractica(practica);
   const badge = BADGE[estadoClave] || { label: estadoClave, variant: 'neutral' };
+  const estadoPracticaBadge = badgeEstadoPractica(practica.estadoPractica);
   const fechaStr = formatearFechaSeguimiento(practica.fechaUltimaActividad);
   const codigo =
     typeof practica.estudiante === 'object' ? practica.estudiante?.codigo : null;
@@ -38,7 +46,17 @@ export default function PracticaCard({ practica, onVerDetalle, etiquetaAccion = 
             </div>
           )}
         </div>
-        <Badge variant={badge.variant}>{badge.label}</Badge>
+        <div className="flex flex-col items-end gap-1">
+          {mostrarEstadoPractica && practica.estadoPractica && (
+            <Badge variant={estadoPracticaBadge.variant}>{estadoPracticaBadge.label}</Badge>
+          )}
+          {!mostrarEstadoPractica && <Badge variant={badge.variant}>{badge.label}</Badge>}
+          {mostrarEstadoPractica && (
+            <Badge variant={badge.variant} className="text-[10px]">
+              {badge.label}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="text-sm text-gray-700">

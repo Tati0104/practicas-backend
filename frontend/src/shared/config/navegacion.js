@@ -155,16 +155,23 @@ export const GRUPOS_NAVEGACION = [
     items: [
       {
         id: 'seguimiento',
-        nombre: 'Seguimiento',
+        nombre: 'Expediente de prácticas',
         ruta: '/seguimiento',
         icono: 'Activity',
         roles: [
           ROLES.ADMIN,
           ROLES.COORD_PRACTICA,
           ROLES.COORD_ACADEMICA,
-          ROLES.DOCENTE_ASESOR,
-          ROLES.ESTUDIANTE,
+          ROLES.SECRETARIA,
         ],
+        prefijo: true,
+      },
+      {
+        id: 'seguimiento-docente',
+        nombre: 'Seguimiento',
+        ruta: '/seguimiento',
+        icono: 'Activity',
+        roles: [ROLES.DOCENTE_ASESOR, ROLES.ESTUDIANTE],
         prefijo: true,
       },
     ],

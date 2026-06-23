@@ -487,16 +487,21 @@ public class SeguimientoServiceImpl implements SeguimientoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TableroResponse> obtenerPracticasSeguimiento(String busqueda, Long programaId, String estadoSeguimiento) {
+    public List<TableroResponse> obtenerPracticasSeguimiento(
+            String busqueda,
+            Long programaId,
+            String estadoSeguimiento,
+            String estadoPractica) {
         ScopePracticas scope = scopeResolver.resolver();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean esEstudiante = auth != null
                 && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
         boolean esTutor = auth != null
                 && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("TUTOR_EMPRESARIAL"));
+        boolean expedienteCompleto = esRolExpedienteCompleto(auth);
 
         List<InstanciaPractica> practicas = practicaRepository.findAll().stream()
-                .filter(p -> practicaVisibleEnListado(p, esEstudiante, esTutor))
+                .filter(p -> practicaVisibleEnListado(p, esEstudiante, esTutor, expedienteCompleto))
                 .filter(scope::esVisible)
                 .filter(p -> programaId == null
                         || (p.getExpediente() != null
@@ -514,21 +519,52 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                     || response.empresa().toLowerCase().contains(busqueda.toLowerCase());
             boolean cumpleEstado = estadoSeguimiento == null || estadoSeguimiento.isBlank()
                     || response.estadoSeguimiento().equalsIgnoreCase(estadoSeguimiento);
+            boolean cumpleEstadoPractica = estadoPractica == null || estadoPractica.isBlank()
+                    || (response.estadoPractica() != null
+                        && response.estadoPractica().equalsIgnoreCase(estadoPractica));
 
-            if (cumpleBusqueda && cumpleEstado) {
+            if (cumpleBusqueda && cumpleEstado && cumpleEstadoPractica) {
                 resultado.add(response);
             }
         }
         return resultado;
     }
 
-    private boolean practicaVisibleEnListado(InstanciaPractica practica, boolean esEstudiante, boolean esTutor) {
+    private boolean esRolExpedienteCompleto(Authentication auth) {
+        if (auth == null) {
+            return false;
+        }
+        return auth.getAuthorities().stream().anyMatch(a -> {
+            String rol = a.getAuthority();
+            return rol.equals("COORD_PRACTICA")
+                    || rol.equals("ROLE_COORD_PRACTICA")
+                    || rol.equals("ADMIN")
+                    || rol.equals("ROLE_ADMIN")
+                    || rol.equals("SECRETARIA")
+                    || rol.equals("ROLE_SECRETARIA")
+                    || rol.equals("COORD_ACADEMICA")
+                    || rol.equals("ROLE_COORD_ACADEMICA");
+        });
+    }
+
+    private boolean practicaVisibleEnListado(
+            InstanciaPractica practica,
+            boolean esEstudiante,
+            boolean esTutor,
+            boolean expedienteCompleto) {
         if (esEstudiante) {
             return true;
         }
         if (esTutor) {
             EstadoPractica estado = practica.getEstado();
             return estado == EstadoPractica.EN_CURSO || estado == EstadoPractica.ASIGNADA_PENDIENTE_INICIO;
+        }
+        if (expedienteCompleto) {
+            EstadoPractica estado = practica.getEstado();
+            return estado == EstadoPractica.EN_CURSO
+                    || estado == EstadoPractica.COMPLETADA
+                    || estado == EstadoPractica.REPROBADA
+                    || estado == EstadoPractica.ASIGNADA_PENDIENTE_INICIO;
         }
         return practica.getEstado() == EstadoPractica.EN_CURSO;
     }
@@ -750,6 +786,48 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 .max(Integer::compareTo).orElse(0);
         }
 
+        String cargo = "Practicante";
+        try {
+            String cargoVacante = jdbcTemplate.queryForObject(
+                    """
+                    SELECT v.cargo FROM asignaciones a
+                    JOIN vacantes v ON v.id = a.vacante_id
+                    WHERE a.instancia_practica_id = ? AND a.estado <> 'CANCELADA'
+                    LIMIT 1
+                    """,
+                    String.class,
+                    practicaId
+            );
+            if (cargoVacante != null && !cargoVacante.isBlank()) {
+                cargo = cargoVacante;
+            }
+        } catch (Exception e) {
+            // Ignorar y usar valor por defecto
+        }
+
+        Double notaFinal = null;
+        try {
+            notaFinal = jdbcTemplate.queryForObject(
+                    "SELECT nota_final FROM notas_finales WHERE instancia_practica_id = ?",
+                    Double.class,
+                    practicaId
+            );
+        } catch (Exception e) {
+            // Sin nota final registrada
+        }
+
+        String programaNombre = p.getExpediente().getEstudiante().getPrograma() != null
+                ? p.getExpediente().getEstudiante().getPrograma().getNombre()
+                : null;
+
+        TableroResponse tablero = construirTableroResponseScoped(p);
+        String estadoSeguimiento = tablero.estadoSeguimiento();
+        if (p.getEstado() == EstadoPractica.COMPLETADA
+                || p.getEstado() == EstadoPractica.REPROBADA
+                || p.getEstado() == EstadoPractica.CANCELADA) {
+            estadoSeguimiento = p.getEstado().name();
+        }
+
         com.avh.practicas.estudiante.dto.EstudianteDto estudianteDto = com.avh.practicas.estudiante.dto.EstudianteDto.builder()
                 .nombre(p.getExpediente().getEstudiante().getNombre())
                 .identificacion(p.getExpediente().getEstudiante().getIdentificacion())
@@ -761,14 +839,18 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 p.getId(),
                 estudianteDto,
                 nombreEmpresa,
-                "Practicante",
+                cargo,
                 nombreDocente,
                 nombreTutor,
-                "AL_DIA",
+                estadoSeguimiento,
                 p.getFechaInicio(),
                 p.getFechaFin(),
                 avancePromedio,
-                timeline
+                timeline,
+                p.getEstado() != null ? p.getEstado().name() : null,
+                p.getNumeroPractica(),
+                programaNombre,
+                notaFinal
         );
     }
 

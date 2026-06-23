@@ -11,6 +11,7 @@ import SeguimientoTabla from '../components/SeguimientoTabla';
 import PracticaCard from '../components/PracticaCard';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
+import { ROLES_EXPEDIENTE } from '../utils/estadosPractica';
 
 function useEsDesktop() {
   const [esDesktop, setEsDesktop] = useState(() =>
@@ -29,6 +30,8 @@ export default function SeguimientoPage() {
   const navigate = useNavigate();
   const esDesktop = useEsDesktop();
   const esEstudiante = useAuthStore((state) => state.rol) === 'ESTUDIANTE';
+  const rol = useAuthStore((state) => state.rol);
+  const esExpediente = ROLES_EXPEDIENTE.includes(rol);
   const { practicas, practicasTodas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
     useSeguimiento();
 
@@ -41,11 +44,19 @@ export default function SeguimientoPage() {
   return (
     <div>
       <PageHeader
-        titulo={esEstudiante ? 'Mis seguimientos' : 'Seguimiento'}
+        titulo={
+          esEstudiante
+            ? 'Mis seguimientos'
+            : esExpediente
+              ? 'Expediente de prácticas'
+              : 'Seguimiento'
+        }
         descripcion={
           esEstudiante
             ? 'Entregas de bitácora, comentarios del docente y estado de revisión'
-            : 'Tablero de seguimiento de prácticas'
+            : esExpediente
+              ? 'Consulta el historial completo de prácticas, incluidas las finalizadas'
+              : 'Tablero de seguimiento de prácticas'
         }
       />
 
@@ -58,7 +69,11 @@ export default function SeguimientoPage() {
               practicas={practicasTodas}
             />
           ) : (
-            <SeguimientoFiltros filtros={filtros} setFiltros={setFiltros} />
+            <SeguimientoFiltros
+              filtros={filtros}
+              setFiltros={setFiltros}
+              mostrarEstadoPractica={esExpediente}
+            />
           )}
 
           {isLoading && (
@@ -76,6 +91,8 @@ export default function SeguimientoPage() {
               practicas={practicas}
               onVerDetalle={verDetalle}
               ocultarEstudiante={esEstudiante}
+              mostrarEstadoPractica={esExpediente}
+              etiquetaAccion={esExpediente ? 'Ver expediente' : 'Ver'}
             />
           )}
 
@@ -87,6 +104,8 @@ export default function SeguimientoPage() {
                   practica={p}
                   onVerDetalle={verDetalle}
                   modoEstudiante={esEstudiante}
+                  mostrarEstadoPractica={esExpediente}
+                  etiquetaAccion={esExpediente ? 'Ver expediente' : 'Ver detalle'}
                 />
               ))}
             </div>

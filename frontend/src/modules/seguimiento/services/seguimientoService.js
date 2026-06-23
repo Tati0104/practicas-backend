@@ -27,7 +27,7 @@ const seguimientoService = {
    * Endpoint desacoplado: no exige programaId, resuelve el scope del usuario
    * autenticado en el backend (ESTUDIANTE ve solo la suya, coordinadores su facultad).
    */
-  practicas: ({ programaId, page, size, estado, busqueda } = {}) =>
+  practicas: ({ programaId, page, size, estado, busqueda, estadoPractica } = {}) =>
     http.get('/seguimiento/practicas', {
       params: {
         programaId: programaId || undefined,
@@ -35,6 +35,7 @@ const seguimientoService = {
         size,
         busqueda: busqueda || undefined,
         estadoSeguimiento: estado || undefined,
+        estadoPractica: estadoPractica || undefined,
       },
     }),
 

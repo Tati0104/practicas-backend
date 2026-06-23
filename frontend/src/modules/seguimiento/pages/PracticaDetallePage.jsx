@@ -10,6 +10,7 @@ import TimelineSeguimiento from '../components/TimelineSeguimiento';
 import ObservacionModal from '../components/ObservacionModal';
 import AvanceTutorModal from '../components/AvanceTutorModal';
 import BitacoraModal from '../components/BitacoraModal';
+import PanelAccesosExpediente from '../components/PanelAccesosExpediente';
 import { Badge, Button, Card, LoadingState, PageBackHeader } from '@/shared/components/ui';
 import seguimientoService from '../services/seguimientoService';
 import {
@@ -18,6 +19,11 @@ import {
   formatearFechaHoraSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
+import {
+  ROLES_EXPEDIENTE,
+  badgeEstadoPractica,
+  practicaFinalizada,
+} from '../utils/estadosPractica';
 
 const BADGE = {
   AL_DIA: { label: 'Revisado / Al día', variant: 'success' },
@@ -26,16 +32,25 @@ const BADGE = {
 };
 
 const CAMPOS_INFO = [
+  { label: 'Programa', key: 'programaNombre' },
+  { label: 'Práctica', key: 'numeroPractica' },
   { label: 'Empresa', key: 'empresa' },
   { label: 'Cargo', key: 'cargo' },
   { label: 'Docente', key: 'docente' },
   { label: 'Tutor', key: 'tutor' },
   { label: 'Inicio', key: 'fechaInicio' },
   { label: 'Fin', key: 'fechaFin' },
+  { label: 'Nota final', key: 'notaFinal' },
 ];
 
 function valorCampo(practica, key) {
   const valor = practica?.[key];
+  if (key === 'notaFinal') {
+    return valor != null ? Number(valor).toFixed(1) : '—';
+  }
+  if (key === 'numeroPractica') {
+    return valor != null ? `Práctica ${valor}` : '—';
+  }
   if (!valor) return '—';
   if (key === 'fechaInicio' || key === 'fechaFin') {
     return formatearFechaSeguimiento(valor);
@@ -92,20 +107,27 @@ export default function PracticaDetallePage() {
 
   const estadoClave = estadoSeguimientoPractica(practica);
   const badge = BADGE[estadoClave] || { label: estadoClave, variant: 'neutral' };
+  const estadoPracticaBadge = badgeEstadoPractica(practica.estadoPractica);
   const avance = practica.porcentajeAvance || 0;
   const identificacion =
     typeof practica.estudiante === 'object'
       ? practica.estudiante?.identificacion ?? practica.estudiante?.codigo
       : null;
   const programa =
-    typeof practica.estudiante === 'object' ? practica.estudiante?.programa : null;
+    practica.programaNombre ??
+    (typeof practica.estudiante === 'object' ? practica.estudiante?.programa : null);
   const esEstudiante = rol === 'ESTUDIANTE';
+  const esExpediente = ROLES_EXPEDIENTE.includes(rol);
+  const finalizada = practicaFinalizada(practica.estadoPractica);
   const tituloDetalle = esEstudiante
     ? `Seguimiento — Práctica ${practica.numeroPractica ?? id}`
     : nombreEstudiantePractica(practica);
   const descripcionDetalle = esEstudiante
     ? [practica.empresa, practica.cargo].filter(Boolean).join(' · ') || undefined
     : [identificacion, programa].filter(Boolean).join(' — ') || undefined;
+  const mostrarAccionesRegistro =
+    !finalizada &&
+    (rol === 'DOCENTE_ASESOR' || rol === 'TUTOR_EMPRESARIAL' || rol === 'ESTUDIANTE');
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -114,16 +136,31 @@ export default function PracticaDetallePage() {
         descripcion={descripcionDetalle}
         onVolver={() => navigate('/seguimiento')}
         acciones={
-          <Badge variant={badge.variant} className="px-3 py-1 text-sm">
-            {esEstudiante && estadoClave === 'AL_DIA'
-              ? 'Revisado por docente'
-              : badge.label}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            {practica.estadoPractica && (
+              <Badge variant={estadoPracticaBadge.variant} className="px-3 py-1 text-sm">
+                {estadoPracticaBadge.label}
+              </Badge>
+            )}
+            {!finalizada && (
+              <Badge variant={badge.variant} className="px-3 py-1 text-sm">
+                {esEstudiante && estadoClave === 'AL_DIA'
+                  ? 'Revisado por docente'
+                  : badge.label}
+              </Badge>
+            )}
+          </div>
         }
       />
 
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start">
         <div className="min-w-0 flex-1">
+          {finalizada && esExpediente && (
+            <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              Esta práctica ya fue cerrada. Puedes consultar documentos, evaluaciones y el checklist
+              de cierre desde el panel lateral.
+            </div>
+          )}
           <Card className="mb-5" padding="p-5">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {CAMPOS_INFO.map(({ label, key }) => (
@@ -196,10 +233,10 @@ export default function PracticaDetallePage() {
           )}
 
           <div className="mb-5">
-            {rol === 'DOCENTE_ASESOR' && (
+            {mostrarAccionesRegistro && rol === 'DOCENTE_ASESOR' && (
               <Button onClick={() => setModalObservacion(true)}>+ Registrar observación</Button>
             )}
-            {rol === 'TUTOR_EMPRESARIAL' && (
+            {mostrarAccionesRegistro && rol === 'TUTOR_EMPRESARIAL' && (
               <Button
                 variant="success"
                 className="bg-emerald-600 text-white hover:bg-emerald-700"
@@ -208,19 +245,13 @@ export default function PracticaDetallePage() {
                 + Registrar avance
               </Button>
             )}
-            {rol === 'ESTUDIANTE' && (
+            {mostrarAccionesRegistro && rol === 'ESTUDIANTE' && (
               <Button
                 variant="primary"
                 className="bg-violet-600 hover:bg-violet-700"
                 onClick={() => setModalBitacora(true)}
               >
-              {esEstudiante ? (
-            <>
-              + Nueva entrega de seguimiento
-            </>
-          ) : (
-            '+ Nueva bitácora'
-          )}
+                {esEstudiante ? '+ Nueva entrega de seguimiento' : '+ Nueva bitácora'}
               </Button>
             )}
           </div>
@@ -236,6 +267,10 @@ export default function PracticaDetallePage() {
             <TimelineSeguimiento timeline={timeline} />
           </Card>
         </div>
+
+        {esExpediente && (
+          <PanelAccesosExpediente practicaId={id} soloLectura={finalizada} />
+        )}
       </div>
 
       <ObservacionModal
