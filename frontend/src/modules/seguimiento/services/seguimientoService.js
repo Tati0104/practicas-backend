@@ -39,16 +39,27 @@ const seguimientoService = {
     }),
 
   /** POST /seguimiento/{practicaId}/observaciones */
-  registrarObservacion: (practicaId, dto) =>
-    http.post(`/seguimiento/${practicaId}/observaciones`, dto),
+  registrarObservacion: (practicaId, { corte, ...body }) =>
+    http.post(`/seguimiento/${practicaId}/observaciones`, body, { params: { corte } }),
 
   /** POST /seguimiento/{practicaId}/avances-tutor */
   registrarAvance: (practicaId, { corte, ...body }) =>
     http.post(`/seguimiento/${practicaId}/avances-tutor`, body, { params: { corte } }),
 
-  /** POST /seguimiento/{practicaId}/bitacora */
-  registrarBitacora: (practicaId, dto, corte = 1) =>
-    http.post(`/seguimiento/${practicaId}/bitacora`, dto, { params: { corte } }),
+  /** POST /seguimiento/{practicaId}/bitacora (multipart: descripcion + archivo opcional) */
+  registrarBitacora: (practicaId, { descripcion, archivo }, corte = 1) => {
+    const form = new FormData();
+    form.append('descripcion', descripcion);
+    if (archivo) form.append('archivo', archivo);
+    return http.post(`/seguimiento/${practicaId}/bitacora`, form, {
+      params: { corte },
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  /** GET /seguimiento/bitacora/{bitacoraId}/archivo — devuelve blob para descarga */
+  descargarArchivoBitacora: (bitacoraId) =>
+    http.get(`/seguimiento/bitacora/${bitacoraId}/archivo`, { responseType: 'blob' }),
 
   /** GET /seguimiento/alertas */
   alertas: () => http.get('/seguimiento/alertas'),

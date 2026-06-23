@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { Download, Paperclip } from 'lucide-react';
 import { usePracticaSeguimiento } from '../hooks/usePracticaSeguimiento';
 import { useSeguimientoMutaciones } from '../hooks/useSeguimientoMutaciones';
 import { useBitacorasEstudiante } from '../hooks/useBitacorasEstudiante';
@@ -9,6 +11,7 @@ import ObservacionModal from '../components/ObservacionModal';
 import AvanceTutorModal from '../components/AvanceTutorModal';
 import BitacoraModal from '../components/BitacoraModal';
 import { Badge, Button, Card, LoadingState, PageBackHeader } from '@/shared/components/ui';
+import seguimientoService from '../services/seguimientoService';
 import {
   estadoSeguimientoPractica,
   formatearFechaSeguimiento,
@@ -51,6 +54,20 @@ export default function PracticaDetallePage() {
   const [modalObservacion, setModalObservacion] = useState(false);
   const [modalAvance, setModalAvance] = useState(false);
   const [modalBitacora, setModalBitacora] = useState(false);
+
+  const handleDescargarArchivo = async (bitacoraId, nombreArchivo) => {
+    try {
+      const resp = await seguimientoService.descargarArchivoBitacora(bitacoraId);
+      const url = URL.createObjectURL(resp.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = nombreArchivo || `bitacora_${bitacoraId}`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('No se pudo descargar el archivo');
+    }
+  };
 
   const { registrarObservacion, registrarAvance, registrarBitacora } =
     useSeguimientoMutaciones({
@@ -157,6 +174,20 @@ export default function PracticaDetallePage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-700">{entrada.descripcion}</p>
+                        {entrada.nombreArchivo && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <Paperclip className="h-3.5 w-3.5 shrink-0 text-violet-500" aria-hidden="true" />
+                            <span className="truncate text-xs text-gray-500">{entrada.nombreArchivo}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDescargarArchivo(entrada.id, entrada.nombreArchivo)}
+                              className="ml-auto flex items-center gap-1 rounded-md bg-violet-100 px-2 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-200"
+                            >
+                              <Download className="h-3 w-3" aria-hidden="true" />
+                              Descargar
+                            </button>
+                          </div>
+                        )}
                       </li>
                     ))}
                 </ul>
@@ -210,6 +241,7 @@ export default function PracticaDetallePage() {
       <ObservacionModal
         isOpen={modalObservacion}
         practicaId={Number(id)}
+        numCortes={practica?.numCortes ?? 3}
         onClose={() => setModalObservacion(false)}
         onGuardar={(dto) => registrarObservacion.mutate(dto)}
         isPending={registrarObservacion.isPending}

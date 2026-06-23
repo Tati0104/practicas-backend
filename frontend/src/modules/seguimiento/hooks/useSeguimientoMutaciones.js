@@ -18,6 +18,7 @@ export function useSeguimientoMutaciones({ onSuccess, onError } = {}) {
   const alExito = (mensaje) => () => {
     queryClient.invalidateQueries(['seguimiento']);
     queryClient.invalidateQueries(['practicaSeguimiento']);
+    queryClient.invalidateQueries(['bitacorasEstudiante']);
     toast.success(mensaje);
     if (onSuccess) onSuccess();
   };
@@ -43,10 +44,13 @@ export function useSeguimientoMutaciones({ onSuccess, onError } = {}) {
   });
 
   const registrarBitacora = useMutation({
-    mutationFn: ({ practicaId, corte, descripcion, actividades, aprendizajes }) =>
+    mutationFn: ({ practicaId, corte, descripcion, actividades, aprendizajes, archivo }) =>
       seguimientoService.registrarBitacora(
         practicaId,
-        { descripcion: descripcion ?? `${actividades}\n\n${aprendizajes}` },
+        {
+          descripcion: descripcion ?? `Actividades realizadas:\n${actividades}\n\nAprendizajes obtenidos:\n${aprendizajes}`,
+          archivo,
+        },
         corte
       ),
     onSuccess: alExito('Entrada de bitácora guardada'),
