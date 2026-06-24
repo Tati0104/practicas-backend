@@ -23,6 +23,8 @@ $SshArgs = @(
     "-i", (Resolve-Path $Pem),
     "-o", "ConnectTimeout=20",
     "-o", "ServerAliveInterval=15",
+    "-o", "ServerAliveCountMax=3",
+    "-o", "BatchMode=yes",
     "-o", "StrictHostKeyChecking=accept-new"
 )
 
@@ -45,9 +47,13 @@ Invoke-Scp (Join-Path $PSScriptRoot "start-backend.sh") "~/start-backend.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "deploy-frontend.sh") "~/deploy-frontend.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "setup-nginx.sh") "~/setup-nginx.sh"
 Invoke-Scp (Join-Path $PSScriptRoot "nginx-practicas.conf") "~/nginx-practicas.conf"
-Write-Host "    Configurando permisos y nginx..." -ForegroundColor DarkGray
-Invoke-Ssh 'chmod +x ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh && sed -i ''s/\r$//'' ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh'
-Invoke-Ssh 'bash ~/setup-nginx.sh ~/nginx-practicas.conf'
+Write-Host "    Configurando permisos en scripts remotos..." -ForegroundColor DarkGray
+Invoke-Ssh "chmod +x ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh && sed -i 's/\r$//' ~/start-backend.sh ~/deploy-frontend.sh ~/setup-nginx.sh"
+
+if (-not $FrontendOnly) {
+    Write-Host "    Actualizando nginx..." -ForegroundColor DarkGray
+    Invoke-Ssh "bash ~/setup-nginx.sh ~/nginx-practicas.conf"
+}
 
 if (-not $FrontendOnly) {
     if (-not $SkipBuild) {
