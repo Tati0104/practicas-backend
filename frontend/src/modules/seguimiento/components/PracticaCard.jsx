@@ -84,7 +84,13 @@ export default function PracticaCard({
         </>
       )}
 
-      <Button size="sm" className="w-full" onClick={() => onVerDetalle(practica.id)}>
+      {mostrarEstadoPractica && practica.cantidadPracticas > 1 && (
+        <div className="mt-1 text-xs text-gray-500">
+          {practica.cantidadPracticas} prácticas registradas
+        </div>
+      )}
+
+      <Button size="sm" className="w-full" onClick={() => onVerDetalle(practica)}>
         {etiquetaAccion}
       </Button>
     </Card>

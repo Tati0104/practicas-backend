@@ -12,6 +12,7 @@ import PracticaCard from '../components/PracticaCard';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
 import { ROLES_EXPEDIENTE } from '../utils/estadosPractica';
+import ModalExpedienteEstudiante from '@/modules/estudiante/components/ModalExpedienteEstudiante';
 
 function useEsDesktop() {
   const [esDesktop, setEsDesktop] = useState(() =>
@@ -34,12 +35,23 @@ export default function SeguimientoPage() {
   const esExpediente = ROLES_EXPEDIENTE.includes(rol);
   const { practicas, practicasTodas, totalPaginas, isLoading, isError, filtros, setFiltros, irAPagina } =
     useSeguimiento();
+  const [estudianteExpediente, setEstudianteExpediente] = useState(null);
 
   useEffect(() => {
     if (isError) toast.error('Error al cargar el tablero de seguimiento');
   }, [isError]);
 
-  const verDetalle = (id) => navigate(`/seguimiento/${id}`);
+  const verDetalle = (practica) => {
+    if (esExpediente && practica.estudianteId) {
+      setEstudianteExpediente({
+        id: practica.estudianteId,
+        nombre: practica.estudiante,
+        identificacion: practica.identificacion,
+      });
+      return;
+    }
+    navigate(`/seguimiento/${practica.id}`);
+  };
 
   return (
     <div>
@@ -100,7 +112,7 @@ export default function SeguimientoPage() {
             <div className="flex flex-col gap-3">
               {practicas.map((p) => (
                 <PracticaCard
-                  key={p.id}
+                  key={p.estudianteId ?? p.id}
                   practica={p}
                   onVerDetalle={verDetalle}
                   modoEstudiante={esEstudiante}
@@ -118,6 +130,13 @@ export default function SeguimientoPage() {
           />
         </div>
       </div>
+
+      {estudianteExpediente && (
+        <ModalExpedienteEstudiante
+          estudiante={estudianteExpediente}
+          onCerrar={() => setEstudianteExpediente(null)}
+        />
+      )}
     </div>
   );
 }

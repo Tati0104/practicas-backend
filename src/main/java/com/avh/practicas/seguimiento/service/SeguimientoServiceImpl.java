@@ -50,6 +50,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -468,7 +469,10 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                     estadoSeguimiento,
                     fechaUltimaActividad,
                     p.getNumeroPractica(),
-                    p.getEstado() != null ? p.getEstado().name() : null
+                    p.getEstado() != null ? p.getEstado().name() : null,
+                    p.getExpediente().getEstudiante().getId(),
+                    p.getExpediente().getEstudiante().getIdentificacion(),
+                    null
             );
 
             // Filtrado en memoria
@@ -527,7 +531,58 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 resultado.add(response);
             }
         }
+        if (expedienteCompleto) {
+            return agruparExpedientePorEstudiante(resultado);
+        }
         return resultado;
+    }
+
+    private List<TableroResponse> agruparExpedientePorEstudiante(List<TableroResponse> filas) {
+        Map<Long, List<TableroResponse>> porEstudiante = filas.stream()
+                .filter(r -> r.estudianteId() != null)
+                .collect(Collectors.groupingBy(TableroResponse::estudianteId));
+
+        List<TableroResponse> agrupadas = new ArrayList<>();
+        for (List<TableroResponse> grupo : porEstudiante.values()) {
+            TableroResponse principal = seleccionarPracticaPrincipal(grupo);
+            agrupadas.add(new TableroResponse(
+                    principal.id(),
+                    principal.estudiante(),
+                    principal.empresa(),
+                    principal.docente(),
+                    principal.corte(),
+                    principal.estadoSeguimiento(),
+                    principal.fechaUltimaActividad(),
+                    principal.numeroPractica(),
+                    principal.estadoPractica(),
+                    principal.estudianteId(),
+                    principal.identificacion(),
+                    grupo.size()
+            ));
+        }
+        agrupadas.sort(Comparator.comparing(TableroResponse::estudiante, String.CASE_INSENSITIVE_ORDER));
+        return agrupadas;
+    }
+
+    private TableroResponse seleccionarPracticaPrincipal(List<TableroResponse> grupo) {
+        return grupo.stream()
+                .min(Comparator
+                        .comparingInt((TableroResponse r) -> prioridadEstadoPractica(r.estadoPractica()))
+                        .thenComparing(r -> r.numeroPractica() != null ? -r.numeroPractica() : 0))
+                .orElse(grupo.get(0));
+    }
+
+    private int prioridadEstadoPractica(String estado) {
+        if (estado == null) {
+            return 99;
+        }
+        return switch (estado) {
+            case "EN_CURSO" -> 0;
+            case "ASIGNADA_PENDIENTE_INICIO" -> 1;
+            case "REPROBADA" -> 2;
+            case "COMPLETADA" -> 3;
+            default -> 4;
+        };
     }
 
     private boolean esRolExpedienteCompleto(Authentication auth) {
@@ -687,7 +742,10 @@ public class SeguimientoServiceImpl implements SeguimientoService {
                 estadoSeguimiento,
                 fechaUltimaActividad,
                 p.getNumeroPractica(),
-                p.getEstado() != null ? p.getEstado().name() : null
+                p.getEstado() != null ? p.getEstado().name() : null,
+                p.getExpediente().getEstudiante().getId(),
+                p.getExpediente().getEstudiante().getIdentificacion(),
+                null
         );
     }
 

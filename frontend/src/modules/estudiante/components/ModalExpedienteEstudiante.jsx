@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Badge, Button, Modal } from '@/shared/components/ui';
 import estudianteService from '../services/estudianteService';
 import { ESTADO_PRACTICA } from '@/modules/seguimiento/utils/estadosPractica';
@@ -13,6 +14,7 @@ function badgeEstado(estado) {
 }
 
 export default function ModalExpedienteEstudiante({ estudiante, onCerrar }) {
+  const navigate = useNavigate();
   const { data: expediente, isLoading, isError } = useQuery({
     queryKey: ['expediente-estudiante', estudiante?.id],
     queryFn: () => estudianteService.obtenerExpediente(estudiante.id).then((r) => r.data),
@@ -60,6 +62,7 @@ export default function ModalExpedienteEstudiante({ estudiante, onCerrar }) {
                 <th className="px-3 py-2">Estado</th>
                 <th className="px-3 py-2">Inicio</th>
                 <th className="px-3 py-2">Fin</th>
+                <th className="px-3 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +77,18 @@ export default function ModalExpedienteEstudiante({ estudiante, onCerrar }) {
                     </td>
                     <td className="px-3 py-2">{p.fechaInicio ?? '—'}</td>
                     <td className="px-3 py-2">{p.fechaFin ?? '—'}</td>
+                    <td className="px-3 py-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          onCerrar();
+                          navigate(`/seguimiento/${p.id}`);
+                        }}
+                      >
+                        Ver detalle
+                      </Button>
+                    </td>
                   </tr>
                 );
               })}

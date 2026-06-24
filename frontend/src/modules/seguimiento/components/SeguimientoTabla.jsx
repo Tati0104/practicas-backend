@@ -59,7 +59,7 @@ export default function SeguimientoTabla({
               typeof p.estudiante === 'object' ? p.estudiante?.codigo : null;
 
             return (
-              <tr key={p.id} className="border-b border-gray-100 bg-white">
+              <tr key={p.estudianteId ?? p.id} className="border-b border-gray-100 bg-white">
                 <td className="px-3.5 py-3">
                   <div className="font-semibold text-gray-900">
                     {ocultarEstudiante
@@ -69,8 +69,8 @@ export default function SeguimientoTabla({
                   {ocultarEstudiante && p.estadoPractica && (
                     <div className="text-xs text-gray-500">{p.estadoPractica.replace(/_/g, ' ')}</div>
                   )}
-                  {!ocultarEstudiante && codigo && (
-                    <div className="text-xs text-gray-500">{codigo}</div>
+                  {!ocultarEstudiante && (p.identificacion || codigo) && (
+                    <div className="text-xs text-gray-500">{p.identificacion || codigo}</div>
                   )}
                 </td>
                 <td className="px-3.5 py-3">
@@ -81,7 +81,9 @@ export default function SeguimientoTabla({
                 {mostrarEstadoPractica ? (
                   <>
                     <td className="px-3.5 py-3 text-center text-gray-700">
-                      {p.numeroPractica ?? '—'}
+                      {p.cantidadPracticas > 1
+                        ? `${p.cantidadPracticas} prácticas`
+                        : (p.numeroPractica ?? '—')}
                     </td>
                     <td className="px-3.5 py-3">
                       <Badge variant={estadoPracticaBadge.variant}>
@@ -102,7 +104,7 @@ export default function SeguimientoTabla({
                 )}
                 <td className="px-3.5 py-3 text-xs text-gray-500">{fechaStr}</td>
                 <td className="px-3.5 py-3">
-                  <Button size="sm" onClick={() => onVerDetalle(p.id)}>
+                  <Button size="sm" onClick={() => onVerDetalle(p)}>
                     {etiquetaAccion}
                   </Button>
                 </td>
