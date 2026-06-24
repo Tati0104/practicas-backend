@@ -143,15 +143,9 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
     }
 
     private Long resolverEmpresaId(TutorEmpresarial tutor) {
-        if (tutor == null) {
+        if (tutor == null || tutor.getEmpresa() == null) {
             return null;
         }
-        if (tutor.getEmpresaId() != null) {
-            return tutor.getEmpresaId();
-        }
-        if (tutor.getEmpresa() != null && tutor.getEmpresa().getId() != null) {
-            return tutor.getEmpresa().getId();
-        }
-        return null;
+        return tutor.getEmpresa().getId();
     }
 }

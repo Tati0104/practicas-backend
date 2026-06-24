@@ -24,10 +24,6 @@ public class TutorEmpresarial {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    @Transient
-    @JsonProperty("empresaId")
-    private Long empresaId;
-
     @Column(nullable = false)
     private String nombre;
 
