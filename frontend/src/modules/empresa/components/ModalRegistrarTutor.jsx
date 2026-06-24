@@ -39,6 +39,7 @@ export default function ModalRegistrarTutor({ empresa, onGuardar, onCerrar, guar
 
     setError('');
     onGuardar({
+      empresaId: empresa.id,
       empresa: { id: empresa.id },
       nombre: form.nombre.trim(),
       correo: form.correo.trim(),

@@ -28,7 +28,8 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
     @Override
     @Transactional
     public TutorEmpresarial registrar(TutorEmpresarial tutor) {
-        if (tutor == null || tutor.getEmpresa() == null || tutor.getEmpresa().getId() == null) {
+        Long empresaId = resolverEmpresaId(tutor);
+        if (tutor == null || empresaId == null) {
             throw new NegocioException("Debe indicar la empresa del tutor.");
         }
         if (tutor.getNombre() == null || tutor.getNombre().isBlank()) {
@@ -47,8 +48,8 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
         String correo = correoPersonaService.normalizar(tutor.getCorreo());
         correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 
-        Empresa empresa = empresaRepository.findById(tutor.getEmpresa().getId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + tutor.getEmpresa().getId()));
+        Empresa empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la empresa con id: " + empresaId));
 
         if (!empresa.getActivo()) {
             throw new NegocioException("No se puede registrar un tutor bajo una empresa inactiva.");
@@ -139,5 +140,18 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
     @Override
     public List<TutorEmpresarial> obtenerActivosPorEmpresa(Long empresaId) {
         return tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(empresaId);
+    }
+
+    private Long resolverEmpresaId(TutorEmpresarial tutor) {
+        if (tutor == null) {
+            return null;
+        }
+        if (tutor.getEmpresaId() != null) {
+            return tutor.getEmpresaId();
+        }
+        if (tutor.getEmpresa() != null && tutor.getEmpresa().getId() != null) {
+            return tutor.getEmpresa().getId();
+        }
+        return null;
     }
 }

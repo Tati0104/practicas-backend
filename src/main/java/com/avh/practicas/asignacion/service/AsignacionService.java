@@ -236,13 +236,34 @@ public class AsignacionService {
     }
 
     @Transactional(readOnly = true)
-    public List<EstudianteAptoResponse> listarEstudiantesAptos(Long programaId) {
+    public List<EstudianteAptoResponse> listarEstudiantesAptos(Long programaId, Long vacanteId) {
+        Long programaFiltro = programaId;
+        Integer numeroPracticaVacante = null;
+
+        if (vacanteId != null) {
+            Vacante vacante = vacanteRepository.findById(vacanteId).orElse(null);
+            if (vacante != null) {
+                if (programaFiltro == null) {
+                    programaFiltro = vacante.getProgramaId();
+                }
+                if (vacante.getCatalogoPracticaId() != null) {
+                    numeroPracticaVacante = catalogoPracticaRepository.findById(vacante.getCatalogoPracticaId())
+                            .map(c -> c.getNumeroPractica())
+                            .orElse(null);
+                }
+            }
+        }
+
+        final Long programaFinal = programaFiltro;
+        final Integer practicaVacante = numeroPracticaVacante;
+
         return estudianteRepository.findAll()
                 .stream()
                 .filter(e -> e.getEstadoAptitud() == EstadoAptitud.APTO)
-                .filter(e -> programaId == null || (e.getPrograma() != null && programaId.equals(e.getPrograma().getId())))
+                .filter(e -> programaFinal == null || (e.getPrograma() != null && programaFinal.equals(e.getPrograma().getId())))
                 .filter(e -> !tieneAsignacionActiva(e.getId()))
                 .filter(e -> !tienePracticaActiva(e))
+                .filter(e -> practicaVacante == null || tienePracticaPendiente(e.getId(), practicaVacante))
                 .map(EstudianteAptoResponse::desdeEntidad)
                 .toList();
     }
@@ -349,14 +370,32 @@ public class AsignacionService {
     }
 
     private boolean tieneAsignacionActiva(Long estudianteId) {
-        return asignacionRepository.existsByEstudianteIdAndEstadoIn(estudianteId, ESTADOS_ASIGNACION_ACTIVA);
+        return asignacionRepository.findByEstudianteId(estudianteId).stream()
+                .filter(a -> ESTADOS_ASIGNACION_ACTIVA.contains(a.getEstado()))
+                .anyMatch(this::asignacionBloqueaNuevaPostulacion);
+    }
+
+    private boolean asignacionBloqueaNuevaPostulacion(Asignacion asignacion) {
+        if (asignacion.getInstanciaPracticaId() == null) {
+            return true;
+        }
+        return instanciaPracticaRepository.findById(asignacion.getInstanciaPracticaId())
+                .map(ip -> ip.getEstado() != EstadoPractica.COMPLETADA
+                        && ip.getEstado() != EstadoPractica.REPROBADA)
+                .orElse(true);
+    }
+
+    private boolean tienePracticaPendiente(Long estudianteId, Integer numeroPractica) {
+        return instanciaPracticaRepository
+                .findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
+                        estudianteId, EstadoPractica.ASIGNADA_PENDIENTE_INICIO)
+                .map(ip -> ip.getNumeroPractica().equals(numeroPractica))
+                .orElse(false);
     }
 
     private boolean tienePracticaActiva(Estudiante estudiante) {
-        if (estudiante.getExpediente() == null || estudiante.getExpediente().getInstanciasPractica() == null) {
-            return false;
-        }
-        return estudiante.getExpediente().getInstanciasPractica()
+        return instanciaPracticaRepository
+                .findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(estudiante.getId())
                 .stream()
                 .map(InstanciaPractica::getEstado)
                 .anyMatch(ESTADOS_PRACTICA_ACTIVA::contains);

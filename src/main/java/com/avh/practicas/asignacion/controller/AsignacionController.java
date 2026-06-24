@@ -79,8 +79,10 @@ public class AsignacionController {
 
     // Apoyo PE-31: lista estudiantes APTO para que Coordinacion pueda asignarlos.
     @GetMapping("/estudiantes-aptos")
-    public List<EstudianteAptoResponse> estudiantesAptos(@RequestParam(required = false) Long programaId) {
-        return service.listarEstudiantesAptos(programaId);
+    public List<EstudianteAptoResponse> estudiantesAptos(
+            @RequestParam(required = false) Long programaId,
+            @RequestParam(required = false) Long vacanteId) {
+        return service.listarEstudiantesAptos(programaId, vacanteId);
     }
 
     // Apoyo PE-31: lista vacantes activas con cupos disponibles.

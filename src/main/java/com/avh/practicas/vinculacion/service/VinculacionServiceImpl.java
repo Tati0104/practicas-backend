@@ -379,7 +379,8 @@ public class VinculacionServiceImpl implements VinculacionService {
         practicaRepository.save(practica);
 
         mediadorVinculacion.confirmarVinculacion(practicaId, request.fechaInicio(), request.fechaFin());
-        marcarAsignacionVinculada(convenio.getAsignacionId());
+        sincronizarConvenioConAsignacionActiva(practicaId, convenio.getAsignacionId());
+        marcarAsignacionVinculada(practicaId, convenio.getAsignacionId());
     }
 
     @Override
@@ -440,6 +441,12 @@ public class VinculacionServiceImpl implements VinculacionService {
 
         if (asignacion.getEstado() == EstadoAsignacion.ASIGNADA) {
             asignacionService.cambiarEstado(asignacionId, EstadoAsignacion.EN_PROCESO_VINCULACION);
+        } else if (asignacion.getEstado() == EstadoAsignacion.CANCELADA) {
+            resolverAsignacionActiva(practicaId, asignacionId).ifPresent(activa -> {
+                if (activa.getEstado() == EstadoAsignacion.ASIGNADA) {
+                    asignacionService.cambiarEstado(activa.getId(), EstadoAsignacion.EN_PROCESO_VINCULACION);
+                }
+            });
         }
 
         return new DocumentoCargadoResponse(
@@ -515,8 +522,10 @@ public class VinculacionServiceImpl implements VinculacionService {
         Vacante vacante = obtenerVacante(asignacion.getVacanteId());
 
         Convenio convenio = convenioRepository.findByAsignacionId(asignacionId)
+                .or(() -> convenioRepository.findByInstanciaPracticaId(practicaId))
                 .orElseGet(() -> crearConvenioBase(asignacion, practicaId, vacante.getEmpresaId()));
 
+        convenio.setAsignacionId(asignacionId);
         convenio.setUrlDocumento(respuesta.url());
         convenio.setInstanciaPracticaId(practicaId);
         convenioRepository.save(convenio);
@@ -766,15 +775,39 @@ public class VinculacionServiceImpl implements VinculacionService {
         }
     }
 
-    private void marcarAsignacionVinculada(Long asignacionId) {
-        if (asignacionId == null) {
+    private void marcarAsignacionVinculada(Long practicaId, Long asignacionIdConvenio) {
+        Optional<Asignacion> asignacionActiva = resolverAsignacionActiva(practicaId, asignacionIdConvenio);
+        if (asignacionActiva.isEmpty()) {
             return;
         }
-        asignacionRepository.findById(asignacionId).ifPresent(asignacion -> {
-            if (asignacion.getEstado() != EstadoAsignacion.VINCULADA) {
-                asignacionService.cambiarEstado(asignacionId, EstadoAsignacion.VINCULADA);
+        Asignacion asignacion = asignacionActiva.get();
+        if (asignacion.getEstado() != EstadoAsignacion.VINCULADA) {
+            asignacionService.cambiarEstado(asignacion.getId(), EstadoAsignacion.VINCULADA);
+        }
+    }
+
+    private void sincronizarConvenioConAsignacionActiva(Long practicaId, Long asignacionIdConvenio) {
+        resolverAsignacionActiva(practicaId, asignacionIdConvenio).ifPresent(asignacion ->
+                convenioRepository.findByInstanciaPracticaId(practicaId).ifPresent(convenio -> {
+                    if (!asignacion.getId().equals(convenio.getAsignacionId())) {
+                        convenio.setAsignacionId(asignacion.getId());
+                        convenioRepository.save(convenio);
+                    }
+                }));
+    }
+
+    private Optional<Asignacion> resolverAsignacionActiva(Long practicaId, Long asignacionIdConvenio) {
+        if (asignacionIdConvenio != null) {
+            Optional<Asignacion> asignacion = asignacionRepository.findById(asignacionIdConvenio);
+            if (asignacion.isPresent() && asignacion.get().getEstado() != EstadoAsignacion.CANCELADA) {
+                return asignacion;
             }
-        });
+        }
+        return asignacionRepository.findFirstByInstanciaPracticaIdAndEstadoNot(
+                        practicaId, EstadoAsignacion.CANCELADA)
+                .filter(a -> a.getEstado() == EstadoAsignacion.ASIGNADA
+                        || a.getEstado() == EstadoAsignacion.EN_PROCESO_VINCULACION
+                        || a.getEstado() == EstadoAsignacion.VINCULADA);
     }
 
     private Asignacion obtenerAsignacion(Long asignacionId) {
