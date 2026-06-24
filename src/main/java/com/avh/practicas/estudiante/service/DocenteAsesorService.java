@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -33,7 +32,9 @@ public class DocenteAsesorService {
         String correo = correoPersonaService.normalizar(request.correo());
         correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 
-        Usuario usuario = usuarioService.crearUsuarioDocenteAsesor(request.nombreCompleto(), correo);
+        UsuarioService.UsuarioCreado creacion =
+                usuarioService.crearUsuarioDocenteAsesorConCredenciales(request.nombreCompleto(), correo);
+        Usuario usuario = creacion.usuario();
 
         DocenteAsesor docente = DocenteAsesor.builder()
                 .usuario(usuario)
@@ -46,7 +47,7 @@ public class DocenteAsesorService {
                 .build();
 
         DocenteAsesor guardado = repository.save(docente);
-        notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_CREADO, guardado);
+        notificarSeguro(TipoEventoSistema.DOCENTE_ASESOR_CREADO, guardado, creacion.passwordTemporal());
         return DocenteAsesorResponse.desdeEntidad(guardado);
     }
 
@@ -150,8 +151,12 @@ public class DocenteAsesorService {
     }
 
     private void notificarSeguro(TipoEventoSistema tipo, DocenteAsesor docente) {
+        notificarSeguro(tipo, docente, null);
+    }
+
+    private void notificarSeguro(TipoEventoSistema tipo, DocenteAsesor docente, String passwordTemporal) {
         try {
-            notificar(tipo, docente);
+            notificar(tipo, docente, passwordTemporal);
         } catch (Exception e) {
             log.warn(
                     "No se pudo notificar el evento {} para el docente asesor con id {}. Motivo: {}",
@@ -163,17 +168,25 @@ public class DocenteAsesorService {
     }
 
     private void notificar(TipoEventoSistema tipo, DocenteAsesor docente) {
+        notificar(tipo, docente, null);
+    }
+
+    private void notificar(TipoEventoSistema tipo, DocenteAsesor docente, String passwordTemporal) {
+        var datos = new java.util.HashMap<String, Object>();
+        datos.put("nombre", docente.getNombreCompleto());
+        datos.put("correo", docente.getCorreo());
+        datos.put("programaId", docente.getProgramaId());
+        datos.put("areaConocimiento", docente.getAreaConocimiento() == null ? "" : docente.getAreaConocimiento());
+        if (passwordTemporal != null && !passwordTemporal.isBlank()) {
+            datos.put("passwordTemporal", passwordTemporal);
+        }
+
         notificadorEventos.notificar(EventoSistema.crear(
                 tipo,
                 docente.getUsuario() == null ? null : docente.getUsuario().getId(),
                 "DOCENTE_ASESOR",
                 docente.getId(),
-                Map.of(
-                        "nombre", docente.getNombreCompleto(),
-                        "correo", docente.getCorreo(),
-                        "programaId", docente.getProgramaId(),
-                        "areaConocimiento", docente.getAreaConocimiento() == null ? "" : docente.getAreaConocimiento()
-                )
+                datos
         ));
     }
 }

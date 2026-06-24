@@ -1,6 +1,6 @@
 const clasesSelect = {
-  default: 'cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
-  compacto: 'cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
+  default: 'ui-input cursor-pointer px-3 py-1.5 text-sm',
+  compacto: 'ui-input cursor-pointer px-3 py-2 text-sm',
 };
 
 /**

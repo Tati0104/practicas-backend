@@ -20,6 +20,8 @@ import java.security.SecureRandom;
 @Slf4j
 public class UsuarioService {
 
+    public record UsuarioCreado(Usuario usuario, String passwordTemporal) {}
+
     private final AuthUsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final CorreoPersonaService correoPersonaService;
@@ -27,21 +29,26 @@ public class UsuarioService {
 
     @Transactional
     public Usuario crearUsuarioDocenteAsesor(String nombreCompleto, String correo) {
-        return crearConRol(Rol.DOCENTE_ASESOR, nombreCompleto, correo, true);
+        return crearConRol(Rol.DOCENTE_ASESOR, nombreCompleto, correo, true).usuario();
+    }
+
+    @Transactional
+    public UsuarioCreado crearUsuarioDocenteAsesorConCredenciales(String nombreCompleto, String correo) {
+        return crearConRol(Rol.DOCENTE_ASESOR, nombreCompleto, correo, false);
     }
 
     @Transactional
     public Usuario crearUsuarioEstudiante(String nombre, String correo) {
-        return crearConRol(Rol.ESTUDIANTE, nombre, correo, true);
+        return crearConRol(Rol.ESTUDIANTE, nombre, correo, true).usuario();
     }
 
     @Transactional
     public Usuario crearUsuarioTutorEmpresarial(String nombre, String correo) {
-        return crearConRol(Rol.TUTOR_EMPRESARIAL, nombre, correo, true);
+        return crearConRol(Rol.TUTOR_EMPRESARIAL, nombre, correo, true).usuario();
     }
 
     @Transactional
-    public Usuario crearConRol(Rol rol, String nombre, String correo, boolean enviarCorreo) {
+    public UsuarioCreado crearConRol(Rol rol, String nombre, String correo, boolean enviarCorreo) {
         String correoNormalizado = correoPersonaService.normalizar(correo);
         correoPersonaService.validarCorreoDisponible(correoNormalizado, CorreoPersonaService.Exclusiones.ninguna());
 
@@ -67,7 +74,7 @@ public class UsuarioService {
             }
         }
 
-        return usuario;
+        return new UsuarioCreado(usuario, passwordTemporal);
     }
 
     @Transactional

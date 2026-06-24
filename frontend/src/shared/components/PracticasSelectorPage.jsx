@@ -43,7 +43,11 @@ export default function PracticasSelectorPage({
     if (isError) toast.error('Error al cargar las prácticas');
   }, [isError]);
 
-  const irAModulo = (id) => navigate(construirRuta(id));
+  const irAModulo = (practica) => {
+    const id = typeof practica === 'object' && practica !== null ? practica.id : practica;
+    if (!id) return;
+    navigate(construirRuta(id));
+  };
 
   return (
     <div>

@@ -26,11 +26,26 @@ public class NotificacionDocenteFactory extends NotificacionFactory {
             return new NotificacionBase(evento.getTipo().name(), "", "", List.of(), LocalDateTime.now());
         }
         String nombre = String.valueOf(evento.getDatos().getOrDefault("nombre", "docente asesor"));
+        Object passwordObj = evento.getDatos().get("passwordTemporal");
+        String passwordTemporal = passwordObj != null ? String.valueOf(passwordObj).trim() : "";
+
+        String mensaje;
+        String asunto;
+        if (!passwordTemporal.isBlank()) {
+            asunto = "Acceso al Sistema de Prácticas — AVH";
+            mensaje = "<p>Bienvenido/a <b>" + nombre + "</b>.</p>"
+                    + "<p>Tu correo de acceso es: <b>" + correo + "</b></p>"
+                    + "<p>Tu contraseña temporal es: <b>" + passwordTemporal + "</b></p>"
+                    + "<p>Debes cambiarla en tu primer inicio de sesión.</p>";
+        } else {
+            asunto = "Usuario docente asesor";
+            mensaje = "<p>Hola " + nombre + ", tu usuario como docente asesor fue creado o actualizado.</p>";
+        }
 
         return new NotificacionBase(
                 evento.getTipo().name(),
-                "<p>Hola " + nombre + ", tu usuario como docente asesor fue creado o actualizado.</p>",
-                "Usuario docente asesor",
+                mensaje,
+                asunto,
                 List.of(correo),
                 LocalDateTime.now()
         );

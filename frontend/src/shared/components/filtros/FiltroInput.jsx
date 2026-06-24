@@ -1,6 +1,6 @@
 const clasesInput = {
-  default: 'min-w-[180px] flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
-  compacto: 'min-w-[220px] rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
+  default: 'ui-input min-w-[180px] flex-1 px-3 py-1.5 text-sm',
+  compacto: 'ui-input min-w-[220px] px-3 py-2 text-sm',
 };
 
 export default function FiltroInput({ compacto = false, className = '', ...props }) {

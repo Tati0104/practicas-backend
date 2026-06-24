@@ -6,7 +6,7 @@ import useCalificacionesPermisos from '../hooks/useCalificacionesPermisos';
 import ResumenNotas from '../components/ResumenNotas';
 import NotaForm from '../components/NotaForm';
 import EncuestaForm from '../components/EncuestaForm';
-import { obtenerNotasReferencia } from '../utils/schemas';
+import { extraerMensajeError, obtenerNotasReferencia } from '../utils/schemas';
 import { ErrorState, LoadingState, PageBackHeader } from '@/shared/components/ui';
 
 function EncuestaPanel({
@@ -118,7 +118,7 @@ export default function CalificacionesPage() {
     return (
       <div className="p-4 sm:p-6">
         <ErrorState
-          mensaje={error?.response?.data?.message ?? error?.message ?? 'Error al cargar evaluaciones'}
+          mensaje={extraerMensajeError(error, 'Error al cargar evaluaciones')}
           onReintentar={refetch}
         />
       </div>
