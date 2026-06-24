@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import { usePermisos } from '@/shared/hooks/usePermisos';
+import { resolverIdPractica } from '@/modules/seguimiento/utils/practicaId';
 import { extraerMensajeError } from '@/modules/calificaciones/utils/schemas';
 import useCierre from '../hooks/useCierre';
 import useCierreMutaciones from '../hooks/useCierreMutaciones';
@@ -12,7 +13,8 @@ import ConfirmarCierreModal from '../components/ConfirmarCierreModal';
 import { Button, ErrorState, LoadingState, PageBackHeader } from '@/shared/components/ui';
 
 export default function CierrePage() {
-  const { practicaId } = useParams();
+  const { practicaId: practicaIdParam } = useParams();
+  const practicaId = resolverIdPractica(practicaIdParam);
   const navigate = useNavigate();
   const rol = useAuthStore((state) => state.rol);
   const { canClose } = usePermisos();
@@ -38,6 +40,17 @@ export default function CierrePage() {
     return (
       <div className="p-4 sm:p-6">
         <ErrorState mensaje="No tienes permiso para acceder al cierre de esta práctica." />
+      </div>
+    );
+  }
+
+  if (!practicaId) {
+    return (
+      <div className="p-4 sm:p-6">
+        <ErrorState
+          mensaje="Identificador de práctica inválido. Vuelve al listado y selecciona un estudiante de nuevo."
+          onReintentar={() => navigate('/cierre')}
+        />
       </div>
     );
   }

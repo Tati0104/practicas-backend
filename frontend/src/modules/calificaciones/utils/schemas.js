@@ -29,8 +29,15 @@ export const notaFinalSchema = z.object({
  */
 export function extraerMensajeError(error, fallback = 'Error inesperado. Intenta de nuevo.') {
   const data = error?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === 'string') return data;
+  if (!data) {
+    const mensajeAxios = error?.message ?? '';
+    return mensajeAxios.includes('status code') ? fallback : mensajeAxios || fallback;
+  }
+  if (typeof data === 'string') {
+    if (/<!doctype html|<html[\s>]/i.test(data)) return fallback;
+    const texto = data.trim();
+    return texto || fallback;
+  }
   return data.mensaje ?? data.message ?? fallback;
 }
 

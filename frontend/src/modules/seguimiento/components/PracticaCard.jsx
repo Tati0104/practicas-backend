@@ -91,7 +91,14 @@ export default function PracticaCard({
         </div>
       )}
 
-      <Button size="sm" className="w-full" onClick={() => onVerDetalle(resolverIdPractica(practica) ?? practica)}>
+      <Button
+        size="sm"
+        className="w-full"
+        onClick={() => {
+          const id = resolverIdPractica(practica);
+          onVerDetalle(id ?? practica);
+        }}
+      >
         {etiquetaAccion}
       </Button>
     </Card>

@@ -105,7 +105,13 @@ export default function SeguimientoTabla({
                 )}
                 <td className="px-3.5 py-3 text-xs text-gray-500">{fechaStr}</td>
                 <td className="px-3.5 py-3">
-                  <Button size="sm" onClick={() => onVerDetalle(resolverIdPractica(p) ?? p)}>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const id = resolverIdPractica(p);
+                      onVerDetalle(id ?? p);
+                    }}
+                  >
                     {etiquetaAccion}
                   </Button>
                 </td>
