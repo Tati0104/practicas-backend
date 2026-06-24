@@ -71,6 +71,10 @@ const seguimientoService = {
   /** GET /seguimiento/{practicaId} */
   obtenerDetallePractica: (id) => http.get(`/seguimiento/${id}`),
 
+  /** GET /seguimiento/estudiantes/{estudianteId}/practicas */
+  historialEstudiante: (estudianteId) =>
+    http.get(`/seguimiento/estudiantes/${estudianteId}/practicas`),
+
   /** GET /seguimiento/{practicaId}/bitacora */
   obtenerBitacoras: (practicaId) => http.get(`/seguimiento/${practicaId}/bitacora`),
 };

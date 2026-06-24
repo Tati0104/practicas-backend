@@ -56,6 +56,11 @@ public interface SeguimientoService {
             String estadoPractica);
 
     /**
+     * Historial de todas las prácticas de un estudiante (sin agrupar), para el modal de expediente.
+     */
+    List<TableroResponse> obtenerHistorialPracticasEstudiante(Long estudianteId);
+
+    /**
      * Obtiene todas las observaciones asociadas a una práctica.
      */
     List<ObservacionDocente> obtenerObservacionesPorPractica(Long practicaId);

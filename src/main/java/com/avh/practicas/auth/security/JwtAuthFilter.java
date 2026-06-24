@@ -100,6 +100,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_EDITAR"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_APTITUD"));
             authorities.add(new SimpleGrantedAuthority("ESTUDIANTE_IMPORTAR"));
+            authorities.add(new SimpleGrantedAuthority("EXPEDIENTE_VER"));
+        }
+
+        if (rol == Rol.SECRETARIA) {
+            authorities.add(new SimpleGrantedAuthority("EXPEDIENTE_VER"));
+        }
+
+        if (rol == Rol.ESTUDIANTE || rol == Rol.DOCENTE_ASESOR) {
+            authorities.add(new SimpleGrantedAuthority("EXPEDIENTE_VER"));
         }
 
         // Permite que Coordinacion Academica asigne/cambie el docente asesor de una practica,

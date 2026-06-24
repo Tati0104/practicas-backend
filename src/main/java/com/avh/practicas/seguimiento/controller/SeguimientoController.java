@@ -70,6 +70,12 @@ public class SeguimientoController {
         return service.obtenerPracticasSeguimiento(busqueda, programaId, estadoSeguimiento, estadoPractica);
     }
 
+    @GetMapping("/estudiantes/{estudianteId}/practicas")
+    @PreAuthorize("hasAnyRole('COORD_PRACTICA', 'COORD_ACADEMICA', 'SECRETARIA', 'ADMIN', 'ESTUDIANTE', 'DOCENTE_ASESOR')")
+    public List<TableroResponse> obtenerHistorialPracticasEstudiante(@PathVariable Long estudianteId) {
+        return service.obtenerHistorialPracticasEstudiante(estudianteId);
+    }
+
     /**
      * Obtiene el detalle de la práctica y su historial.
      */

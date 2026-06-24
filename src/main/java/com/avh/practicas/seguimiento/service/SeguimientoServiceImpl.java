@@ -537,6 +537,31 @@ public class SeguimientoServiceImpl implements SeguimientoService {
         return resultado;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<TableroResponse> obtenerHistorialPracticasEstudiante(Long estudianteId) {
+        if (!estudianteRepository.existsById(estudianteId)) {
+            throw new RecursoNoEncontradoException("No se encontró el estudiante con id: " + estudianteId);
+        }
+
+        ScopePracticas scope = scopeResolver.resolver();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean esEstudiante = auth != null
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ESTUDIANTE"));
+        boolean esTutor = auth != null
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("TUTOR_EMPRESARIAL"));
+        boolean expedienteCompleto = esRolExpedienteCompleto(auth);
+
+        return practicaRepository.findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(estudianteId).stream()
+                .filter(p -> practicaVisibleEnListado(p, esEstudiante, esTutor, expedienteCompleto))
+                .filter(scope::esVisible)
+                .map(this::construirTableroResponseScoped)
+                .sorted(Comparator.comparing(
+                        TableroResponse::numeroPractica,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+    }
+
     private List<TableroResponse> agruparExpedientePorEstudiante(List<TableroResponse> filas) {
         Map<Long, List<TableroResponse>> porEstudiante = filas.stream()
                 .filter(r -> r.estudianteId() != null)

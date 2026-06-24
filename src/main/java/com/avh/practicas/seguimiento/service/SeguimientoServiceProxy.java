@@ -92,6 +92,11 @@ public class SeguimientoServiceProxy implements SeguimientoService {
     }
 
     @Override
+    public List<TableroResponse> obtenerHistorialPracticasEstudiante(Long estudianteId) {
+        return realService.obtenerHistorialPracticasEstudiante(estudianteId);
+    }
+
+    @Override
     public List<ObservacionDocente> obtenerObservacionesPorPractica(Long practicaId) {
         return realService.obtenerObservacionesPorPractica(practicaId);
     }
