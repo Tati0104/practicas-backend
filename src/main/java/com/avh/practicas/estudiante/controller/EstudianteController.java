@@ -85,7 +85,17 @@ public class EstudianteController {
         Estudiante estudiante;
 
         if ("APTO".equals(aptitudStr)) {
-            estudiante = estudianteService.marcarApto(id);
+            Integer numeroPractica = null;
+            if (body.get("numeroPractica") instanceof Number n) {
+                numeroPractica = n.intValue();
+            } else if (body.get("numeroPractica") != null) {
+                try {
+                    numeroPractica = Integer.parseInt(String.valueOf(body.get("numeroPractica")));
+                } catch (NumberFormatException ignored) {
+                    throw new NegocioException("El campo numeroPractica debe ser un número entre 1 y 5.");
+                }
+            }
+            estudiante = estudianteService.marcarApto(id, numeroPractica);
         } else if ("NO_APTO".equals(aptitudStr)) {
             String motivo = (String) body.getOrDefault("motivo", "No cumple requisitos académicos.");
             estudiante = estudianteService.marcarNoApto(id, motivo);

@@ -14,7 +14,11 @@ const estudianteService = {
   registrar:       (dto)      => http.post('/estudiantes', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editar:          (id, dto)  => http.put(`/estudiantes/${id}`, dto),
   eliminar:        (id)       => http.delete(`/estudiantes/${id}`),
-  marcarApto:      (id)         => http.patch(`/estudiantes/${id}/aptitud`, { aptitud: 'APTO' }),
+  marcarApto:      (id, numeroPractica) =>
+    http.patch(`/estudiantes/${id}/aptitud`, {
+      aptitud: 'APTO',
+      ...(numeroPractica != null ? { numeroPractica } : {}),
+    }),
   marcarNoApto:    (id, motivo) => http.patch(`/estudiantes/${id}/aptitud`, { aptitud: 'NO_APTO', motivo }),
   obtenerExpediente: (id)     => http.get(`/expedientes/${id}`),
   importarExcel:   (archivo)  => {

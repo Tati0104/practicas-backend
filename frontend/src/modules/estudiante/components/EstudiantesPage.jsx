@@ -4,6 +4,8 @@ import useEstudiantes from '../hooks/useEstudiantes';
 import { extraerMensajeError } from '@/modules/auth/utils/schemas';
 import FiltrosEstudiante from './FiltrosEstudiante';
 import ModalRegistroEstudiante from './ModalRegistroEstudiante';
+import ModalMarcarApto from './ModalMarcarApto';
+import ModalExpedienteEstudiante from './ModalExpedienteEstudiante';
 import ImportarExcel from './ImportarExcel';
 import TablaBase from '../../../shared/components/TablaBase';
 import Paginacion from '../../../shared/components/Paginacion';
@@ -47,6 +49,8 @@ export default function EstudiantesPage() {
   const [modalRegistro, setModalRegistro] = useState(false);
   const [editando, setEditando] = useState(null);
   const [modalImportar, setModalImportar] = useState(false);
+  const [estudianteApto, setEstudianteApto] = useState(null);
+  const [estudianteExpediente, setEstudianteExpediente] = useState(null);
 
   const abrirRegistrar = () => {
     setEditando(null);
@@ -110,20 +114,26 @@ export default function EstudiantesPage() {
       key: 'acciones',
       titulo: 'Acciones',
       sticky: true,
-      className: 'min-w-[240px] whitespace-nowrap',
+      className: 'min-w-[320px] whitespace-nowrap',
       render: (e) => (
         <div className="flex flex-nowrap items-center gap-1.5">
+          <Button variant="ghost" size="sm" onClick={() => setEstudianteExpediente(e)}>
+            Prácticas
+          </Button>
           <Button variant="info" size="sm" onClick={() => abrirEditar(e)}>
             Editar
           </Button>
           <Button variant="danger" size="sm" onClick={() => confirmarEliminar(e)}>
             Eliminar
           </Button>
-          {e.estadoAptitud !== 'APTO' && (
-            <Button variant="success" size="sm" title="Marcar como Apto" onClick={() => marcarApto.mutate(e.id)}>
-              <Check size={16} />
-            </Button>
-          )}
+          <Button
+            variant="success"
+            size="sm"
+            title={e.estadoAptitud === 'APTO' ? 'Habilitar otra práctica' : 'Marcar como Apto'}
+            onClick={() => setEstudianteApto(e)}
+          >
+            <Check size={16} />
+          </Button>
           {e.estadoAptitud !== 'NO_APTO' && (
             <Button
               variant="ghost"
@@ -181,6 +191,25 @@ export default function EstudiantesPage() {
         <ImportarExcel
           onImportar={() => setModalImportar(false)}
           onCerrar={() => setModalImportar(false)}
+        />
+      )}
+      {estudianteApto && (
+        <ModalMarcarApto
+          estudiante={estudianteApto}
+          guardando={marcarApto.isPending}
+          onCerrar={() => setEstudianteApto(null)}
+          onConfirmar={(numeroPractica) =>
+            marcarApto.mutate(
+              { id: estudianteApto.id, numeroPractica },
+              { onSuccess: () => setEstudianteApto(null) }
+            )
+          }
+        />
+      )}
+      {estudianteExpediente && (
+        <ModalExpedienteEstudiante
+          estudiante={estudianteExpediente}
+          onCerrar={() => setEstudianteExpediente(null)}
         />
       )}
     </div>

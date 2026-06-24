@@ -13,6 +13,7 @@ import com.avh.practicas.asignacion.repository.HistorialAsignacionRepository;
 import com.avh.practicas.asignacion.state.AsignacionContext;
 import com.avh.practicas.auth.entity.Usuario;
 import com.avh.practicas.auth.repository.AuthUsuarioRepository;
+import com.avh.practicas.configuracion.repository.CatalogoPracticaRepository;
 import com.avh.practicas.bitacora.entity.TipoAccion;
 import com.avh.practicas.bitacora.service.BitacoraService;
 import com.avh.practicas.empresa.repository.EmpresaRepository;
@@ -78,6 +79,7 @@ public class AsignacionService {
     private final VacanteRepository vacanteRepository;
     private final VacanteResponseMapper vacanteResponseMapper;
     private final AsignacionResponseMapper asignacionResponseMapper;
+    private final CatalogoPracticaRepository catalogoPracticaRepository;
     private final BitacoraService bitacoraService;
     private final NotificadorEventos notificadorEventos;
     private final InstanciaPracticaRepository instanciaPracticaRepository;
@@ -166,6 +168,8 @@ public class AsignacionService {
         // Al cancelar se libera el cupo para que otra asignacion pueda usar la vacante.
         new VacanteContext(vacante).liberarCupo();
         vacanteRepository.save(vacante);
+
+        liberarInstanciaTrasCancelacion(asignacion);
 
         Asignacion guardada = asignacionRepository.save(asignacion);
         registrarHistorial(guardada, anterior, guardada.getEstado(), responsableId, motivo);
@@ -275,6 +279,11 @@ public class AsignacionService {
             throw new NegocioException("La vacante no tiene cupos disponibles.");
         }
 
+        if (vacante.getEmpresaId() != null
+                && tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).isEmpty()) {
+            throw new NegocioException("La empresa de la vacante no tiene tutores empresariales activos.");
+        }
+
         if (tieneAsignacionActiva(estudiante.getId())) {
             throw new NegocioException("El estudiante ya tiene una asignación/postulación activa.");
         }
@@ -295,7 +304,19 @@ public class AsignacionService {
                 .findFirstByExpedienteEstudianteIdAndEstadoOrderByNumeroPracticaDesc(
                         asignacion.getEstudianteId(), EstadoPractica.ASIGNADA_PENDIENTE_INICIO)
                 .orElseThrow(() -> new NegocioException(
-                        "El estudiante no tiene una práctica pendiente de inicio para asignar."));
+                        "El estudiante no tiene una práctica pendiente de inicio para asignar. "
+                                + "Coordinación Académica debe marcarlo APTO para la práctica correspondiente."));
+
+        if (vacante.getCatalogoPracticaId() != null) {
+            catalogoPracticaRepository.findById(vacante.getCatalogoPracticaId()).ifPresent(catalogo -> {
+                if (!catalogo.getNumeroPractica().equals(practica.getNumeroPractica())) {
+                    throw new NegocioException(
+                            "La vacante corresponde a la práctica " + catalogo.getNumeroPractica()
+                                    + ", pero el estudiante tiene pendiente la práctica "
+                                    + practica.getNumeroPractica() + ".");
+                }
+            });
+        }
 
         practica.setEmpresaId(vacante.getEmpresaId());
         tutorEmpresarialRepository.findByEmpresaIdAndActivoTrue(vacante.getEmpresaId()).stream()
@@ -306,6 +327,25 @@ public class AsignacionService {
 
         asignacion.setInstanciaPracticaId(practica.getId());
         asignacionRepository.save(asignacion);
+    }
+
+    /**
+     * Tras cancelar una asignación, libera la instancia pendiente para que el estudiante
+     * pueda ser asignado a otra vacante conservando el mismo número de práctica.
+     */
+    private void liberarInstanciaTrasCancelacion(Asignacion asignacion) {
+        if (asignacion.getInstanciaPracticaId() == null) {
+            return;
+        }
+        InstanciaPractica practica = instanciaPracticaRepository.findById(asignacion.getInstanciaPracticaId())
+                .orElse(null);
+        if (practica == null || practica.getEstado() != EstadoPractica.ASIGNADA_PENDIENTE_INICIO) {
+            return;
+        }
+        practica.setEmpresaId(null);
+        practica.setTutorId(null);
+        practica.setDocenteAsesorId(null);
+        instanciaPracticaRepository.save(practica);
     }
 
     private boolean tieneAsignacionActiva(Long estudianteId) {

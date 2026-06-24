@@ -28,6 +28,22 @@ public class TutorEmpresarialServiceImpl implements TutorEmpresarialService {
     @Override
     @Transactional
     public TutorEmpresarial registrar(TutorEmpresarial tutor) {
+        if (tutor == null || tutor.getEmpresa() == null || tutor.getEmpresa().getId() == null) {
+            throw new NegocioException("Debe indicar la empresa del tutor.");
+        }
+        if (tutor.getNombre() == null || tutor.getNombre().isBlank()) {
+            throw new NegocioException("El nombre del tutor es obligatorio.");
+        }
+        if (tutor.getCorreo() == null || tutor.getCorreo().isBlank()) {
+            throw new NegocioException("El correo del tutor es obligatorio.");
+        }
+        if (tutor.getCargo() == null || tutor.getCargo().isBlank()) {
+            throw new NegocioException("El cargo del tutor es obligatorio.");
+        }
+        if (tutor.getTelefono() == null || tutor.getTelefono().isBlank()) {
+            throw new NegocioException("El teléfono del tutor es obligatorio.");
+        }
+
         String correo = correoPersonaService.normalizar(tutor.getCorreo());
         correoPersonaService.validarCorreoDisponible(correo, CorreoPersonaService.Exclusiones.ninguna());
 

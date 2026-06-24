@@ -159,6 +159,8 @@ class EstudianteServiceImplTest {
         Estudiante estudiante = estudianteAptoBase();
         CatalogoPractica plantilla = plantilla(true);
         when(estudianteRepository.findById(7L)).thenReturn(Optional.of(estudiante));
+        when(instanciaPracticaRepository.findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(7L))
+                .thenReturn(List.of());
         when(catalogoPracticaRepository.findByProgramaIdAndNumeroPractica(1L, 1)).thenReturn(Optional.of(plantilla));
         when(instanciaPracticaRepository.save(any(InstanciaPractica.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(estudianteRepository.save(estudiante)).thenReturn(estudiante);
@@ -202,23 +204,29 @@ class EstudianteServiceImplTest {
     @Test
     void marcarApto_conPracticaActiva_noCreaNuevaInstancia() {
         Estudiante estudiante = estudianteAptoBase();
-        estudiante.getExpediente().getInstanciasPractica().add(InstanciaPractica.builder()
+        InstanciaPractica instanciaActiva = InstanciaPractica.builder()
                 .numeroPractica(1)
                 .estado(EstadoPractica.EN_CURSO)
-                .build());
+                .build();
         when(estudianteRepository.findById(7L)).thenReturn(Optional.of(estudiante));
+        when(instanciaPracticaRepository.findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(7L))
+                .thenReturn(List.of(instanciaActiva));
         when(estudianteRepository.save(estudiante)).thenReturn(estudiante);
 
         Estudiante response = service.marcarApto(7L);
 
         assertEquals(EstadoAptitud.APTO, response.getEstadoAptitud());
-        verifyNoInteractions(catalogoPracticaRepository, instanciaPracticaRepository);
+        verify(instanciaPracticaRepository).findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(7L);
+        verify(instanciaPracticaRepository, never()).save(any());
+        verifyNoInteractions(catalogoPracticaRepository);
     }
 
     @Test
     void marcarApto_sinCatalogoParaPractica_lanzaCatalogoNoEncontrado() {
         Estudiante estudiante = estudianteAptoBase();
         when(estudianteRepository.findById(7L)).thenReturn(Optional.of(estudiante));
+        when(instanciaPracticaRepository.findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(7L))
+                .thenReturn(List.of());
         when(catalogoPracticaRepository.findByProgramaIdAndNumeroPractica(1L, 1)).thenReturn(Optional.empty());
 
         assertThrows(CatalogoPracticaNoEncontradaException.class, () -> service.marcarApto(7L));

@@ -37,9 +37,10 @@ export default function useEstudiantes() {
   });
 
   const marcarApto = useMutation({
-    mutationFn: (id) => estudianteService.marcarApto(id),
+    mutationFn: ({ id, numeroPractica }) => estudianteService.marcarApto(id, numeroPractica),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+      queryClient.invalidateQueries({ queryKey: ['expediente-estudiante'] });
       toast.success('Estudiante marcado como apto');
     },
     onError: alError,

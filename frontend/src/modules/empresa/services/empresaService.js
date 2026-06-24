@@ -23,7 +23,7 @@ const empresaService = {
     http.get(`/empresas/${empresaId}/tutores`),
   registrarTutor:   (dto)     => http.post('/tutores', JSON.stringify(dto), { headers: { 'Content-Type': 'application/json' } }),
   editarTutor:      (id, dto) => http.put(`/tutores/${id}`, dto),
-  inactivarTutor:   (id)      => http.patch(`/tutores/${id}/inactivar`),
+  inactivarTutor:   (id)      => http.patch(`/tutores/${id}/desactivar`),
 
   getVacante: (id)      => http.get(`/vacantes/${id}`),
   listarVacantes: (filtros = {}) =>

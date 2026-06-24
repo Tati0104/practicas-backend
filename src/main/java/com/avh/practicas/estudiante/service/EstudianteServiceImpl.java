@@ -128,6 +128,12 @@ public class EstudianteServiceImpl implements EstudianteService {
     @Override
     @Transactional
     public Estudiante marcarApto(Long id) {
+        return marcarApto(id, null);
+    }
+
+    @Override
+    @Transactional
+    public Estudiante marcarApto(Long id, Integer numeroPracticaSolicitado) {
         Estudiante estudiante = estudianteRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el estudiante con id: " + id));
 
@@ -148,9 +154,11 @@ public class EstudianteServiceImpl implements EstudianteService {
             throw new NegocioException("El estudiante no posee un expediente asociado.");
         }
 
-        // Re-evaluación NO_APTO → APTO: si ya hay una instancia activa (no terminal),
-        // solo actualizar el estado sin crear una nueva instancia de práctica.
-        boolean tieneInstanciaActiva = expediente.getInstanciasPractica().stream()
+        List<InstanciaPractica> instancias = instanciaPracticaRepository
+                .findByExpedienteEstudianteIdOrderByNumeroPracticaDesc(estudiante.getId());
+
+        // Si ya tiene práctica pendiente o en curso, solo actualizar aptitud.
+        boolean tieneInstanciaActiva = instancias.stream()
                 .anyMatch(ip -> ip.getEstado() == EstadoPractica.ASIGNADA_PENDIENTE_INICIO
                              || ip.getEstado() == EstadoPractica.EN_CURSO);
 
@@ -166,20 +174,44 @@ public class EstudianteServiceImpl implements EstudianteService {
             return estudiante;
         }
 
-        int siguienteNumeroPractica = expediente.getInstanciasPractica().size() + 1;
+        int siguienteNumeroPractica = resolverNumeroPractica(instancias, numeroPracticaSolicitado);
 
         if (siguienteNumeroPractica > 1) {
             int practicaAnteriorNum = siguienteNumeroPractica - 1;
-            InstanciaPractica practicaAnterior = expediente.getInstanciasPractica().stream()
+            InstanciaPractica practicaAnterior = instancias.stream()
                     .filter(ip -> ip.getNumeroPractica().equals(practicaAnteriorNum))
                     .findFirst()
                     .orElseThrow(() -> new NegocioException("No se encontró el registro de la práctica anterior número: " + practicaAnteriorNum));
 
-            if (practicaAnterior.getEstado() != EstadoPractica.COMPLETADA) {
-                throw new NegocioException("No se puede registrar la práctica número " + siguienteNumeroPractica 
-                        + " porque la práctica anterior (" + practicaAnteriorNum + ") no está completada. Estado actual: " 
+            if (practicaAnterior.getEstado() != EstadoPractica.COMPLETADA
+                    && practicaAnterior.getEstado() != EstadoPractica.REPROBADA) {
+                throw new NegocioException("No se puede registrar la práctica número " + siguienteNumeroPractica
+                        + " porque la práctica anterior (" + practicaAnteriorNum + ") no está finalizada. Estado actual: "
                         + practicaAnterior.getEstado());
             }
+        }
+
+        Optional<InstanciaPractica> instanciaExistente = instancias.stream()
+                .filter(ip -> ip.getNumeroPractica().equals(siguienteNumeroPractica))
+                .findFirst();
+        if (instanciaExistente.isPresent()) {
+            EstadoPractica estadoExistente = instanciaExistente.get().getEstado();
+            if (estadoExistente == EstadoPractica.COMPLETADA || estadoExistente == EstadoPractica.REPROBADA) {
+                throw new NegocioException("El estudiante ya finalizó la práctica número " + siguienteNumeroPractica + ".");
+            }
+            if (estadoExistente == EstadoPractica.EN_CURSO) {
+                throw new NegocioException("El estudiante ya tiene la práctica " + siguienteNumeroPractica + " en curso.");
+            }
+            // ASIGNADA_PENDIENTE_INICIO sin asignación activa: reutilizar instancia existente.
+            estudiante.setEstadoAptitud(EstadoAptitud.APTO);
+            estudiante = estudianteRepository.save(estudiante);
+            if (observadoresDisponibles != null) {
+                for (Observador obs : observadoresDisponibles) {
+                    estudiante.registrarObservador(obs);
+                }
+            }
+            estudiante.notificarObservadores("ESTUDIANTE_MARCADO_APTO", estudiante);
+            return estudiante;
         }
 
         // Buscar plantilla en CatalogoPractica (PE-55)
@@ -222,6 +254,19 @@ public class EstudianteServiceImpl implements EstudianteService {
         estudiante.notificarObservadores("ESTUDIANTE_MARCADO_APTO", estudiante);
 
         return estudiante;
+    }
+
+    private int resolverNumeroPractica(List<InstanciaPractica> instancias, Integer numeroPracticaSolicitado) {
+        if (numeroPracticaSolicitado != null) {
+            if (numeroPracticaSolicitado < 1 || numeroPracticaSolicitado > 5) {
+                throw new NegocioException("El número de práctica debe estar entre 1 y 5.");
+            }
+            return numeroPracticaSolicitado;
+        }
+        return instancias.stream()
+                .mapToInt(InstanciaPractica::getNumeroPractica)
+                .max()
+                .orElse(0) + 1;
     }
 
     @Override

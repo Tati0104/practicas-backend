@@ -30,7 +30,7 @@ public class ExpedienteController {
     @GetMapping("/{estudianteId}")
     @ScopeGuard("EXPEDIENTE_VER")
     public ResponseEntity<Expediente> obtenerPorEstudianteId(@PathVariable Long estudianteId) {
-        Expediente expediente = expedienteRepository.findByEstudianteId(estudianteId)
+        Expediente expediente = expedienteRepository.findByEstudianteIdWithInstancias(estudianteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el expediente para el estudiante con id: " + estudianteId));
 
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
@@ -38,6 +38,11 @@ public class ExpedienteController {
 
         Usuario usuario = obtenerUsuarioActual();
         scopeGuard.verificarScope(usuario, estudiante, "LEER");
+
+        expediente.getInstanciasPractica().sort(
+                java.util.Comparator.comparing(
+                        com.avh.practicas.estudiante.entity.InstanciaPractica::getNumeroPractica,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
 
         return ResponseEntity.ok(expediente);
     }

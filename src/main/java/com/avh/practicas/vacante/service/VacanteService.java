@@ -11,6 +11,7 @@ import com.avh.practicas.shared.evento.NotificadorEventos;
 import com.avh.practicas.shared.evento.TipoEventoSistema;
 import com.avh.practicas.shared.exception.AccesoNoAutorizadoException;
 import com.avh.practicas.shared.exception.CatalogoPracticaNoEncontradaException;
+import com.avh.practicas.shared.exception.NegocioException;
 import com.avh.practicas.vacante.dto.VacanteRequest;
 import com.avh.practicas.vacante.dto.VacanteResponse;
 import com.avh.practicas.vacante.entity.EstadoVacanteEnum;
@@ -55,6 +56,7 @@ public class VacanteService {
     @Transactional
     public VacanteResponse crear(VacanteRequest request) {
         Long empresaId = resolverEmpresaIdPermitida(request.empresaId());
+        validarEmpresaConTutorActivo(empresaId);
         validarCatalogoPractica(request.catalogoPracticaId(), request.programaId());
 
         Vacante vacante = Vacante.builder()
@@ -192,6 +194,16 @@ public class VacanteService {
     private Vacante obtenerEntidad(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Vacante no encontrada"));
+    }
+
+    private void validarEmpresaConTutorActivo(Long empresaId) {
+        if (empresaId == null) {
+            throw new IllegalArgumentException("Debe seleccionar la empresa de la vacante.");
+        }
+        if (tutorRepository.findByEmpresaIdAndActivoTrue(empresaId).isEmpty()) {
+            throw new NegocioException(
+                    "La empresa debe tener al menos un tutor empresarial activo antes de crear una vacante.");
+        }
     }
 
     private void validarCatalogoPractica(Long catalogoPracticaId, Long programaId) {

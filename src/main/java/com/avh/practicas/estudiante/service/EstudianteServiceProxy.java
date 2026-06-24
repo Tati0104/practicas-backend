@@ -86,11 +86,16 @@ public class EstudianteServiceProxy implements EstudianteService {
 
     @Override
     public Estudiante marcarApto(Long id) {
+        return marcarApto(id, null);
+    }
+
+    @Override
+    public Estudiante marcarApto(Long id, Integer numeroPractica) {
         Usuario usuario = obtenerUsuarioActual();
-        realService.obtenerPorId(id).ifPresent(estudiante -> 
+        realService.obtenerPorId(id).ifPresent(estudiante ->
             scopeGuard.verificarScope(usuario, estudiante, "EDITAR")
         );
-        return realService.marcarApto(id);
+        return realService.marcarApto(id, numeroPractica);
     }
 
     @Override

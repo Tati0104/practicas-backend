@@ -87,10 +87,26 @@ export default function VacanteForm({ isOpen, onClose, vacante }) {
     });
   }, [isOpen, vacante, reset, esEmpresa, empresas]);
 
-  const onSubmit = data => {
+  const onSubmit = async (data) => {
     if (!esEmpresa && !data.empresaId) {
       setError('empresaId', { type: 'manual', message: 'Empresa es requerida' });
       return;
+    }
+
+    const empresaId = esEmpresa && empresas[0] ? empresas[0].id : data.empresaId;
+    if (!isEdit && empresaId) {
+      try {
+        const tutoresResp = await empresaService.listarTutores(empresaId);
+        const tutores = tutoresResp.data ?? [];
+        const activos = tutores.filter((t) => t.activo !== false);
+        if (activos.length === 0) {
+          toast.error('La empresa debe tener al menos un tutor activo antes de crear una vacante.');
+          return;
+        }
+      } catch {
+        toast.error('No se pudo verificar los tutores de la empresa.');
+        return;
+      }
     }
 
     const payload = {

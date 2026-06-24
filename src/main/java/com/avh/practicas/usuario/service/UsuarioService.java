@@ -8,6 +8,7 @@ import com.avh.practicas.shared.enums.Scope;
 import com.avh.practicas.shared.enums.ScopePorRol;
 import com.avh.practicas.shared.exception.NegocioException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioService {
 
     private final AuthUsuarioRepository usuarioRepository;
@@ -57,7 +59,12 @@ public class UsuarioService {
         usuario = usuarioRepository.save(usuario);
 
         if (enviarCorreo) {
-            enviarCorreoBienvenida(usuario.getCorreo(), usuario.getNombre(), passwordTemporal);
+            try {
+                enviarCorreoBienvenida(usuario.getCorreo(), usuario.getNombre(), passwordTemporal);
+            } catch (Exception e) {
+                log.warn("Usuario creado pero no se pudo enviar correo de bienvenida a {}: {}",
+                        usuario.getCorreo(), e.getMessage());
+            }
         }
 
         return usuario;

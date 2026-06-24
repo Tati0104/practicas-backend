@@ -69,6 +69,7 @@ export function extraerMensajeError(error, fallback = 'Error inesperado. Intenta
   if (typeof data === 'string') return data;
   if (data.mensaje) return data.mensaje;
   if (data.message) return data.message;
+  if (data.error && typeof data.error === 'string') return data.error;
 
   return fallback;
 }
