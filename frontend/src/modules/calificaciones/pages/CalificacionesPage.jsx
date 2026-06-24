@@ -1,4 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { resolverIdPractica } from '@/modules/seguimiento/utils/practicaId';
 import useCalificaciones from '../hooks/useCalificaciones';
 import useCalificacionesMutaciones from '../hooks/useCalificacionesMutaciones';
 import useEncuesta from '../hooks/useEncuesta';
@@ -67,7 +68,8 @@ function EncuestaPanel({
 }
 
 export default function CalificacionesPage() {
-  const { practicaId } = useParams();
+  const { practicaId: practicaIdParam } = useParams();
+  const practicaId = resolverIdPractica(practicaIdParam);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const permisos = useCalificacionesPermisos();
@@ -101,6 +103,17 @@ export default function CalificacionesPage() {
   const muestraEncuestas =
     permisos.puedeVerEncuestaTutor || permisos.puedeVerEncuestaEstudiante;
   const muestraEncuestaTutor = permisos.puedeVerEncuestaTutor && (esTutor || !esEstudiante);
+
+  if (!practicaId) {
+    return (
+      <div className="p-4 sm:p-6">
+        <ErrorState
+          mensaje="Identificador de práctica inválido. Vuelve al listado y selecciona un estudiante de nuevo."
+          onReintentar={() => navigate('/evaluaciones')}
+        />
+      </div>
+    );
+  }
 
   if (!permisos.puedeVerResumen) {
     return (

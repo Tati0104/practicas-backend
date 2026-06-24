@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useSeguimiento } from '@/modules/seguimiento/hooks/useSeguimiento';
+import { resolverIdPractica } from '@/modules/seguimiento/utils/practicaId';
 import SeguimientoFiltros from '@/modules/seguimiento/components/SeguimientoFiltros';
 import SeguimientoTabla from '@/modules/seguimiento/components/SeguimientoTabla';
 import PracticaCard from '@/modules/seguimiento/components/PracticaCard';
@@ -44,8 +45,11 @@ export default function PracticasSelectorPage({
   }, [isError]);
 
   const irAModulo = (practica) => {
-    const id = typeof practica === 'object' && practica !== null ? practica.id : practica;
-    if (!id) return;
+    const id = resolverIdPractica(practica);
+    if (!id) {
+      toast.error('No se pudo abrir la práctica: identificador inválido.');
+      return;
+    }
     navigate(construirRuta(id));
   };
 

@@ -4,6 +4,7 @@ import {
   formatearFechaSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
+import { resolverIdPractica } from '../utils/practicaId';
 import { badgeEstadoPractica } from '../utils/estadosPractica';
 
 const BADGE = {
@@ -90,7 +91,7 @@ export default function PracticaCard({
         </div>
       )}
 
-      <Button size="sm" className="w-full" onClick={() => onVerDetalle(practica)}>
+      <Button size="sm" className="w-full" onClick={() => onVerDetalle(resolverIdPractica(practica) ?? practica)}>
         {etiquetaAccion}
       </Button>
     </Card>

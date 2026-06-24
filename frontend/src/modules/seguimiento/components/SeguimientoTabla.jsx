@@ -4,6 +4,7 @@ import {
   formatearFechaSeguimiento,
   nombreEstudiantePractica,
 } from '../utils/fechas';
+import { resolverIdPractica } from '../utils/practicaId';
 import { badgeEstadoPractica } from '../utils/estadosPractica';
 
 const BADGE = {
@@ -104,7 +105,7 @@ export default function SeguimientoTabla({
                 )}
                 <td className="px-3.5 py-3 text-xs text-gray-500">{fechaStr}</td>
                 <td className="px-3.5 py-3">
-                  <Button size="sm" onClick={() => onVerDetalle(p)}>
+                  <Button size="sm" onClick={() => onVerDetalle(resolverIdPractica(p) ?? p)}>
                     {etiquetaAccion}
                   </Button>
                 </td>

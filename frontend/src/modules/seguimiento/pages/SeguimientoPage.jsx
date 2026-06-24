@@ -12,6 +12,7 @@ import PracticaCard from '../components/PracticaCard';
 import Paginacion from '../../../shared/components/Paginacion';
 import { PageHeader } from '@/shared/components/ui';
 import { ROLES_EXPEDIENTE } from '../utils/estadosPractica';
+import { resolverIdPractica } from '../utils/practicaId';
 import ModalExpedienteEstudiante from '@/modules/estudiante/components/ModalExpedienteEstudiante';
 
 function useEsDesktop() {
@@ -50,7 +51,12 @@ export default function SeguimientoPage() {
       });
       return;
     }
-    navigate(`/seguimiento/${practica.id}`);
+    const id = resolverIdPractica(practica);
+    if (!id) {
+      toast.error('No se pudo abrir la práctica: identificador inválido.');
+      return;
+    }
+    navigate(`/seguimiento/${id}`);
   };
 
   return (
