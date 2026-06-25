@@ -1,14 +1,34 @@
+# Perfil producción: credenciales y parámetros desde variables de entorno
 spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
   flyway:
     enabled: true
+    locations: classpath:db/migration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from-name: ${MAIL_FROM_NAME:Sistema de Prácticas}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+logging:
+  level:
+    root: WARN
+    com.avh.practicas: INFO
 
 server:
   port: ${PORT:8080}
@@ -17,4 +37,12 @@ jwt:
   secret: ${JWT_SECRET}
 
 mail:
-  mode: smtp
+  mode: ${MAIL_MODE:smtp}
+
+# En producción define CORS_ALLOWED_ORIGINS con la URL pública del frontend.
+# Ejemplo: https://practicas.avh.edu.co,https://www.practicas.avh.edu.co
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  frontend:
+    base-url: ${FRONTEND_BASE_URL:http://localhost:5173}

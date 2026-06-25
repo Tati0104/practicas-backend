@@ -1,0 +1,14 @@
+package com.avh.practicas.estudiante.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record DocenteAsesorRequest(
+        @NotBlank String nombreCompleto,
+        @NotBlank @Email String correo,
+        String telefono,
+        @NotNull Long programaId,
+        String areaConocimiento
+) {
+}

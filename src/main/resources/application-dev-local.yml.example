@@ -1,0 +1,14 @@
+# Copia este archivo como application-dev-local.yml (NO lo subas a Git).
+# Ubicación válida (elige una):
+#   - src/main/resources/application-dev-local.yml
+#   - ./application-dev-local.yml  (raíz del proyecto, junto a pom.xml)
+#
+# Solo necesario si quieres enviar correos reales en desarrollo (MAIL_MODE=smtp).
+
+spring:
+  mail:
+    username: "tu-correo@gmail.com"
+    password: "tu-app-password-de-gmail"
+
+mail:
+  mode: smtp
